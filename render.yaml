@@ -11,8 +11,8 @@ services:
   # Backend API Service
   - type: web
     name: daira-backend
+    env: node
     plan: free
-    runtime: node
     rootDir: backend
     buildCommand: npm install && npx prisma generate && npm run build
     startCommand: npx prisma migrate deploy && npm run start
@@ -40,7 +40,7 @@ services:
   # Frontend Static Site
   - type: web
     name: daira-frontend
-    plan: static
+    env: static
     rootDir: Frontend
     buildCommand: npm install && npm run build
     staticPublishPath: dist
