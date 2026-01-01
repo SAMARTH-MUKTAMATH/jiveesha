@@ -267,6 +267,7 @@ model Patient {
   parentLinks           ParentChild[]
   consentGrants         ConsentGrant[]
   parentScreenings      ParentScreening[]
+  peps                  PEP[]
   
   @@map("patients")
 }
@@ -683,6 +684,7 @@ model IEP {
   services              IEPService[]
   teamMembers           IEPTeamMember[]
   progressReports       IEPProgressReport[]
+  linkedPEPs            PEP[] @relation("PEPToIEP")
   
   @@index([patientId])
   @@index([status])
@@ -712,6 +714,7 @@ model IEPGoal {
   iep                   IEP       @relation(fields: [iepId], references: [id], onDelete: Cascade)
   objectives            IEPObjective[]
   progressUpdates       GoalProgressUpdate[]
+  linkedPEPGoals        PEPGoal[] @relation("PEPGoalToIEPGoal")
   
   @@map("iep_goals")
 }
@@ -995,6 +998,7 @@ model Parent {
   children              ParentChild[]
   consentGrants         ConsentGrant[]
   parentScreenings      ParentScreening[]
+  peps                  PEP[]
   
   @@index([userId])
   @@index([phone])
@@ -1184,3 +1188,216 @@ model ASQQuestion {
   @@unique([ageRange, domain, questionNumber])
   @@map("asq_questions")
 }
+
+// ============================================
+// PEP (PERSONALIZED EDUCATION PLAN) - Added in Phase 2-I1
+// ============================================
+
+model PEP {
+  id                    String    @id @default(uuid())
+  
+  // Relationships
+  parentId              String    @map("parent_id")
+  patientId             String    @map("patient_id")
+  
+  // Plan details
+  planName              String    @map("plan_name")
+  focusAreas            String    @default("[]") // JSON: ["communication", "social_skills", etc.]
+  startDate             DateTime  @map("start_date")
+  endDate               DateTime? @map("end_date")
+  
+  // Linked to professional IEP (optional)
+  linkedIEPId           String?   @map("linked_iep_id")
+  
+  // Status
+  status                String    @default("active") // active, completed, archived
+  
+  // Progress
+  overallProgress       Int       @default(0) @map("overall_progress") // 0-100%
+  
+  // Notes
+  description           String?
+  parentNotes           String?   @map("parent_notes")
+  
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+  
+  parent                Parent    @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  patient               Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  linkedIEP             IEP?      @relation("PEPToIEP", fields: [linkedIEPId], references: [id])
+  
+  goals                 PEPGoal[]
+  activities            PEPActivity[]
+  
+  @@index([parentId])
+  @@index([patientId])
+  @@index([status])
+  @@map("peps")
+}
+
+model PEPGoal {
+  id                    String    @id @default(uuid())
+  pepId                 String    @map("pep_id")
+  
+  // Goal details
+  goalNumber            Int       @map("goal_number")
+  domain                String    // communication, social, academic, motor, self_care, behavior
+  goalStatement         String    @map("goal_statement")
+  
+  // Linked to professional IEP goal (optional)
+  linkedIEPGoalId       String?   @map("linked_iep_goal_id")
+  
+  // Target
+  targetDate            DateTime? @map("target_date")
+  targetCriteria        String?   @map("target_criteria")
+  
+  // Progress
+  currentProgress       Int       @default(0) @map("current_progress") // 0-100%
+  progressStatus        String    @default("not_started") @map("progress_status")
+  
+  // Milestones
+  milestones            String    @default("[]") // JSON: [{name, completed, date}]
+  
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+  
+  pep                   PEP       @relation(fields: [pepId], references: [id], onDelete: Cascade)
+  linkedIEPGoal         IEPGoal?  @relation("PEPGoalToIEPGoal", fields: [linkedIEPGoalId], references: [id])
+  
+  activities            PEPActivity[]
+  progressUpdates       PEPGoalProgress[]
+  
+  @@index([pepId])
+  @@map("pep_goals")
+}
+
+model PEPActivity {
+  id                    String    @id @default(uuid())
+  pepId                 String    @map("pep_id")
+  goalId                String?   @map("goal_id") // Optional link to specific goal
+  
+  // Activity details
+  activityName          String    @map("activity_name")
+  activityType          String    @map("activity_type") // home_activity, educational_game, sensory_play, reading, outdoor
+  description           String
+  
+  // Instructions
+  instructions          String?
+  materials             String?   // JSON: ["blocks", "paper", etc.]
+  duration              Int?      // Duration in minutes
+  frequency             String?   // "daily", "3x per week", etc.
+  
+  // Linked resource (optional)
+  linkedResourceId      String?   @map("linked_resource_id")
+  
+  // Completion tracking
+  completionCount       Int       @default(0) @map("completion_count")
+  lastCompletedAt       DateTime? @map("last_completed_at")
+  
+  // Notes
+  parentNotes           String?   @map("parent_notes")
+  
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+  
+  pep                   PEP       @relation(fields: [pepId], references: [id], onDelete: Cascade)
+  goal                  PEPGoal?  @relation(fields: [goalId], references: [id], onDelete: SetNull)
+  linkedResource        Resource? @relation(fields: [linkedResourceId], references: [id])
+  
+  completions           ActivityCompletion[]
+  
+  @@index([pepId])
+  @@index([goalId])
+  @@map("pep_activities")
+}
+
+model ActivityCompletion {
+  id                    String    @id @default(uuid())
+  activityId            String    @map("activity_id")
+  
+  completedAt           DateTime  @default(now()) @map("completed_at")
+  duration              Int?      // Actual duration in minutes
+  
+  // Feedback
+  childEngagement       String?   @map("child_engagement") // high, medium, low
+  parentObservations    String?   @map("parent_observations")
+  challengesFaced       String?   @map("challenges_faced")
+  successesNoted        String?   @map("successes_noted")
+  
+  // Media
+  photos                String?   // JSON: URLs to photos
+  videos                String?   // JSON: URLs to videos
+  
+  activity              PEPActivity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  
+  @@index([activityId])
+  @@index([completedAt])
+  @@map("activity_completions")
+}
+
+model PEPGoalProgress {
+  id                    String    @id @default(uuid())
+  goalId                String    @map("goal_id")
+  
+  updateDate            DateTime  @default(now()) @map("update_date")
+  progressPercentage    Int       @map("progress_percentage") // 0-100
+  status                String    // not_started, in_progress, achieved, regression
+  
+  notes                 String?
+  observations          String?
+  
+  goal                  PEPGoal   @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  
+  @@index([goalId])
+  @@map("pep_goal_progress")
+}
+
+// ============================================
+// RESOURCE LIBRARY - Added in Phase 2-I1
+// ============================================
+
+model Resource {
+  id                    String    @id @default(uuid())
+  
+  // Resource details
+  title                 String
+  description           String
+  resourceType          String    @map("resource_type") // article, video, activity, worksheet, app, book
+  
+  // Content
+  contentUrl            String?   @map("content_url")
+  thumbnailUrl          String?   @map("thumbnail_url")
+  fileUrl               String?   @map("file_url")
+  
+  // Categorization
+  category              String    // communication, social_skills, motor_development, etc.
+  ageRange              String    @map("age_range") // "0-2", "2-6", etc.
+  tags                  String    @default("[]") // JSON: tags array
+  
+  // Difficulty
+  difficulty            String?   // beginner, intermediate, advanced
+  
+  // Engagement
+  views                 Int       @default(0)
+  favorites             Int       @default(0)
+  
+  // Source
+  author                String?
+  sourceUrl             String?   @map("source_url")
+  
+  // Status
+  isPublished           Boolean   @default(true) @map("is_published")
+  isFeatured            Boolean   @default(false) @map("is_featured")
+  
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+  
+  activities            PEPActivity[]
+  
+  @@index([resourceType])
+  @@index([category])
+  @@index([ageRange])
+  @@index([isPublished])
+  @@map("resources")
+}
+

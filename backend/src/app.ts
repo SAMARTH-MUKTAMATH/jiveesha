@@ -23,6 +23,8 @@ import parentAuthRoutes from './routes/parent-auth.routes';
 import parentChildrenRoutes from './routes/parent-children.routes';
 import consentRoutes from './routes/consent.routes';
 import parentScreeningRoutes from './routes/parent-screening.routes';
+import pepRoutes from './routes/pep.routes';
+import resourceRoutes from './routes/resources.routes';
 import { errorHandler } from './middleware/errorHandler';
 import { notFound } from './middleware/notFound';
 
@@ -82,6 +84,8 @@ app.use(`${API_PREFIX}/parent/auth`, parentAuthRoutes);
 app.use(`${API_PREFIX}/parent/children`, parentChildrenRoutes);
 app.use(`${API_PREFIX}/consent`, consentRoutes);
 app.use(`${API_PREFIX}/parent/screening`, parentScreeningRoutes);
+app.use(`${API_PREFIX}/parent/pep`, pepRoutes);
+app.use(`${API_PREFIX}/parent/resources`, resourceRoutes);
 
 // Error handlers
 app.use(notFound);
