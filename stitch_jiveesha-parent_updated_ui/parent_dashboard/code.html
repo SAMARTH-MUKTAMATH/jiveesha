@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Daira - Parent Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&amp;family=Noto+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "primary-light": "#eef4ff",
+                        "background-light": "#ffffff", 
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"],
+                        "body": ["Noto Sans", "sans-serif"],
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Custom scrollbar for timeline if needed */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-b from-primary-light to-white dark:from-slate-900 dark:to-background-dark min-h-screen font-display text-[#111318] dark:text-white overflow-x-hidden flex flex-col">
+<!-- Top Navigation -->
+<header class="sticky top-0 z-50 bg-white/90 dark:bg-background-dark/90 backdrop-blur-md border-b border-[#f0f2f4] dark:border-gray-800 px-4 lg:px-10 py-3 shadow-sm">
+<div class="max-w-[1400px] mx-auto flex items-center justify-between">
+<div class="flex items-center gap-4 text-primary">
+<div class="size-8 flex items-center justify-center bg-primary/10 rounded-lg text-primary">
+<span class="material-symbols-outlined">family_star</span>
+</div>
+<h2 class="text-[#111318] dark:text-white text-xl font-bold leading-tight tracking-[-0.015em]">Daira</h2>
+</div>
+<!-- Desktop Nav -->
+<div class="hidden lg:flex flex-1 justify-center gap-8">
+<a class="text-primary font-bold text-sm leading-normal" href="#">Dashboard</a>
+<a class="text-[#616f89] dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors text-sm font-medium leading-normal" href="#">My Children</a>
+<a class="text-[#616f89] dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors text-sm font-medium leading-normal" href="#">Screening</a>
+<a class="text-[#616f89] dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors text-sm font-medium leading-normal" href="#">Results</a>
+<a class="text-[#616f89] dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors text-sm font-medium leading-normal" href="#">PEP Builder</a>
+</div>
+<!-- Mobile Menu Toggle (Visible only on small screens) -->
+<div class="lg:hidden flex-1 flex justify-end mr-4">
+<button class="text-[#111318] dark:text-white p-2">
+<span class="material-symbols-outlined">menu</span>
+</button>
+</div>
+<div class="flex items-center gap-3">
+<button class="flex items-center justify-center rounded-full size-10 hover:bg-[#f0f2f4] dark:hover:bg-gray-800 transition-colors text-[#111318] dark:text-white relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 size-2 bg-red-500 rounded-full border border-white dark:border-background-dark"></span>
+</button>
+<div class="bg-center bg-no-repeat bg-cover rounded-full size-10 border-2 border-white dark:border-gray-700 shadow-sm" data-alt="Portrait of a smiling mother" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAJpFEMBgV4WClxPuc2IWl_wmNZHaMW0Vek1uNr2EBxaagJ2KwRULV0_LoryCBBTDM5VYdcGAZl9pUFlE--Sozi8ttIkxcnOGUtO2GKBWsJyMTmC4QCLmUijK9qvn6ZnFY0-Ph69mwsmLRDV6f5Zmh3zWwH31luory56OjJNUyJwZlTq1qLc3SAjzjbjou0PS7O-kzdU1L3h2h_kiHyKtJCGbqG9T7u3so0Saq3w8h0jAyx_Vnm-mkbuZdNuXtFOqIuyDWPlqVszJHO");'></div>
+</div>
+</div>
+</header>
+<main class="flex-grow w-full max-w-[1200px] mx-auto px-4 md:px-6 lg:px-8 py-6 space-y-8">
+<!-- Header & Child Switcher -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div class="flex flex-col gap-1">
+<p class="text-[#616f89] dark:text-gray-400 text-sm font-medium uppercase tracking-wide">Parent Dashboard</p>
+<h1 class="text-[#111318] dark:text-white text-3xl md:text-4xl font-black leading-tight tracking-[-0.033em]">Good morning, Sarah</h1>
+<p class="text-[#616f89] dark:text-gray-400 text-base font-normal">Here's what's happening with your family today.</p>
+</div>
+<!-- Tabs -->
+<div class="flex overflow-x-auto hide-scrollbar gap-2 pb-1 md:pb-0">
+<button class="group flex items-center gap-3 bg-white dark:bg-gray-800 border-2 border-primary rounded-full pl-2 pr-5 py-2 shadow-sm transition-all whitespace-nowrap">
+<div class="bg-center bg-no-repeat bg-cover rounded-full size-8" data-alt="Cute toddler boy smiling" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBb3idn8Z2vv9ognbvjT__4a3O86XtF2hvu8Nk8N1AQH4tArky3NnPBIDNx7bzdmRMKJfUXSsH6lFppCnTRcmxKAAQfg6rJIaxUI3FYwshWAlvsojm6ciXRoaIy7wMGepOqitvUW--cKiRiizkF1lwJ7LPHI2XFG4C3pkfz14mAY3X0-3JYW45DzsDFBg8g8aQKSN8usnpMEWMEq965e8G_xZNLp_CD7jOnmJS-VAbrj0EMohV2WuulOZhpZitYVJqcs8gA3_BSfzSa");'></div>
+<div class="flex flex-col items-start">
+<span class="text-[#111318] dark:text-white text-sm font-bold leading-none">Leo</span>
+<span class="text-primary text-xs font-semibold">18 months</span>
+</div>
+</button>
+<button class="group flex items-center gap-3 bg-white/50 dark:bg-gray-800/50 hover:bg-white dark:hover:bg-gray-800 border border-transparent hover:border-[#dbdfe6] dark:hover:border-gray-700 rounded-full pl-2 pr-5 py-2 transition-all whitespace-nowrap">
+<div class="bg-center bg-no-repeat bg-cover rounded-full size-8 grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all" data-alt="Young girl smiling with pigtails" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCRP07vDGFJob2oPEKffAbVgl_a3bxQEj5xVN4l7vTSm_Jh7RkeL7T06-dfaZ1T9JL4xBBytekpHp6tUu0I_ZIUsYgSk2UWgFbgBQvLw0424qiQSDSHSN783XnogedOrJF66UtlWjZ-lR3JFsXARGjLl9LmCa5C8u8L1qbxtFIk4j_Duxi22ZBZmauQJRf2D9VbA8gfiqKv6iJq0y0Pi1VbkkvwMpfxFavEtqD8to3wLysTsUU4cvh1B-rggUUeiicCF3jZh5_tPv_4");'></div>
+<div class="flex flex-col items-start">
+<span class="text-[#616f89] dark:text-gray-400 text-sm font-bold leading-none">Maya</span>
+<span class="text-[#9aa2b1] dark:text-gray-500 text-xs">4 years</span>
+</div>
+</button>
+<button class="flex items-center justify-center gap-2 bg-transparent border border-dashed border-[#9aa2b1] dark:border-gray-600 rounded-full px-4 py-2 text-[#616f89] dark:text-gray-400 hover:border-primary hover:text-primary transition-colors whitespace-nowrap">
+<span class="material-symbols-outlined text-[20px]">add</span>
+<span class="text-sm font-medium">Add Child</span>
+</button>
+</div>
+</div>
+<!-- Overview Stats -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+<div class="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-none border border-transparent dark:border-gray-700 flex flex-col justify-between h-32 relative overflow-hidden group">
+<div class="absolute right-[-10px] top-[-10px] bg-blue-50 dark:bg-blue-900/20 size-24 rounded-full group-hover:scale-110 transition-transform duration-500"></div>
+<div>
+<p class="text-[#616f89] dark:text-gray-400 text-sm font-medium">Active Screenings</p>
+<p class="text-[#111318] dark:text-white text-3xl font-bold mt-1">1</p>
+</div>
+<div class="flex items-center gap-1 text-primary text-xs font-medium">
+<span class="material-symbols-outlined text-[16px]">pending_actions</span>
+<span>In progress</span>
+</div>
+</div>
+<div class="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-none border border-transparent dark:border-gray-700 flex flex-col justify-between h-32 relative overflow-hidden group">
+<div class="absolute right-[-10px] top-[-10px] bg-orange-50 dark:bg-orange-900/20 size-24 rounded-full group-hover:scale-110 transition-transform duration-500"></div>
+<div>
+<p class="text-[#616f89] dark:text-gray-400 text-sm font-medium">PEPs Due</p>
+<p class="text-[#111318] dark:text-white text-3xl font-bold mt-1">3</p>
+</div>
+<div class="flex items-center gap-1 text-orange-500 text-xs font-medium">
+<span class="material-symbols-outlined text-[16px]">assignment_late</span>
+<span>Due this week</span>
+</div>
+</div>
+<div class="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-none border border-transparent dark:border-gray-700 flex flex-col justify-between h-32 relative overflow-hidden group">
+<div class="absolute right-[-10px] top-[-10px] bg-green-50 dark:bg-green-900/20 size-24 rounded-full group-hover:scale-110 transition-transform duration-500"></div>
+<div>
+<p class="text-[#616f89] dark:text-gray-400 text-sm font-medium">New Recommendations</p>
+<p class="text-[#111318] dark:text-white text-3xl font-bold mt-1">5</p>
+</div>
+<div class="flex items-center gap-1 text-green-600 text-xs font-medium">
+<span class="material-symbols-outlined text-[16px]">new_releases</span>
+<span>Check results</span>
+</div>
+</div>
+<div class="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-none border border-transparent dark:border-gray-700 flex flex-col justify-between h-32 relative overflow-hidden group cursor-pointer hover:border-primary transition-colors">
+<div class="absolute right-[-10px] top-[-10px] bg-purple-50 dark:bg-purple-900/20 size-24 rounded-full group-hover:scale-110 transition-transform duration-500"></div>
+<div>
+<p class="text-[#616f89] dark:text-gray-400 text-sm font-medium">Milestone Tracker</p>
+<p class="text-[#111318] dark:text-white text-3xl font-bold mt-1">85%</p>
+</div>
+<div class="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 mt-2">
+<div class="bg-purple-500 h-1.5 rounded-full" style="width: 85%"></div>
+</div>
+</div>
+</div>
+<!-- Main Content Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Left Column: Actions & Progress (Span 2) -->
+<div class="lg:col-span-2 flex flex-col gap-6">
+<!-- Alert Banner -->
+<div class="bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg flex items-start gap-3">
+<span class="material-symbols-outlined text-amber-600 dark:text-amber-500 mt-0.5">warning</span>
+<div class="flex-1">
+<h3 class="text-amber-900 dark:text-amber-100 font-bold text-sm">Professional Review Recommended</h3>
+<p class="text-amber-800 dark:text-amber-200 text-sm mt-1">Based on recent screening inputs for Leo's motor skills, we recommend scheduling a brief review with a clinician.</p>
+</div>
+<button class="text-amber-700 dark:text-amber-300 font-medium text-sm hover:underline whitespace-nowrap">Review</button>
+</div>
+<!-- Main Action Card -->
+<div class="flex flex-col md:flex-row bg-white dark:bg-gray-800 rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.05)] dark:shadow-none overflow-hidden">
+<div class="w-full md:w-1/3 bg-cover bg-center h-48 md:h-auto relative" data-alt="Baby playing with wooden blocks" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuC19HucqZA-zInsAi9wj0YsqGcKjf8ZSn5Ubz0By2Hzo-RET9CILlCIWNny83rJ79c_t7hKUzROUqzT8nNlr0EHxnzxsfs-wzulTrOZ14RZCof-KJIGcdoxtY-A0Y7kUF_6LVyL1SCjrEIXv7SUQpbKnNk4BAwyN-rRIiAT0fGrcNf73eBjZKZ7DGpr-NXMs5yEejxAYmW6-Cf8GgGLUEBhDHXNsYjgFKGl2nRG4rohpWnw9WgWWR5K1g0ftI2lWCVyCR8AC-g_lihy");'>
+<div class="absolute inset-0 bg-black/10"></div>
+<div class="absolute bottom-3 left-3 bg-white/90 dark:bg-black/70 backdrop-blur-sm px-2 py-1 rounded text-xs font-bold text-gray-800 dark:text-gray-200">
+                            Due: Oct 24
+                        </div>
+</div>
+<div class="p-6 flex flex-col justify-center flex-1 gap-4">
+<div>
+<div class="flex items-center gap-2 mb-2">
+<span class="bg-primary/10 text-primary text-xs font-bold px-2 py-1 rounded-md uppercase tracking-wider">Urgent</span>
+<span class="text-[#616f89] dark:text-gray-400 text-xs">Developmental Screening</span>
+</div>
+<h3 class="text-xl font-bold text-[#111318] dark:text-white">18-Month Comprehensive Check</h3>
+<p class="text-[#616f89] dark:text-gray-400 text-sm mt-2 leading-relaxed">
+                                It's time to check in on Leo's communication, gross motor, fine motor, problem-solving, and personal-social skills. This takes about 15 minutes.
+                            </p>
+</div>
+<div class="flex gap-3 mt-2">
+<button class="flex-1 bg-primary hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-lg text-sm flex items-center justify-center gap-2 transition-colors">
+<span>Start Screening</span>
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+<button class="bg-[#f0f2f4] dark:bg-gray-700 text-[#111318] dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 font-medium py-2.5 px-4 rounded-lg text-sm transition-colors">
+                                Download PDF
+                            </button>
+</div>
+</div>
+</div>
+<!-- Progress Timeline -->
+<div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-[#f0f2f4] dark:border-gray-700">
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-lg font-bold text-[#111318] dark:text-white">Milestone Journey</h3>
+<a class="text-primary text-sm font-medium hover:underline" href="#">View History</a>
+</div>
+<div class="relative">
+<!-- Connecting Line -->
+<div class="absolute top-1/2 left-0 w-full h-1 bg-[#f0f2f4] dark:bg-gray-700 -translate-y-1/2 rounded-full z-0 hidden md:block"></div>
+<div class="absolute top-4 left-4 w-1 h-full bg-[#f0f2f4] dark:bg-gray-700 -translate-x-1/2 rounded-full z-0 md:hidden"></div>
+<!-- Steps -->
+<div class="flex flex-col md:flex-row justify-between relative z-10 gap-6 md:gap-0">
+<!-- Step 1 (Completed) -->
+<div class="flex md:flex-col items-center gap-4 md:gap-2">
+<div class="size-8 rounded-full bg-green-500 text-white flex items-center justify-center ring-4 ring-white dark:ring-gray-800">
+<span class="material-symbols-outlined text-[16px]">check</span>
+</div>
+<div class="text-left md:text-center">
+<p class="text-sm font-bold text-[#111318] dark:text-white">6 Months</p>
+<p class="text-xs text-green-600 font-medium">Completed</p>
+</div>
+</div>
+<!-- Step 2 (Completed) -->
+<div class="flex md:flex-col items-center gap-4 md:gap-2">
+<div class="size-8 rounded-full bg-green-500 text-white flex items-center justify-center ring-4 ring-white dark:ring-gray-800">
+<span class="material-symbols-outlined text-[16px]">check</span>
+</div>
+<div class="text-left md:text-center">
+<p class="text-sm font-bold text-[#111318] dark:text-white">12 Months</p>
+<p class="text-xs text-green-600 font-medium">Completed</p>
+</div>
+</div>
+<!-- Step 3 (Current) -->
+<div class="flex md:flex-col items-center gap-4 md:gap-2">
+<div class="size-8 rounded-full bg-primary text-white flex items-center justify-center ring-4 ring-white dark:ring-gray-800 shadow-[0_0_0_4px_rgba(19,91,236,0.2)]">
+<span class="text-xs font-bold">18m</span>
+</div>
+<div class="text-left md:text-center">
+<p class="text-sm font-bold text-primary">18 Months</p>
+<p class="text-xs text-primary font-medium">In Progress</p>
+</div>
+</div>
+<!-- Step 4 (Future) -->
+<div class="flex md:flex-col items-center gap-4 md:gap-2">
+<div class="size-8 rounded-full bg-white dark:bg-gray-700 border-2 border-gray-300 dark:border-gray-500 text-gray-400 flex items-center justify-center ring-4 ring-white dark:ring-gray-800">
+<span class="text-xs font-bold">24m</span>
+</div>
+<div class="text-left md:text-center">
+<p class="text-sm font-bold text-gray-400">24 Months</p>
+<p class="text-xs text-gray-400">Upcoming</p>
+</div>
+</div>
+<!-- Step 5 (Future) -->
+<div class="flex md:flex-col items-center gap-4 md:gap-2">
+<div class="size-8 rounded-full bg-white dark:bg-gray-700 border-2 border-gray-300 dark:border-gray-500 text-gray-400 flex items-center justify-center ring-4 ring-white dark:ring-gray-800">
+<span class="text-xs font-bold">3y</span>
+</div>
+<div class="text-left md:text-center">
+<p class="text-sm font-bold text-gray-400">3 Years</p>
+<p class="text-xs text-gray-400">Locked</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Quick Actions & Messages (Span 1) -->
+<div class="flex flex-col gap-6">
+<!-- Quick Actions Panel -->
+<div class="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-[#f0f2f4] dark:border-gray-700">
+<h3 class="text-base font-bold text-[#111318] dark:text-white mb-4">Quick Actions</h3>
+<div class="grid grid-cols-2 gap-3">
+<button class="flex flex-col items-center justify-center gap-2 p-4 rounded-lg bg-blue-50 dark:bg-blue-900/10 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors text-primary border border-transparent hover:border-blue-200">
+<span class="material-symbols-outlined text-[28px]">clinical_notes</span>
+<span class="text-xs font-bold text-center">View PEP</span>
+</button>
+<button class="flex flex-col items-center justify-center gap-2 p-4 rounded-lg bg-purple-50 dark:bg-purple-900/10 hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors text-purple-600 dark:text-purple-400 border border-transparent hover:border-purple-200">
+<span class="material-symbols-outlined text-[28px]">medical_services</span>
+<span class="text-xs font-bold text-center">Clinician</span>
+</button>
+<button class="flex flex-col items-center justify-center gap-2 p-4 rounded-lg bg-emerald-50 dark:bg-emerald-900/10 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors text-emerald-600 dark:text-emerald-400 border border-transparent hover:border-emerald-200">
+<span class="material-symbols-outlined text-[28px]">download_for_offline</span>
+<span class="text-xs font-bold text-center">Save Offline</span>
+</button>
+<button class="flex flex-col items-center justify-center gap-2 p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-600 dark:text-gray-300 border border-transparent hover:border-gray-200">
+<span class="material-symbols-outlined text-[28px]">settings_account_box</span>
+<span class="text-xs font-bold text-center">Profile</span>
+</button>
+</div>
+</div>
+<!-- Recent Messages -->
+<div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-[#f0f2f4] dark:border-gray-700 overflow-hidden flex-1 flex flex-col">
+<div class="p-5 border-b border-[#f0f2f4] dark:border-gray-700 flex justify-between items-center">
+<h3 class="text-base font-bold text-[#111318] dark:text-white">Messages</h3>
+<span class="bg-red-100 text-red-600 text-[10px] font-bold px-2 py-0.5 rounded-full">2 New</span>
+</div>
+<div class="flex-1 overflow-y-auto max-h-[300px]">
+<a class="block p-4 border-b border-[#f0f2f4] dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors" href="#">
+<div class="flex items-start gap-3">
+<div class="size-10 rounded-full bg-blue-100 dark:bg-blue-900 text-primary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[20px]">school</span>
+</div>
+<div>
+<p class="text-sm font-bold text-[#111318] dark:text-white">Mrs. Anderson (Teacher)</p>
+<p class="text-xs text-[#616f89] dark:text-gray-400 mt-1 line-clamp-2">Leo showed great progress in group play today! Just wanted to share a quick update...</p>
+<p class="text-[10px] text-gray-400 mt-2">10:30 AM</p>
+</div>
+</div>
+</a>
+<a class="block p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors" href="#">
+<div class="flex items-start gap-3">
+<div class="size-10 rounded-full bg-purple-100 dark:bg-purple-900 text-purple-600 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[20px]">stethoscope</span>
+</div>
+<div>
+<p class="text-sm font-bold text-[#111318] dark:text-white">Dr. Smith (Pediatrician)</p>
+<p class="text-xs text-[#616f89] dark:text-gray-400 mt-1 line-clamp-2">The results from the last screening are ready for your review. Please login to...</p>
+<p class="text-[10px] text-gray-400 mt-2">Yesterday</p>
+</div>
+</div>
+</a>
+</div>
+<div class="p-3 bg-gray-50 dark:bg-gray-800/50 text-center border-t border-[#f0f2f4] dark:border-gray-700">
+<button class="text-primary text-xs font-bold hover:underline">View All Messages</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Utility Footer/Bar -->
+<div class="mt-auto border-t border-[#f0f2f4] dark:border-gray-800 bg-white dark:bg-background-dark py-4">
+<div class="max-w-[1200px] mx-auto px-4 md:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
+<div class="flex items-center gap-6">
+<button class="flex items-center gap-2 text-[#616f89] dark:text-gray-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">language</span>
+<span class="text-xs font-medium">English (US)</span>
+</button>
+<button class="flex items-center gap-2 text-[#616f89] dark:text-gray-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">accessibility_new</span>
+<span class="text-xs font-medium">Accessibility</span>
+</button>
+<button class="flex items-center gap-2 text-[#616f89] dark:text-gray-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">lock</span>
+<span class="text-xs font-medium">Data Privacy &amp; Consent</span>
+</button>
+</div>
+<p class="text-[10px] text-gray-400">© 2023 Daira. HIPAA Compliant.</p>
+</div>
+</div>
+</body></html>

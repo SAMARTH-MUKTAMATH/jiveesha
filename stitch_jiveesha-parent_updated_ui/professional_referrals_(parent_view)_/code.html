@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Daira - Professional Referrals</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&amp;family=Noto+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"],
+                        "body": ["Noto Sans", "sans-serif"],
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "md": "0.375rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Lexend', sans-serif;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(229, 231, 235, 0.5);
+        }
+        .dark .glass-card {
+            background: rgba(30, 41, 59, 0.95);
+            border: 1px solid rgba(71, 85, 105, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white min-h-screen flex flex-col font-display">
+<!-- Top Navigation -->
+<header class="sticky top-0 z-50 glass-card border-b border-slate-200 dark:border-slate-800">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="flex justify-between items-center h-16">
+<!-- Logo -->
+<div class="flex items-center gap-3">
+<div class="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-xl">child_care</span>
+</div>
+<h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Daira</h1>
+</div>
+<!-- Desktop Nav -->
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-white text-sm font-medium transition-colors" href="#">Dashboard</a>
+<a class="text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-white text-sm font-medium transition-colors" href="#">My Children</a>
+<a class="text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-white text-sm font-medium transition-colors" href="#">Screening</a>
+<a class="text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-white text-sm font-medium transition-colors" href="#">Results</a>
+<a class="text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-white text-sm font-medium transition-colors" href="#">PEP Builder</a>
+</nav>
+<!-- User Profile -->
+<div class="flex items-center gap-4">
+<button class="hidden sm:flex items-center justify-center size-10 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-500">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="flex items-center gap-3 pl-3 border-l border-slate-200 dark:border-slate-700">
+<div class="flex flex-col items-end hidden sm:flex">
+<span class="text-sm font-bold text-slate-900 dark:text-white">Sarah M.</span>
+<span class="text-xs text-slate-500 dark:text-slate-400">Parent</span>
+</div>
+<div class="size-9 rounded-full bg-cover bg-center border-2 border-white dark:border-slate-800 shadow-sm" data-alt="Portrait of a woman smiling" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAHgbZkB9mPDbumcJ3nKljdty6xZyH5X0tYrfQqjmeSGmdtVzQcE5xKD-1gxGoR7HdU7Pkkpu1VmZxhkalJLxJTHiUqBv-Oh_ckpv0K5sAUQJDZwWkkQNjMQemAUe1YVGTqIjAWWMUYjTP-hG9CQrUd0qGBXdWwTAtboh8RvA8D-bjhh9I8WNv54TdIa2fW30u9C5XPGk0oEGeVMPUMMY6dbnXct6KBCphZquFZFd1zh3JK2q1sLxZC4icW2HZOwMOeN-0cKEkVucQ9");'></div>
+</div>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- LEFT COLUMN: Search & Discovery (Span 8) -->
+<div class="lg:col-span-8 flex flex-col gap-6">
+<!-- Page Heading -->
+<div class="flex flex-col gap-2">
+<h2 class="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Find a Specialist</h2>
+<p class="text-slate-500 dark:text-slate-400 text-lg">Connect with verified professionals for your child's development needs.</p>
+</div>
+<!-- Search & Filters -->
+<div class="glass-card rounded-2xl p-4 shadow-sm flex flex-col gap-4">
+<!-- Search Input -->
+<div class="relative w-full">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-slate-400">search</span>
+</div>
+<input class="block w-full pl-10 pr-3 py-3 border-none rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all" placeholder="Search by name, specialty (e.g. Speech), or clinic" type="text"/>
+</div>
+<!-- Filters -->
+<div class="flex flex-wrap gap-3">
+<button class="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-sm font-medium text-slate-700 dark:text-slate-200">
+                            License Type <span class="material-symbols-outlined text-lg">expand_more</span>
+</button>
+<button class="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-sm font-medium text-slate-700 dark:text-slate-200">
+                            Location <span class="material-symbols-outlined text-lg">expand_more</span>
+</button>
+<button class="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-sm font-medium text-slate-700 dark:text-slate-200">
+                            Language <span class="material-symbols-outlined text-lg">expand_more</span>
+</button>
+<button class="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-sm font-medium text-slate-700 dark:text-slate-200">
+                            Insurance <span class="material-symbols-outlined text-lg">expand_more</span>
+</button>
+<button class="ml-auto text-primary text-sm font-bold hover:underline">Reset Filters</button>
+</div>
+</div>
+<!-- Results Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+<!-- Card 1 -->
+<div class="group bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-all flex flex-col gap-4">
+<div class="flex items-start gap-4">
+<div class="relative">
+<div class="size-16 rounded-xl bg-cover bg-center" data-alt="Female doctor smiling" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAqbcV8k4QBr_SZocpbjEOoK2bZzytlOXlFd3NTfTn9lZIuoSwdlHGPhMpRrU4-mVp4x_XbRsbGQ8G2TwiLJQWLsMoRj4ocCa_ABGEJHVP5A3KfEHZGubeADLOAbOq5OnuOWZcObEsisoZ7x8RMkHDthtuC7GeilIHcN6d8zUEEqzRha4avTwcMU8kvUsB9uw3_LMwPJbNem-hNIqptQmrJ-vUowuvX4lyOqroJn2X1zSPgN3JcZq-V02PudPUiQhOsJo2uYfzLYRXW");'></div>
+<div class="absolute -bottom-2 -right-2 bg-primary text-white rounded-full p-1 border-2 border-white dark:border-slate-800" title="Verified Professional">
+<span class="material-symbols-outlined text-[14px] font-bold block">verified</span>
+</div>
+</div>
+<div class="flex-1 min-w-0">
+<h3 class="text-lg font-bold text-slate-900 dark:text-white truncate">Dr. Sarah Jenkins</h3>
+<p class="text-sm text-primary font-medium">Pediatric Psychologist</p>
+<div class="flex items-center gap-1 mt-1 text-slate-500 text-xs">
+<span class="material-symbols-outlined text-[14px]">location_on</span>
+<span>5 miles away • In-person &amp; Virtual</span>
+</div>
+</div>
+</div>
+<div class="flex gap-2 flex-wrap">
+<span class="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-700 text-xs font-medium text-slate-600 dark:text-slate-300">PhD</span>
+<span class="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-700 text-xs font-medium text-slate-600 dark:text-slate-300">ASD Specialist</span>
+<span class="px-2 py-1 rounded-md bg-green-100 dark:bg-green-900/30 text-xs font-medium text-green-700 dark:text-green-400">Accepting Patients</span>
+</div>
+<div class="pt-2 mt-auto border-t border-slate-100 dark:border-slate-700 flex gap-3">
+<button class="flex-1 bg-primary hover:bg-primary/90 text-white font-bold py-2.5 px-4 rounded-lg text-sm transition-colors shadow-sm shadow-blue-200 dark:shadow-none">
+                                Request Appointment
+                            </button>
+<button class="size-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-600 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+<span class="material-symbols-outlined">bookmark</span>
+</button>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="group bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-all flex flex-col gap-4">
+<div class="flex items-start gap-4">
+<div class="relative">
+<div class="size-16 rounded-xl bg-cover bg-center" data-alt="Male doctor portrait" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB89oPrxfqr7jo5EqcM1lpaN8BjapJi2l_ZttloGTpHAkt_n_Beg6XIOLdiMnbpBlryaDtaGUjq92XyaZzmVAakDHCd-SIOnxvQYf2Yd6v0Ncz32UVBXcnFN9RAPbxcCaCAH7WM44h-p1A7HrIbvdK5kWBAOL7ivuvYTYdd1EgtCojPuz9f9Trd7beDvUEDzJtglL7AEBEkJRSHtOg8Gw3Az8c3f0HbUtuMbfSP6KQMvFbnk-ykk5Z-9QgntnhHg0JZ25NAnEdQ37UP");'></div>
+<div class="absolute -bottom-2 -right-2 bg-primary text-white rounded-full p-1 border-2 border-white dark:border-slate-800">
+<span class="material-symbols-outlined text-[14px] font-bold block">verified</span>
+</div>
+</div>
+<div class="flex-1 min-w-0">
+<h3 class="text-lg font-bold text-slate-900 dark:text-white truncate">Marc Thompson, SLP</h3>
+<p class="text-sm text-primary font-medium">Speech Language Pathologist</p>
+<div class="flex items-center gap-1 mt-1 text-slate-500 text-xs">
+<span class="material-symbols-outlined text-[14px]">videocam</span>
+<span>Virtual Only</span>
+</div>
+</div>
+</div>
+<div class="flex gap-2 flex-wrap">
+<span class="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-700 text-xs font-medium text-slate-600 dark:text-slate-300">CCC-SLP</span>
+<span class="px-2 py-1 rounded-md bg-indigo-50 dark:bg-indigo-900/30 text-xs font-medium text-indigo-700 dark:text-indigo-300">Bilingual (Spanish)</span>
+</div>
+<div class="pt-2 mt-auto border-t border-slate-100 dark:border-slate-700 flex gap-3">
+<button class="flex-1 bg-primary hover:bg-primary/90 text-white font-bold py-2.5 px-4 rounded-lg text-sm transition-colors shadow-sm shadow-blue-200 dark:shadow-none">
+                                Request Appointment
+                            </button>
+<button class="size-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-600 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+<span class="material-symbols-outlined">bookmark</span>
+</button>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="group bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-all flex flex-col gap-4">
+<div class="flex items-start gap-4">
+<div class="relative">
+<div class="size-16 rounded-xl bg-cover bg-center" data-alt="Female therapist smiling" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBHXHL3TEAM8zWaiwmkSbT67zpJjTwFXTRhQ9syvk81gvf1wEKO3d9XbOff4CEnQGRebV8Ih4CO4Z9qY6i4UC_-ud2Hg0VFdd_fftowLiUX2Qsc69wCGfM74uRLLeoHmMxP6uvJr9-UAgSQZHEqKE9-dMW2EFbsTHKwaNEJPdzAzeJJibym-E_rGH5Tddf0KDUGvM274rOh2xEEvAKl-eKEPJAedsJBWzZPgwyaTYbaeEMSHwKShs1GhwxNZubTUlitHLkTj3BGPSpJ");'></div>
+<div class="absolute -bottom-2 -right-2 bg-primary text-white rounded-full p-1 border-2 border-white dark:border-slate-800">
+<span class="material-symbols-outlined text-[14px] font-bold block">verified</span>
+</div>
+</div>
+<div class="flex-1 min-w-0">
+<h3 class="text-lg font-bold text-slate-900 dark:text-white truncate">Dr. Emily Chen</h3>
+<p class="text-sm text-primary font-medium">Developmental Pediatrician</p>
+<div class="flex items-center gap-1 mt-1 text-slate-500 text-xs">
+<span class="material-symbols-outlined text-[14px]">location_on</span>
+<span>2.4 miles away • Downtown Clinic</span>
+</div>
+</div>
+</div>
+<div class="flex gap-2 flex-wrap">
+<span class="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-700 text-xs font-medium text-slate-600 dark:text-slate-300">MD</span>
+<span class="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-700 text-xs font-medium text-slate-600 dark:text-slate-300">Early Intervention</span>
+</div>
+<div class="pt-2 mt-auto border-t border-slate-100 dark:border-slate-700 flex gap-3">
+<button class="flex-1 bg-primary hover:bg-primary/90 text-white font-bold py-2.5 px-4 rounded-lg text-sm transition-colors shadow-sm shadow-blue-200 dark:shadow-none">
+                                Request Appointment
+                            </button>
+<button class="size-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-600 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+<span class="material-symbols-outlined">bookmark</span>
+</button>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="group bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-all flex flex-col gap-4">
+<div class="flex items-start gap-4">
+<div class="relative">
+<div class="size-16 rounded-xl bg-cover bg-center" data-alt="Clinic building exterior or team" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBwbnI-GzTpxKfjOCa35cAktwjEBqW-VAOaGuE7InELpGEMZkWuucvUGsH_OHrlxQmYHa-d2KHLOo8-QLgMbHi1VBMBINxFmqJOiT2rfcvE4A9RxzT_mezHJMCUDoTU7DY_zbfPBmxCZk5Oxr7UnTdEArsNIcSibDRIxklDzMBGksX5clEMTZkr9H2VjbpEphExlfwtcySeotUR-PYmMwqSEiwdHoq8Vnj3L32Du4XI5uzQpAe2W-D1V8GVHG7R9hV1ySFHcOf8yrjO");'></div>
+<div class="absolute -bottom-2 -right-2 bg-slate-400 text-white rounded-full p-1 border-2 border-white dark:border-slate-800">
+<span class="material-symbols-outlined text-[14px] font-bold block">verified</span>
+</div>
+</div>
+<div class="flex-1 min-w-0">
+<h3 class="text-lg font-bold text-slate-900 dark:text-white truncate">Horizon Therapy Center</h3>
+<p class="text-sm text-primary font-medium">Occupational Therapy Group</p>
+<div class="flex items-center gap-1 mt-1 text-slate-500 text-xs">
+<span class="material-symbols-outlined text-[14px]">location_on</span>
+<span>10 miles away • Westside</span>
+</div>
+</div>
+</div>
+<div class="flex gap-2 flex-wrap">
+<span class="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-700 text-xs font-medium text-slate-600 dark:text-slate-300">OT</span>
+<span class="px-2 py-1 rounded-md bg-amber-50 dark:bg-amber-900/30 text-xs font-medium text-amber-700 dark:text-amber-400">Waitlist: 2 weeks</span>
+</div>
+<div class="pt-2 mt-auto border-t border-slate-100 dark:border-slate-700 flex gap-3">
+<button class="flex-1 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold py-2.5 px-4 rounded-lg text-sm transition-colors">
+                                Join Waitlist
+                            </button>
+<button class="size-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-600 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+<span class="material-symbols-outlined">bookmark</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- RIGHT COLUMN: Management & Tracking (Span 4) -->
+<div class="lg:col-span-4 flex flex-col gap-6">
+<!-- Section Title -->
+<div class="flex items-center justify-between">
+<h3 class="text-lg font-bold text-slate-900 dark:text-white">Active Activity</h3>
+<a class="text-xs font-medium text-primary hover:underline" href="#">View All</a>
+</div>
+<!-- Tele-assessment Module (Upcoming) -->
+<div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-blue-700 p-5 text-white shadow-lg shadow-blue-200 dark:shadow-none">
+<div class="absolute top-0 right-0 p-4 opacity-10">
+<span class="material-symbols-outlined text-[120px]">videocam</span>
+</div>
+<div class="relative z-10 flex flex-col gap-4">
+<div class="flex items-center gap-2">
+<span class="flex h-2 w-2 rounded-full bg-red-400 animate-pulse"></span>
+<p class="text-xs font-semibold uppercase tracking-wider text-blue-100">Upcoming Session</p>
+</div>
+<div>
+<h4 class="text-xl font-bold">Tele-assessment</h4>
+<p class="text-blue-100 text-sm">with Dr. Sarah Jenkins</p>
+</div>
+<div class="flex items-center gap-2 text-sm bg-white/20 rounded-lg p-2 w-fit backdrop-blur-sm">
+<span class="material-symbols-outlined text-base">calendar_today</span>
+<span class="font-medium">Tomorrow, 10:00 AM</span>
+</div>
+<button class="mt-2 w-full rounded-lg bg-white py-2.5 text-center text-sm font-bold text-primary hover:bg-blue-50 transition-colors">
+                            View Instructions
+                        </button>
+</div>
+</div>
+<!-- Referral Status Tracker -->
+<div class="glass-card rounded-2xl p-5 shadow-sm border border-slate-200 dark:border-slate-700">
+<h4 class="font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                        Referral Status
+                        <span class="bg-blue-100 text-primary text-[10px] px-2 py-0.5 rounded-full">2 Active</span>
+</h4>
+<div class="flex flex-col gap-6">
+<!-- Tracker Item 1 -->
+<div class="relative pl-6 border-l-2 border-slate-200 dark:border-slate-700 pb-2">
+<div class="absolute -left-[9px] top-0 size-4 rounded-full bg-green-500 border-4 border-white dark:border-slate-800 box-content"></div>
+<div class="flex flex-col gap-1 -mt-1">
+<div class="flex justify-between items-start">
+<span class="text-sm font-bold text-slate-800 dark:text-white">Dr. Sarah Jenkins</span>
+<span class="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">ACCEPTED</span>
+</div>
+<p class="text-xs text-slate-500">Referral accepted on Oct 24. Please schedule your first session.</p>
+<button class="mt-2 text-xs font-medium text-primary flex items-center gap-1 hover:underline">
+                                    Schedule Now <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Tracker Item 2 -->
+<div class="relative pl-6 border-l-2 border-slate-200 dark:border-slate-700">
+<div class="absolute -left-[9px] top-0 size-4 rounded-full bg-amber-400 border-4 border-white dark:border-slate-800 box-content"></div>
+<div class="flex flex-col gap-1 -mt-1">
+<div class="flex justify-between items-start">
+<span class="text-sm font-bold text-slate-800 dark:text-white">Marc Thompson, SLP</span>
+<span class="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">REQUESTED</span>
+</div>
+<p class="text-xs text-slate-500">Request sent Oct 26. Awaiting provider response.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Messaging Stub -->
+<div class="glass-card rounded-2xl p-5 shadow-sm border border-slate-200 dark:border-slate-700">
+<div class="flex items-center justify-between mb-4">
+<h4 class="font-bold text-slate-900 dark:text-white">Messages</h4>
+<span class="material-symbols-outlined text-slate-400 text-sm">lock</span>
+</div>
+<div class="flex flex-col gap-3">
+<div class="flex items-center gap-3 p-2 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg cursor-pointer transition-colors">
+<div class="relative">
+<div class="size-10 rounded-full bg-cover bg-center" data-alt="Dr Jenkins Avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuC6fxba1dIXGJLlF7FfxMGhBiAJa-6FTj2k8O53oBgNVygO6E6i-MFltUsCmE_Iw5pRzlu8u10nSVp1MCMLnUuPL_YY-zZTu21TRmAZ8jox0GODBRbRR9MxMX52nt36YhA45aqIO0zTLx_hp7Xwin1kIygDnjXIQ-IudpIpNhg7_p-qnT8hWnRKZIjTCy0gijmGxXN_WSeI7CIGtamMKdGhAqbuaxri1XN8RWSBzu2awRq0zH--1mikXqHbb9DLcCm-xfcjLfLtGLWa");'></div>
+<span class="absolute bottom-0 right-0 size-2.5 rounded-full bg-green-500 border-2 border-white dark:border-slate-800"></span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-center mb-0.5">
+<p class="text-sm font-bold text-slate-900 dark:text-white truncate">Dr. Sarah Jenkins</p>
+<span class="text-[10px] text-slate-400">2m ago</span>
+</div>
+<p class="text-xs text-slate-500 truncate">Please bring the IEP form...</p>
+</div>
+</div>
+<!-- Locked Stub -->
+<div class="flex items-center gap-3 p-2 rounded-lg opacity-50 cursor-not-allowed">
+<div class="size-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-400">
+<span class="material-symbols-outlined text-lg">person</span>
+</div>
+<div class="flex-1">
+<p class="text-xs text-slate-500 italic">Messaging unlocks after referral acceptance.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Help Card -->
+<div class="bg-blue-50 dark:bg-slate-800/50 rounded-xl p-4 flex gap-3 items-start">
+<span class="material-symbols-outlined text-primary text-xl mt-0.5">help</span>
+<div>
+<h4 class="text-sm font-bold text-slate-900 dark:text-white">Need help finding someone?</h4>
+<p class="text-xs text-slate-500 mt-1 mb-2">Our care team can help match you with the right specialist.</p>
+<a class="text-xs font-bold text-primary hover:underline" href="#">Contact Support</a>
+</div>
+</div>
+</div>
+</div>
+</main>
+<footer class="mt-auto border-t border-slate-200 dark:border-slate-800 py-8 bg-white dark:bg-slate-900">
+<div class="max-w-7xl mx-auto px-4 text-center">
+<p class="text-sm text-slate-400">© 2024 Daira Health. All rights reserved.</p>
+<div class="flex justify-center gap-6 mt-4">
+<a class="text-xs text-slate-500 hover:text-primary transition-colors" href="#">Privacy Policy</a>
+<a class="text-xs text-slate-500 hover:text-primary transition-colors" href="#">Terms of Service</a>
+<a class="text-xs text-slate-500 hover:text-primary transition-colors" href="#">Help Center</a>
+</div>
+</div>
+</footer>
+</body></html>

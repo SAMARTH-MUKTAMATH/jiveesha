@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Daira - Screening Results</title>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "secondary": "#EAF0FC", // Very soft blue for backgrounds
+                        "accent": "#4CAF50", // Success green, soft
+                        "warning": "#FF9800", // Soft orange for monitoring
+                        "background-light": "#F8FAFC",
+                        "background-dark": "#101622",
+                        "text-main": "#1e293b",
+                        "text-muted": "#64748b",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"],
+                        "body": ["Lexend", "sans-serif"],
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "0.75rem",
+                        "xl": "1rem",
+                        "2xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                    boxShadow: {
+                        "soft": "0 4px 20px -2px rgba(19, 91, 236, 0.08)",
+                        "card": "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Lexend', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        /* Gradient Background */
+        .page-gradient {
+            background: linear-gradient(180deg, #EAF0FC 0%, #FFFFFF 40%);
+        }
+    </style>
+</head>
+<body class="page-gradient min-h-screen flex flex-col text-text-main">
+<!-- Top Navigation -->
+<header class="sticky top-0 z-50 glass-card border-b border-slate-100 shadow-sm">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="flex justify-between items-center h-16">
+<!-- Logo -->
+<div class="flex items-center gap-3">
+<div class="bg-primary/10 p-2 rounded-lg text-primary">
+<span class="material-symbols-outlined text-2xl">family_star</span>
+</div>
+<span class="text-xl font-bold tracking-tight text-slate-900">Daira</span>
+</div>
+<!-- Desktop Nav -->
+<nav class="hidden md:flex gap-8 items-center">
+<a class="text-sm font-medium text-slate-600 hover:text-primary transition-colors" href="#">Dashboard</a>
+<a class="text-sm font-medium text-slate-600 hover:text-primary transition-colors" href="#">My children</a>
+<a class="text-sm font-medium text-slate-600 hover:text-primary transition-colors" href="#">Screening</a>
+<a class="text-sm font-bold text-primary relative after:content-[''] after:absolute after:w-full after:h-0.5 after:bg-primary after:-bottom-5 after:left-0" href="#">Results</a>
+<a class="text-sm font-medium text-slate-600 hover:text-primary transition-colors" href="#">PEP Builder</a>
+</nav>
+<!-- User Profile -->
+<div class="flex items-center gap-4">
+<button class="p-2 text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="h-9 w-9 rounded-full bg-slate-200 border-2 border-white shadow-sm bg-cover bg-center cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all" data-alt="Profile picture of a smiling woman" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBygBvUWkxvsW2XEIjedQha9-OF-Y2ZCwo4bAOzaETS4bNr_ODFe6YuhjnzcpgcRbKZfpcyK-R7wH4JKtCVShU5AlpZKP1yIDVkFEvFP18m6nKf729eRUANNem-Wr2GaatCcl6mDTeiYgZV7Ma0GZN4z29BQVO7r4KBiQEwtwTGdTmdw4MyfSVJHxz_ORBR3iXqBh-aXMqRcZ51OdL3mCLHkCy6HjBcIPyo2k9A8_nutw96e26CxnTDJxuErwkeNjLEkIybEuqZ4GLe');"></div>
+<button class="md:hidden p-2 text-slate-600">
+<span class="material-symbols-outlined">menu</span>
+</button>
+</div>
+</div>
+</div>
+</header>
+<main class="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+<!-- Page Header -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div>
+<div class="flex items-center gap-2 text-sm text-slate-500 mb-2">
+<span class="material-symbols-outlined text-lg">arrow_back</span>
+<a class="hover:underline" href="#">Back to Screening History</a>
+</div>
+<h1 class="text-3xl font-bold text-slate-900">Screening Results: Emma</h1>
+<p class="text-slate-500 mt-1 flex items-center gap-2">
+<span class="material-symbols-outlined text-base">event</span>
+                    Assessment Date: Oct 24, 2023
+                </p>
+</div>
+<div class="flex gap-3">
+<button class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-primary transition-colors shadow-sm">
+<span class="material-symbols-outlined text-lg">print</span>
+                    Print
+                </button>
+<button class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-primary transition-colors shadow-sm">
+<span class="material-symbols-outlined text-lg">download</span>
+                    Download Report
+                </button>
+</div>
+</div>
+<!-- Hero Summary Card -->
+<div class="bg-white rounded-xl shadow-soft overflow-hidden border border-slate-100">
+<div class="p-6 md:p-8 flex flex-col md:flex-row gap-8 items-start">
+<div class="flex-1 space-y-4">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-50 text-orange-700 text-sm font-semibold border border-orange-100">
+<span class="material-symbols-outlined text-lg">info</span>
+                        Monitoring Recommended
+                    </div>
+<h2 class="text-2xl font-bold text-slate-900">What this could mean</h2>
+<p class="text-slate-600 leading-relaxed text-lg">
+                        Emma is showing strong skills in <strong>Communication</strong> and <strong>Social-Emotional</strong> development. We noticed some areas in <strong>Motor Skills</strong> that might benefit from a little extra practice. This is very common at this age and often improves quickly with simple, fun activities at home.
+                    </p>
+<div class="pt-2 flex flex-wrap gap-3">
+<button class="bg-primary hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium text-sm flex items-center gap-2 shadow-lg shadow-blue-500/20 transition-all">
+                            Request Professional Assessment
+                            <span class="material-symbols-outlined text-lg">shield_person</span>
+</button>
+<button class="bg-white border border-slate-200 hover:border-primary hover:text-primary text-slate-700 px-5 py-2.5 rounded-lg font-medium text-sm flex items-center gap-2 transition-all">
+                            Share with Teacher
+                            <span class="material-symbols-outlined text-lg">share</span>
+</button>
+</div>
+</div>
+<!-- Gentle Illustration / Visual -->
+<div class="hidden md:block w-1/3 aspect-[4/3] rounded-lg bg-cover bg-center shadow-inner" data-alt="Soft focused image of a child playing with colorful blocks on a rug" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBZDcBBqhTb9vmdl5TwFQdiQtikDcBRapVyUqw8tlHTj3kXvvfNyZ8yW_DR7proFWPdapR0VzlOkFk_qlmGy9pUcRz9QHCyL0CccIOftsva24I_OMLdHRaug1jGStCc3xuKON_Uxmr4Tyu79N3vjIQhCD_kf7RC6q5E8S--3SP5LxJnDGoh0CJjB2F4_ue-VkLmy8bWsMqTRKoOJADdASsa_-cqNEZDLuNjCcdplSAdLJNAUIUM1qNO4TDQIu5YtJVgmW-EtlImUIw-');">
+</div>
+</div>
+</div>
+<!-- Detailed Breakdown Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<!-- Card 1: Communication -->
+<div class="bg-white p-6 rounded-xl border border-slate-100 shadow-card hover:shadow-soft transition-shadow">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-green-50 text-green-600 rounded-lg">
+<span class="material-symbols-outlined">chat_bubble</span>
+</div>
+<span class="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">On Track</span>
+</div>
+<h3 class="font-bold text-slate-900 text-lg mb-1">Communication</h3>
+<p class="text-sm text-slate-500 mb-4">Uses 2-3 word sentences</p>
+<div class="w-full bg-slate-100 rounded-full h-2 mb-2">
+<div class="bg-green-500 h-2 rounded-full" style="width: 85%"></div>
+</div>
+<p class="text-xs text-slate-400 text-right">85/100</p>
+</div>
+<!-- Card 2: Motor Skills -->
+<div class="bg-white p-6 rounded-xl border-l-4 border-l-orange-400 border-y border-r border-slate-100 shadow-card hover:shadow-soft transition-shadow">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-orange-50 text-orange-600 rounded-lg">
+<span class="material-symbols-outlined">directions_run</span>
+</div>
+<span class="px-2 py-1 bg-orange-100 text-orange-700 text-xs font-bold rounded-full">Needs Practice</span>
+</div>
+<h3 class="font-bold text-slate-900 text-lg mb-1">Motor Skills</h3>
+<p class="text-sm text-slate-500 mb-4">Difficulty with small objects</p>
+<div class="w-full bg-slate-100 rounded-full h-2 mb-2">
+<div class="bg-orange-400 h-2 rounded-full" style="width: 45%"></div>
+</div>
+<p class="text-xs text-slate-400 text-right">45/100</p>
+</div>
+<!-- Card 3: Social-Emotional -->
+<div class="bg-white p-6 rounded-xl border border-slate-100 shadow-card hover:shadow-soft transition-shadow">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-green-50 text-green-600 rounded-lg">
+<span class="material-symbols-outlined">sentiment_satisfied</span>
+</div>
+<span class="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">On Track</span>
+</div>
+<h3 class="font-bold text-slate-900 text-lg mb-1">Social-Emotional</h3>
+<p class="text-sm text-slate-500 mb-4">Interacts well with peers</p>
+<div class="w-full bg-slate-100 rounded-full h-2 mb-2">
+<div class="bg-green-500 h-2 rounded-full" style="width: 90%"></div>
+</div>
+<p class="text-xs text-slate-400 text-right">90/100</p>
+</div>
+<!-- Card 4: Cognitive -->
+<div class="bg-white p-6 rounded-xl border border-slate-100 shadow-card hover:shadow-soft transition-shadow">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-green-50 text-green-600 rounded-lg">
+<span class="material-symbols-outlined">psychology</span>
+</div>
+<span class="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">On Track</span>
+</div>
+<h3 class="font-bold text-slate-900 text-lg mb-1">Cognitive</h3>
+<p class="text-sm text-slate-500 mb-4">Solves simple puzzles</p>
+<div class="w-full bg-slate-100 rounded-full h-2 mb-2">
+<div class="bg-green-500 h-2 rounded-full" style="width: 78%"></div>
+</div>
+<p class="text-xs text-slate-400 text-right">78/100</p>
+</div>
+</div>
+<!-- Middle Section: PEP & Trends -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- PEP Recommendation Card -->
+<div class="lg:col-span-2 bg-gradient-to-br from-primary/5 to-white p-6 md:p-8 rounded-xl border border-primary/10 shadow-sm relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
+<span class="material-symbols-outlined text-9xl text-primary">school</span>
+</div>
+<div class="relative z-10">
+<div class="flex items-center gap-3 mb-6">
+<div class="p-2 bg-white rounded-lg shadow-sm text-primary">
+<span class="material-symbols-outlined">verified</span>
+</div>
+<h2 class="text-xl font-bold text-slate-900">Recommended PEP Goals</h2>
+</div>
+<div class="space-y-4">
+<!-- Goal 1 -->
+<div class="flex items-start gap-4 p-4 bg-white rounded-lg border border-slate-100 shadow-sm">
+<div class="mt-1 flex-shrink-0 size-6 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-xs">1</div>
+<div>
+<h4 class="font-semibold text-slate-900">Fine Motor Practice</h4>
+<p class="text-sm text-slate-600 mt-1">Practice picking up small cereal pieces (Cheerios) using only thumb and index finger.</p>
+<a class="inline-flex items-center gap-1 text-primary text-sm font-medium mt-2 hover:underline" href="#">
+                                    View Activity Guide <span class="material-symbols-outlined text-base">arrow_forward</span>
+</a>
+</div>
+</div>
+<!-- Goal 2 -->
+<div class="flex items-start gap-4 p-4 bg-white rounded-lg border border-slate-100 shadow-sm">
+<div class="mt-1 flex-shrink-0 size-6 rounded-full bg-blue-100 text-primary flex items-center justify-center font-bold text-xs">2</div>
+<div>
+<h4 class="font-semibold text-slate-900">Expand Vocabulary</h4>
+<p class="text-sm text-slate-600 mt-1">Introduce two new descriptive words daily (e.g., "soft bunny", "blue truck").</p>
+<a class="inline-flex items-center gap-1 text-primary text-sm font-medium mt-2 hover:underline" href="#">
+                                    View Activity Guide <span class="material-symbols-outlined text-base">arrow_forward</span>
+</a>
+</div>
+</div>
+</div>
+<div class="mt-6">
+<button class="text-sm font-medium text-slate-500 hover:text-primary transition-colors flex items-center gap-2">
+                            Go to PEP Builder <span class="material-symbols-outlined">open_in_new</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Historical Trends -->
+<div class="bg-white p-6 rounded-xl border border-slate-100 shadow-card flex flex-col">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-bold text-slate-900 text-lg">Progress Trend</h3>
+<select class="text-xs bg-slate-50 border-none rounded text-slate-500 py-1 px-2 cursor-pointer hover:bg-slate-100 focus:ring-0">
+<option>Last 6 Months</option>
+<option>Last Year</option>
+</select>
+</div>
+<div class="flex-grow flex items-end justify-between px-2 gap-2 h-48 mb-4">
+<!-- Fake Chart Bars -->
+<div class="w-full flex flex-col gap-2 items-center group">
+<div class="w-full bg-primary/20 rounded-t-md relative h-[40%] group-hover:bg-primary/30 transition-colors"></div>
+<span class="text-xs text-slate-400">May</span>
+</div>
+<div class="w-full flex flex-col gap-2 items-center group">
+<div class="w-full bg-primary/30 rounded-t-md h-[55%] group-hover:bg-primary/40 transition-colors"></div>
+<span class="text-xs text-slate-400">Jun</span>
+</div>
+<div class="w-full flex flex-col gap-2 items-center group">
+<div class="w-full bg-primary/40 rounded-t-md h-[50%] group-hover:bg-primary/50 transition-colors"></div>
+<span class="text-xs text-slate-400">Jul</span>
+</div>
+<div class="w-full flex flex-col gap-2 items-center group">
+<div class="w-full bg-primary/60 rounded-t-md h-[70%] group-hover:bg-primary/70 transition-colors"></div>
+<span class="text-xs text-slate-400">Aug</span>
+</div>
+<div class="w-full flex flex-col gap-2 items-center group">
+<div class="w-full bg-primary/80 rounded-t-md h-[75%] group-hover:bg-primary/90 transition-colors"></div>
+<span class="text-xs text-slate-400">Sep</span>
+</div>
+<div class="w-full flex flex-col gap-2 items-center group">
+<div class="w-full bg-primary rounded-t-md h-[85%] shadow-lg shadow-primary/20"></div>
+<span class="text-xs font-bold text-primary">Oct</span>
+</div>
+</div>
+<p class="text-sm text-slate-500 text-center">
+                    Emma's overall development score is trending <span class="text-green-600 font-bold">upwards</span>.
+                </p>
+</div>
+</div>
+<!-- Resources Section -->
+<div>
+<div class="flex justify-between items-center mb-6">
+<h2 class="text-2xl font-bold text-slate-900">Helpful Resources for You</h2>
+<a class="text-primary text-sm font-medium hover:underline" href="#">View all resources</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Resource 1 -->
+<a class="group block bg-white rounded-xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300" href="#">
+<div class="h-40 bg-cover bg-center" data-alt="Close up of child's hands playing with wooden shape sorter toy" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB2WaySGYnQlASd5VEsBUANekVfB5Ur3kpOTnAN16QvgyAfvrFL1BgPt06u-esLs4NGkLxnym4wkwbYqBW1pzm_JHv__l3CFQVDE_n6IVvFiyaqKYshZoVGpl2EL2MqYedyZ4OJRhaCIGB-dgUvVDZdim4o6417K5RRLdaxVAmlfsbw2GtAz4gtrE44KMw-D5v9LzhSjBPzh1yyvRz1Y0_06z9j9c48wsk-2U-D4r97B710oPyeEQ0seTdocs6AvRGD8u9zQJ2GmekM');"></div>
+<div class="p-5">
+<div class="flex items-center gap-2 mb-2">
+<span class="bg-blue-50 text-primary text-[10px] uppercase font-bold px-2 py-0.5 rounded">Activity</span>
+</div>
+<h3 class="font-bold text-slate-900 mb-2 group-hover:text-primary transition-colors">Fun Motor Skills Games at Home</h3>
+<p class="text-sm text-slate-500">Simple everyday games that boost hand-eye coordination without fancy toys.</p>
+</div>
+</a>
+<!-- Resource 2 -->
+<a class="group block bg-white rounded-xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300" href="#">
+<div class="h-40 bg-cover bg-center" data-alt="Parent reading a book to a toddler on a cozy sofa" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCl7ZRft3_P-qzYS7f49Z8FOq6ZSGKAX41gQw75FpnVDUf7L817_-ThFJVlyIfoZR7kJL9AlFRwKWRsVbYgwkX_dAOFQ25KdOxn_VNoxtD63JvNd4jEYBBfDx3xONGcCXPrYcNFcX2-V79HpguToQLOYddRzTTjClGY0LPHfF9tVbDGk7CeowmgSaa8HtKL7r0wODspCIfqTpMi7hZ8VCjcAsqA_yZkw3i4E6Y92KzPvVCDD-eK8-7qq7mtarhAKGHLJbzVl8ZejUtP');"></div>
+<div class="p-5">
+<div class="flex items-center gap-2 mb-2">
+<span class="bg-purple-50 text-purple-600 text-[10px] uppercase font-bold px-2 py-0.5 rounded">Article</span>
+</div>
+<h3 class="font-bold text-slate-900 mb-2 group-hover:text-primary transition-colors">Understanding Developmental Milestones</h3>
+<p class="text-sm text-slate-500">A guide to what to expect and when, reducing anxiety for new parents.</p>
+</div>
+</a>
+<!-- Resource 3 -->
+<a class="group block bg-white rounded-xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300" href="#">
+<div class="h-40 bg-cover bg-center" data-alt="Children drawing and coloring on a large paper" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC2LfIjnNoK8vmMWWZs4X0lFi320UhBf583LlDKLGxSAWzEFVPmiM8YBpPx8FG2vEJi1u4zTdGgNgdcqXPSIVSCr6vTT198ovG0OPJiDwMaiCS6L71v38ahvUo0_k2_kMOTVYn7LJsS8vrYGyScB8tloeyMFy0CdG5TgLAK_PfgGD0sZxJ4tvs6bzcI7qqTdgP54U3gIxc8f32xsR65oNg6tk5snp5UvuzjKZnBiL2BB1iFBmHAqtX_0i0mIeYByhOoPmjqrOL5xG6T');"></div>
+<div class="p-5">
+<div class="flex items-center gap-2 mb-2">
+<span class="bg-blue-50 text-primary text-[10px] uppercase font-bold px-2 py-0.5 rounded">Activity</span>
+</div>
+<h3 class="font-bold text-slate-900 mb-2 group-hover:text-primary transition-colors">Creative Expression for Toddlers</h3>
+<p class="text-sm text-slate-500">How to encourage emotional growth through art and messy play.</p>
+</div>
+</a>
+</div>
+</div>
+<!-- Privacy & Research Opt-in Footer -->
+<div class="mt-12 bg-slate-50 rounded-xl p-8 border border-slate-200">
+<div class="flex flex-col md:flex-row gap-8 items-start justify-between">
+<div class="flex-1">
+<div class="flex items-center gap-2 text-slate-800 font-bold mb-2">
+<span class="material-symbols-outlined text-primary">lock</span>
+                        Your Privacy &amp; Data Safety
+                    </div>
+<p class="text-sm text-slate-600 mb-4 max-w-2xl">
+                        Your child's screening results are private and encrypted. We only share this data with professionals you explicitly authorize. You can revoke access at any time from your settings.
+                    </p>
+<a class="text-sm font-medium text-primary hover:underline" href="#">Read our Privacy Policy</a>
+</div>
+<div class="w-full md:w-auto bg-white p-5 rounded-lg border border-slate-200 shadow-sm max-w-md">
+<h4 class="font-bold text-slate-900 text-sm mb-2">Contribute to Child Development Research?</h4>
+<p class="text-xs text-slate-500 mb-4">
+                        Help us improve screening tools for all children by sharing <strong>anonymized</strong> data with our research partners. No personal identifiers are shared.
+                    </p>
+<div class="flex items-center justify-between">
+<label class="inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox" value=""/>
+<div class="relative w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+<span class="ms-3 text-sm font-medium text-slate-700">Yes, opt-in</span>
+</label>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Simple Footer -->
+<footer class="bg-white border-t border-slate-100 py-8 mt-12">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm text-slate-400">
+<p>© 2024 Daira. All rights reserved.</p>
+</div>
+</footer>
+</body></html>

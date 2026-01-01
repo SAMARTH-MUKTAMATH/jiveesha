@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Daira - Screening Flow</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "primary-light": "#eef4ff",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "md": "0.375rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px" },
+                    boxShadow: {
+                        "glass": "0 4px 30px rgba(0, 0, 0, 0.1)",
+                        "soft": "0 4px 20px -2px rgba(0, 0, 0, 0.05)",
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .dark .glass-nav {
+            background: rgba(16, 22, 34, 0.85);
+        }
+        /* Custom scrollbar for clean look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen flex flex-col antialiased selection:bg-primary selection:text-white">
+<!-- Top Navigation -->
+<header class="fixed top-0 left-0 right-0 z-50 glass-nav border-b border-slate-200 dark:border-slate-800 transition-all duration-300">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="flex items-center justify-between h-16">
+<!-- Logo & Brand -->
+<div class="flex items-center gap-3">
+<div class="text-primary">
+<span class="material-symbols-outlined text-[32px]">spa</span>
+</div>
+<h2 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white hidden sm:block">Daira</h2>
+</div>
+<!-- Desktop Nav Links -->
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-primary font-medium text-sm transition-colors" href="#">Dashboard</a>
+<a class="text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-primary font-medium text-sm transition-colors" href="#">My children</a>
+<a class="text-primary font-semibold text-sm" href="#">Screening</a>
+<a class="text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-primary font-medium text-sm transition-colors" href="#">Results</a>
+</nav>
+<!-- Actions -->
+<div class="flex items-center gap-4">
+<div class="hidden sm:flex items-center text-xs text-slate-500 font-medium">
+<span class="material-symbols-outlined text-sm mr-1 text-green-500">cloud_done</span>
+                        Autosaved
+                    </div>
+<button class="flex items-center justify-center h-9 px-4 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 text-sm font-semibold transition-colors">
+                        Save &amp; Exit
+                    </button>
+<div class="relative group cursor-pointer">
+<div class="w-9 h-9 rounded-full bg-cover bg-center border-2 border-white dark:border-slate-700 shadow-sm" data-alt="Parent profile avatar showing a smiling face" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB-EiCf0jy5MXUaRFhhTx0UwHEKQLBW_jy1O6wM5w8lYXeLXDnb24M863AIc4LqPFj8MyOvf1Zu-FH6Sn2ir6PfsIUKuHmTFepf2poMcE4_1ilXQQk33jTSVNHr5Bs2nLkY81PuCvIPsAADkF8kSZvfM2Ar0Rd5SvWteSEzQuC-g_Vapn3MzGl7zlxE2WTLMOT8bv0PXzWr6a8KkluHy5Il2998a1a2P2obUhFTwJridVIz5nmlhN2fK1SLG21h3txJNw4GWajaCNUX");'></div>
+</div>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-grow pt-24 pb-20 px-4 sm:px-6">
+<div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- Left Column: Screening Content (Span 8) -->
+<div class="lg:col-span-8 flex flex-col gap-6">
+<!-- Progress Header -->
+<div class="bg-white dark:bg-slate-800 rounded-xl p-5 shadow-sm border border-slate-100 dark:border-slate-700">
+<div class="flex justify-between items-end mb-2">
+<div>
+<p class="text-xs font-bold text-primary uppercase tracking-wider mb-1">Domain 2 of 5</p>
+<h3 class="text-lg font-semibold text-slate-800 dark:text-white">Social &amp; Communication</h3>
+</div>
+<span class="text-sm font-bold text-slate-600 dark:text-slate-400">45%</span>
+</div>
+<div class="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2.5 overflow-hidden">
+<div class="bg-primary h-2.5 rounded-full transition-all duration-500 ease-out" style="width: 45%"></div>
+</div>
+</div>
+<!-- Question Card -->
+<div class="bg-white dark:bg-slate-800 rounded-2xl shadow-soft border border-slate-100 dark:border-slate-700 overflow-hidden relative group/card">
+<!-- Decorative Gradient Top -->
+<div class="h-1 w-full bg-gradient-to-r from-blue-300 via-primary to-indigo-400"></div>
+<div class="p-6 sm:p-8 flex flex-col gap-6">
+<!-- Question Text -->
+<div class="flex flex-col gap-4">
+<span class="inline-flex items-center w-fit px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-semibold">
+<span class="material-symbols-outlined text-sm mr-1">visibility</span> Gaze Test
+                            </span>
+<h1 class="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white leading-tight">
+                                Does your child make eye contact when you call their name?
+                            </h1>
+</div>
+<!-- Visual Aid & Context -->
+<div class="flex flex-col sm:flex-row gap-4">
+<!-- Helper Accordion -->
+<div class="flex-1">
+<details class="group bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700 open:bg-blue-50/50 dark:open:bg-blue-900/10 transition-colors" open="">
+<summary class="flex cursor-pointer items-center justify-between p-4 list-none text-slate-700 dark:text-slate-300 font-medium select-none">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">info</span>
+<span>Why it matters</span>
+</div>
+<span class="material-symbols-outlined transition-transform duration-200 group-open:rotate-180">expand_more</span>
+</summary>
+<div class="px-4 pb-4 pt-0 text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+                                        Consistent eye contact indicates your child is paying attention and interested in interaction. It is a foundational skill for social bonding and learning from others.
+                                    </div>
+</details>
+</div>
+<!-- Video Thumbnail -->
+<div class="sm:w-1/3 w-full aspect-video sm:aspect-auto sm:h-auto rounded-xl bg-slate-100 dark:bg-slate-700 relative overflow-hidden group cursor-pointer border border-slate-200 dark:border-slate-600">
+<div class="absolute inset-0 bg-cover bg-center opacity-90 transition-opacity group-hover:opacity-75" data-alt="A parent and child making eye contact in a bright living room" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBRMVEod4Pf-5nXy3WG-d09EkDs2lpu96fRaDHOMpGIEHHoMJka3t895Ug12xJ08uafhNIWHcgoNtswlfSPcbcxReI9KiXxZtaxD81kGDwYkbJuKp8nAJoczFtZ_oWY2S49qVGkCm9YacvknntBn4FlG7ULV8bY0W5NOxOYRCDRbiGZMr4iaMjev1p1tnQ0uRkWI7wBnQoTJGHXvqR6TfkukTF3TIY0ZGLfb-RO0Rk8o_EFmTW-mtdHZzp3nDdtz4zEXBjumYIzVt05");'></div>
+<div class="absolute inset-0 flex items-center justify-center">
+<div class="bg-white/90 dark:bg-slate-800/90 rounded-full p-2 pl-2.5 shadow-lg backdrop-blur-sm">
+<span class="material-symbols-outlined text-primary">play_arrow</span>
+</div>
+</div>
+<div class="absolute bottom-2 right-2 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded font-medium">0:15</div>
+</div>
+</div>
+<hr class="border-slate-100 dark:border-slate-700"/>
+<!-- Response Options -->
+<div class="flex flex-col gap-3">
+<p class="text-sm font-medium text-slate-500 dark:text-slate-400">Select the best match:</p>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+<!-- Option 1 -->
+<label class="cursor-pointer relative">
+<input class="peer sr-only" name="response" type="radio"/>
+<div class="h-full p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-slate-800 peer-checked:border-primary peer-checked:bg-primary-light dark:peer-checked:bg-primary/20 transition-all flex flex-col items-center justify-center text-center gap-2 group">
+<div class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 group-hover:bg-blue-100 dark:group-hover:bg-slate-600 peer-checked:bg-primary peer-checked:text-white flex items-center justify-center text-slate-400 peer-checked:shadow-md transition-colors">
+<span class="material-symbols-outlined text-lg">check</span>
+</div>
+<span class="font-semibold text-slate-700 dark:text-slate-200 peer-checked:text-primary dark:peer-checked:text-blue-300">Yes, always</span>
+</div>
+</label>
+<!-- Option 2 (Selected) -->
+<label class="cursor-pointer relative">
+<input checked="" class="peer sr-only" name="response" type="radio"/>
+<div class="h-full p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-slate-800 peer-checked:border-primary peer-checked:bg-primary-light dark:peer-checked:bg-primary/20 transition-all flex flex-col items-center justify-center text-center gap-2 group">
+<div class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 group-hover:bg-blue-100 dark:group-hover:bg-slate-600 peer-checked:bg-primary peer-checked:text-white flex items-center justify-center text-slate-400 peer-checked:shadow-md transition-colors">
+<span class="material-symbols-outlined text-lg">remove</span>
+</div>
+<span class="font-semibold text-slate-700 dark:text-slate-200 peer-checked:text-primary dark:peer-checked:text-blue-300">Sometimes</span>
+</div>
+</label>
+<!-- Option 3 -->
+<label class="cursor-pointer relative">
+<input class="peer sr-only" name="response" type="radio"/>
+<div class="h-full p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-slate-800 peer-checked:border-primary peer-checked:bg-primary-light dark:peer-checked:bg-primary/20 transition-all flex flex-col items-center justify-center text-center gap-2 group">
+<div class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 group-hover:bg-blue-100 dark:group-hover:bg-slate-600 peer-checked:bg-primary peer-checked:text-white flex items-center justify-center text-slate-400 peer-checked:shadow-md transition-colors">
+<span class="material-symbols-outlined text-lg">close</span>
+</div>
+<span class="font-semibold text-slate-700 dark:text-slate-200 peer-checked:text-primary dark:peer-checked:text-blue-300">No, rarely</span>
+</div>
+</label>
+</div>
+<div class="flex flex-wrap justify-between items-center mt-2 px-1">
+<button class="text-sm text-slate-500 dark:text-slate-400 hover:text-primary font-medium underline decoration-dotted underline-offset-4">
+                                    I don't know / Not sure
+                                </button>
+<button class="text-sm text-slate-500 dark:text-slate-400 hover:text-primary font-medium underline decoration-dotted underline-offset-4">
+                                    Prefer not to answer
+                                </button>
+</div>
+</div>
+<!-- Video Upload (Optional) -->
+<div class="mt-4 p-4 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-primary/50 dark:hover:border-primary/50 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-all cursor-pointer group">
+<div class="flex items-center gap-4">
+<div class="h-10 w-10 rounded-lg bg-blue-50 dark:bg-slate-700 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">videocam</span>
+</div>
+<div class="flex-1">
+<p class="text-sm font-semibold text-slate-800 dark:text-white group-hover:text-primary transition-colors">Upload a video (Optional)</p>
+<p class="text-xs text-slate-500 dark:text-slate-400">Capture this behavior to help verify results.</p>
+</div>
+<span class="material-symbols-outlined text-slate-300 group-hover:text-primary transition-colors">add_circle</span>
+</div>
+</div>
+</div>
+<!-- Card Footer Actions -->
+<div class="px-6 py-4 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-700 flex justify-between items-center">
+<button class="px-5 py-2.5 rounded-lg text-slate-600 dark:text-slate-300 font-semibold hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">arrow_back</span> Previous
+                        </button>
+<button class="px-6 py-2.5 rounded-lg bg-primary hover:bg-blue-700 text-white font-bold shadow-lg shadow-blue-500/30 transition-all flex items-center gap-2 transform active:scale-95">
+                            Next Question <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Right Column: Sidebar (Span 4) -->
+<div class="lg:col-span-4 flex flex-col gap-6">
+<!-- Accessibility Tools -->
+<div class="bg-white dark:bg-slate-800 rounded-xl p-5 shadow-sm border border-slate-100 dark:border-slate-700">
+<p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Accessibility</p>
+<div class="flex gap-2">
+<button class="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-slate-700 dark:text-slate-300 font-medium text-sm">
+<span class="material-symbols-outlined text-lg">text_fields</span>
+<span>Size</span>
+</button>
+<button class="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-slate-700 dark:text-slate-300 font-medium text-sm">
+<span class="material-symbols-outlined text-lg">record_voice_over</span>
+<span>Read</span>
+</button>
+</div>
+</div>
+<!-- Scoring Preview -->
+<div class="bg-gradient-to-br from-white to-blue-50 dark:from-slate-800 dark:to-slate-800 rounded-xl p-5 shadow-sm border border-blue-100 dark:border-slate-700 relative overflow-hidden">
+<div class="absolute -right-6 -top-6 w-24 h-24 bg-blue-100 dark:bg-blue-900/30 rounded-full blur-2xl"></div>
+<div class="relative z-10">
+<div class="flex items-center gap-2 mb-2 text-primary">
+<span class="material-symbols-outlined text-lg">insights</span>
+<span class="text-xs font-bold uppercase tracking-wider">Preliminary Insight</span>
+</div>
+<p class="text-sm text-slate-700 dark:text-slate-300 leading-relaxed mb-3">
+                            Based on your answers so far, <span class="font-semibold text-slate-900 dark:text-white">Daira</span> is showing typical development patterns for social engagement.
+                        </p>
+<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> On Track
+                        </div>
+</div>
+</div>
+<!-- Help Box -->
+<div class="bg-white dark:bg-slate-800 rounded-xl p-5 shadow-sm border border-slate-100 dark:border-slate-700">
+<div class="flex items-start gap-3">
+<div class="bg-slate-100 dark:bg-slate-700 p-2 rounded-lg text-slate-500">
+<span class="material-symbols-outlined">help</span>
+</div>
+<div>
+<h4 class="font-semibold text-slate-900 dark:text-white text-sm">Need clarification?</h4>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-1 mb-3">Not sure how to interpret a question? Our developmental specialists are here to help.</p>
+<a class="text-primary text-sm font-semibold hover:underline" href="#">View Guide</a>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Mobile Sticky Action Bar (Visible on mobile only if needed, but styling here covers responsive layout) -->
+<!-- The design already has a footer inside the card which works well on mobile as the card stacks. -->
+</body></html>

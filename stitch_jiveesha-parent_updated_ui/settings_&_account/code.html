@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Settings &amp; Account - Daira</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "primary-dark": "#0e45b5",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "md": "0.5rem",
+                        "lg": "0.75rem",
+                        "xl": "1rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar for better aesthetic */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 20px;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background-color: #334155;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display transition-colors duration-200">
+<div class="min-h-screen flex flex-col">
+<!-- Navigation -->
+<header class="sticky top-0 z-50 flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-[#101622]/80 backdrop-blur-md px-6 py-3 lg:px-10">
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined text-3xl font-bold">bubble_chart</span>
+<h2 class="text-slate-900 dark:text-white text-xl font-bold leading-tight tracking-tight">Daira</h2>
+</div>
+</div>
+<nav class="hidden lg:flex items-center gap-8">
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-colors text-sm font-medium" href="#">Dashboard</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-colors text-sm font-medium" href="#">My children</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-colors text-sm font-medium" href="#">Screening</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-colors text-sm font-medium" href="#">Results</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-colors text-sm font-medium" href="#">PEP Builder</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="flex items-center justify-center p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors lg:hidden">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<div class="bg-center bg-no-repeat bg-cover rounded-full h-9 w-9 ring-2 ring-primary/20" data-alt="User profile avatar image" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAnlVjkG1QXcxDOcuCiwgVmHW4abCq09jCMHNuj0zFZKDblGgwldmYJ9fMOoLR_eGo-5PhoXner_SKRz1wW-6SQTvfA3_mg-JRX35fOFbrZYnkXnBWOw-hDHRElefNVS5xuUtA8BhzVuhTNi0Kd02nfZSRDfKtRVD7RgR1M5u-27GIEPBFrmqigVRvxkWWt2iZOIVR4dVuhPVKLwG3qVEyy6LextbvvDHhTXor-qhMNyrw2TihJtJXaNTARkjmnzcOip4B6mxlIronP");'></div>
+</div>
+</header>
+<div class="flex-1 w-full max-w-[1440px] mx-auto p-4 lg:p-8">
+<!-- Page Header -->
+<div class="mb-8 px-2">
+<h1 class="text-3xl lg:text-4xl font-black tracking-tight text-slate-900 dark:text-white mb-2">Settings &amp; Account</h1>
+<p class="text-slate-500 dark:text-slate-400 text-base lg:text-lg">Manage your family profile, privacy preferences, and linked professionals.</p>
+</div>
+<div class="flex flex-col lg:flex-row gap-8 items-start">
+<!-- Sidebar Navigation -->
+<aside class="w-full lg:w-72 flex-shrink-0 bg-white dark:bg-[#151e2e] rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden sticky top-24">
+<div class="p-4 flex flex-col gap-1">
+<h3 class="px-3 pb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Preferences</h3>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary font-medium transition-all group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform">person</span>
+                            Profile &amp; Family
+                        </a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all font-medium group" href="#">
+<span class="material-symbols-outlined text-[20px] text-slate-400 group-hover:text-primary transition-colors">school</span>
+                            Linked Schools
+                        </a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all font-medium group" href="#">
+<span class="material-symbols-outlined text-[20px] text-slate-400 group-hover:text-primary transition-colors">notifications</span>
+                            Notifications
+                        </a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all font-medium group" href="#">
+<span class="material-symbols-outlined text-[20px] text-slate-400 group-hover:text-primary transition-colors">shield</span>
+                            Data &amp; Privacy
+                        </a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all font-medium group" href="#">
+<span class="material-symbols-outlined text-[20px] text-slate-400 group-hover:text-primary transition-colors">accessibility_new</span>
+                            Accessibility
+                        </a>
+</div>
+<div class="px-4 pb-4 mt-4 border-t border-slate-100 dark:border-slate-800 pt-4">
+<button class="flex w-full items-center gap-3 px-3 py-2.5 rounded-lg text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 transition-all font-medium text-sm">
+<span class="material-symbols-outlined text-[20px]">logout</span>
+                            Sign Out
+                        </button>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 w-full flex flex-col gap-6">
+<!-- Profile Section -->
+<section class="bg-white dark:bg-[#151e2e] rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 p-6">
+<div class="flex flex-col md:flex-row gap-6 items-start md:items-center border-b border-slate-100 dark:border-slate-700 pb-6 mb-6">
+<div class="relative group cursor-pointer">
+<div class="w-24 h-24 rounded-full bg-cover bg-center ring-4 ring-slate-50 dark:ring-slate-800" data-alt="Profile picture of Sarah Jenkins" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCBo5pOPkunHjgeWEp9D2NhtLwnknsMLUMYgFqGgIAqBQT2NLKUw6Fs6wnXeCDB4QLU_7oBOa-QRnLxBDDevH8brhJcVH-5cw1SLEykrF_O5T2dOLQSZQeOHFvywURMmLgMzTFVxYetBA0rKuQblR6hFUmSBLoQmtwJRTpAk5Z7HOhv-ZbG5PImzTMSm9bkxHbBDEcaf6eUjyu77wg414MJzQNY2prYTN1wwCJz4W-CISuSFYE7JzcInhhtKuFzZBUtfIAwXBR5WoY3");'></div>
+<div class="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
+<span class="material-symbols-outlined">edit</span>
+</div>
+</div>
+<div class="flex-1">
+<h2 class="text-xl font-bold text-slate-900 dark:text-white">Sarah Jenkins</h2>
+<p class="text-slate-500 dark:text-slate-400">Primary Parent Account</p>
+<div class="flex gap-2 mt-3">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                        Active
+                                    </span>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-200">
+                                        Premium Plan
+                                    </span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<label class="flex flex-col gap-2">
+<span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Full Name</span>
+<input class="form-input rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:ring-primary focus:border-primary transition-shadow h-11" type="text" value="Sarah Jenkins"/>
+</label>
+<label class="flex flex-col gap-2">
+<span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Email Address</span>
+<input class="form-input rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:ring-primary focus:border-primary transition-shadow h-11" type="email" value="sarah.j@example.com"/>
+</label>
+<label class="flex flex-col gap-2">
+<span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Phone Number</span>
+<input class="form-input rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:ring-primary focus:border-primary transition-shadow h-11" type="tel" value="+1 (555) 123-4567"/>
+</label>
+<label class="flex flex-col gap-2">
+<span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Emergency Contact</span>
+<input class="form-input rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:ring-primary focus:border-primary transition-shadow h-11" placeholder="Add contact name" type="text"/>
+</label>
+</div>
+<div class="mt-6 flex justify-end">
+<button class="bg-primary hover:bg-primary-dark text-white px-5 py-2.5 rounded-lg font-medium shadow-lg shadow-primary/20 transition-all active:scale-95">Save Changes</button>
+</div>
+</section>
+<!-- Linked Schools -->
+<section class="bg-white dark:bg-[#151e2e] rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 p-6">
+<div class="flex justify-between items-center mb-6">
+<div>
+<h3 class="text-lg font-bold text-slate-900 dark:text-white">Linked Schools &amp; Professionals</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Manage who has access to your children's screening results.</p>
+</div>
+<button class="text-primary hover:bg-primary/5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors border border-primary/20">
+                                + Link New
+                            </button>
+</div>
+<div class="space-y-4">
+<!-- School Item 1 -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 gap-4">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-white dark:bg-slate-800 flex items-center justify-center text-primary shadow-sm">
+<span class="material-symbols-outlined">school</span>
+</div>
+<div>
+<p class="font-semibold text-slate-900 dark:text-white">Springfield Elementary</p>
+<p class="text-sm text-slate-500 dark:text-slate-400">Access: View Only • Updated 2d ago</p>
+</div>
+</div>
+<button class="text-slate-500 hover:text-red-600 text-sm font-medium px-3 py-1.5 rounded-md hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors">Revoke Access</button>
+</div>
+<!-- Professional Item 2 -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 gap-4">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-white dark:bg-slate-800 flex items-center justify-center text-primary shadow-sm">
+<span class="material-symbols-outlined">stethoscope</span>
+</div>
+<div>
+<p class="font-semibold text-slate-900 dark:text-white">Dr. Emily Chen, Pediatrician</p>
+<p class="text-sm text-slate-500 dark:text-slate-400">Access: Full Screening Data</p>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="text-primary hover:text-primary-dark text-sm font-medium px-3 py-1.5 rounded-md hover:bg-primary/5 transition-colors">Manage</button>
+</div>
+</div>
+</div>
+<div class="mt-6 pt-6 border-t border-slate-100 dark:border-slate-800">
+<h4 class="text-sm font-semibold text-slate-900 dark:text-white mb-3">Consent Defaults</h4>
+<label class="flex items-start gap-3 cursor-pointer group">
+<div class="relative flex items-center">
+<input class="peer h-5 w-5 cursor-pointer appearance-none rounded border border-slate-300 bg-white checked:bg-primary checked:border-primary focus:ring-2 focus:ring-primary/20 dark:border-slate-600 dark:bg-slate-800 transition-all" type="checkbox"/>
+<span class="material-symbols-outlined absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-[16px] text-white opacity-0 peer-checked:opacity-100 pointer-events-none">check</span>
+</div>
+<span class="text-sm text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Automatically pre-approve access for clinicians within the Daira Verified Network.</span>
+</label>
+</div>
+</section>
+<!-- Notifications & Accessibility Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+<!-- Notifications -->
+<section class="bg-white dark:bg-[#151e2e] rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 p-6 flex flex-col h-full">
+<h3 class="text-lg font-bold text-slate-900 dark:text-white mb-4">Notifications</h3>
+<div class="space-y-6 flex-1">
+<div class="flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-medium text-slate-900 dark:text-white">Weekly Progress</span>
+<span class="text-sm text-slate-500 dark:text-slate-400">Receive summaries via email</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 dark:peer-focus:ring-primary/30 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+</label>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-medium text-slate-900 dark:text-white">Screening Alerts</span>
+<span class="text-sm text-slate-500 dark:text-slate-400">Push notifications for results</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 dark:peer-focus:ring-primary/30 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+</label>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-medium text-slate-900 dark:text-white">SMS Updates</span>
+<span class="text-sm text-slate-500 dark:text-slate-400">Urgent account alerts only</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 dark:peer-focus:ring-primary/30 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+</section>
+<!-- Accessibility & Language -->
+<section class="bg-white dark:bg-[#151e2e] rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 p-6 flex flex-col h-full">
+<h3 class="text-lg font-bold text-slate-900 dark:text-white mb-4">Accessibility</h3>
+<div class="space-y-6">
+<label class="block">
+<span class="text-sm font-semibold text-slate-700 dark:text-slate-300 block mb-2">Language</span>
+<select class="form-select block w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:ring-primary focus:border-primary h-11">
+<option>English (US)</option>
+<option>Spanish</option>
+<option>French</option>
+</select>
+</label>
+<div>
+<div class="flex justify-between mb-2">
+<span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Text Size</span>
+<span class="text-xs font-medium text-slate-500">Default</span>
+</div>
+<input class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer dark:bg-slate-700 accent-primary" max="100" min="0" type="range"/>
+<div class="flex justify-between mt-1 text-xs text-slate-400">
+<span>A</span>
+<span class="text-base">A</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Data & Privacy -->
+<section class="bg-white dark:bg-[#151e2e] rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 p-6">
+<div class="flex items-center gap-2 mb-4 text-slate-900 dark:text-white">
+<span class="material-symbols-outlined text-green-600">lock</span>
+<h3 class="text-lg font-bold">Data &amp; Privacy</h3>
+</div>
+<div class="bg-slate-50 dark:bg-slate-900/50 rounded-lg p-5 border border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+<div>
+<h4 class="font-semibold text-slate-900 dark:text-white">Download My Data</h4>
+<p class="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-md">Get a copy of all screening results, PEP plans, and account activity in a portable format.</p>
+</div>
+<button class="whitespace-nowrap flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 transition-colors font-medium">
+<span class="material-symbols-outlined text-[20px]">download</span>
+                                Download Archive
+                            </button>
+</div>
+<div class="mt-6">
+<label class="flex items-start gap-3 cursor-pointer group">
+<div class="relative flex items-center pt-0.5">
+<input class="peer h-5 w-5 cursor-pointer appearance-none rounded border border-slate-300 bg-white checked:bg-primary checked:border-primary focus:ring-2 focus:ring-primary/20 dark:border-slate-600 dark:bg-slate-800 transition-all" type="checkbox"/>
+<span class="material-symbols-outlined absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-[16px] text-white opacity-0 peer-checked:opacity-100 pointer-events-none">check</span>
+</div>
+<span class="text-sm text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">I consent to sharing anonymized screening data for developmental research purposes.</span>
+</label>
+</div>
+<div class="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800">
+<a class="text-red-600 hover:text-red-700 text-sm font-medium hover:underline decoration-red-600/30 underline-offset-4" href="#">Delete my account and all associated data</a>
+</div>
+</section>
+</main>
+</div>
+</div>
+</div>
+</body></html>

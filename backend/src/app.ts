@@ -12,6 +12,17 @@ import patientRoutes from './routes/patients.routes';
 import appointmentRoutes from './routes/appointments.routes';
 import dashboardRoutes from './routes/dashboard.routes';
 import settingsRoutes from './routes/settings.routes';
+import sessionRoutes from './routes/sessions.routes';
+import journalRoutes from './routes/journal.routes';
+import assessmentRoutes from './routes/assessments.routes';
+import iepRoutes from './routes/iep.routes';
+import interventionRoutes from './routes/interventions.routes';
+import reportRoutes from './routes/reports.routes';
+import messageRoutes from './routes/messages.routes';
+import parentAuthRoutes from './routes/parent-auth.routes';
+import parentChildrenRoutes from './routes/parent-children.routes';
+import consentRoutes from './routes/consent.routes';
+import parentScreeningRoutes from './routes/parent-screening.routes';
 import { errorHandler } from './middleware/errorHandler';
 import { notFound } from './middleware/notFound';
 
@@ -60,6 +71,17 @@ app.use(`${API_PREFIX}/patients`, patientRoutes);
 app.use(`${API_PREFIX}/appointments`, appointmentRoutes);
 app.use(`${API_PREFIX}/dashboard`, dashboardRoutes);
 app.use(`${API_PREFIX}/settings`, settingsRoutes);
+app.use(`${API_PREFIX}/sessions`, sessionRoutes);
+app.use(`${API_PREFIX}/journal`, journalRoutes);
+app.use(`${API_PREFIX}/assessments`, assessmentRoutes);
+app.use(`${API_PREFIX}/iep`, iepRoutes);
+app.use(`${API_PREFIX}/interventions`, interventionRoutes);
+app.use(`${API_PREFIX}/reports`, reportRoutes);
+app.use(`${API_PREFIX}/messages`, messageRoutes);
+app.use(`${API_PREFIX}/parent/auth`, parentAuthRoutes);
+app.use(`${API_PREFIX}/parent/children`, parentChildrenRoutes);
+app.use(`${API_PREFIX}/consent`, consentRoutes);
+app.use(`${API_PREFIX}/parent/screening`, parentScreeningRoutes);
 
 // Error handlers
 app.use(notFound);

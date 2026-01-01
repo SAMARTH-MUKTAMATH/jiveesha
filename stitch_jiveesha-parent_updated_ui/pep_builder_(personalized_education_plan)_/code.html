@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Daira - PEP Builder</title>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&amp;family=Noto+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1d83dd",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#111921",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"],
+                        "body": ["Noto Sans", "sans-serif"],
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar for cleaner look */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="font-display bg-background-light dark:bg-background-dark text-slate-900 dark:text-white transition-colors duration-200">
+<!-- Main Wrapper with Soft Gradient -->
+<div class="relative min-h-screen w-full flex flex-col overflow-x-hidden bg-gradient-to-b from-primary/10 via-background-light to-background-light dark:from-primary/5 dark:via-background-dark dark:to-background-dark">
+<!-- Top Navigation -->
+<header class="sticky top-0 z-50 flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md px-6 py-3 lg:px-10">
+<div class="flex items-center gap-4 text-slate-900 dark:text-white">
+<div class="size-8 text-primary">
+<svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M13.8261 30.5736C16.7203 29.8826 20.2244 29.4783 24 29.4783C27.7756 29.4783 31.2797 29.8826 34.1739 30.5736C36.9144 31.2278 39.9967 32.7669 41.3563 33.8352L24.8486 7.36089C24.4571 6.73303 23.5429 6.73303 23.1514 7.36089L6.64374 33.8352C8.00331 32.7669 11.0856 31.2278 13.8261 30.5736Z" fill="currentColor"></path>
+<path clip-rule="evenodd" d="M39.998 35.764C39.9944 35.7463 39.9875 35.7155 39.9748 35.6706C39.9436 35.5601 39.8949 35.4259 39.8346 35.2825C39.8168 35.2403 39.7989 35.1993 39.7813 35.1602C38.5103 34.2887 35.9788 33.0607 33.7095 32.5189C30.9875 31.8691 27.6413 31.4783 24 31.4783C20.3587 31.4783 17.0125 31.8691 14.2905 32.5189C12.0012 33.0654 9.44505 34.3104 8.18538 35.1832C8.17384 35.2075 8.16216 35.233 8.15052 35.2592C8.09919 35.3751 8.05721 35.4886 8.02977 35.589C8.00356 35.6848 8.00039 35.7333 8.00004 35.7388C8.00004 35.739 8 35.7393 8.00004 35.7388C8.00004 35.7641 8.0104 36.0767 8.68485 36.6314C9.34546 37.1746 10.4222 37.7531 11.9291 38.2772C14.9242 39.319 19.1919 40 24 40C28.8081 40 33.0758 39.319 36.0709 38.2772C37.5778 37.7531 38.6545 37.1746 39.3151 36.6314C39.9006 36.1499 39.9857 35.8511 39.998 35.764ZM4.95178 32.7688L21.4543 6.30267C22.6288 4.4191 25.3712 4.41909 26.5457 6.30267L43.0534 32.777C43.0709 32.8052 43.0878 32.8338 43.104 32.8629L41.3563 33.8352C43.104 32.8629 43.1038 32.8626 43.104 32.8629L43.1051 32.865L43.1065 32.8675L43.1101 32.8739L43.1199 32.8918C43.1276 32.906 43.1377 32.9246 43.1497 32.9473C43.1738 32.9925 43.2062 33.0545 43.244 33.1299C43.319 33.2792 43.4196 33.489 43.5217 33.7317C43.6901 34.1321 44 34.9311 44 35.7391C44 37.4427 43.003 38.7775 41.8558 39.7209C40.6947 40.6757 39.1354 41.4464 37.385 42.0552C33.8654 43.2794 29.133 44 24 44C18.867 44 14.1346 43.2794 10.615 42.0552C8.86463 41.4464 7.30529 40.6757 6.14419 39.7209C4.99695 38.7775 3.99999 37.4427 3.99999 35.7391C3.99999 34.8725 4.29264 34.0922 4.49321 33.6393C4.60375 33.3898 4.71348 33.1804 4.79687 33.0311C4.83898 32.9556 4.87547 32.8935 4.9035 32.8471C4.91754 32.8238 4.92954 32.8043 4.93916 32.7889L4.94662 32.777L4.95178 32.7688ZM35.9868 29.004L24 9.77997L12.0131 29.004C12.4661 28.8609 12.9179 28.7342 13.3617 28.6282C16.4281 27.8961 20.0901 27.4783 24 27.4783C27.9099 27.4783 31.5719 27.8961 34.6383 28.6282C35.082 28.7342 35.5339 28.8609 35.9868 29.004Z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+<h2 class="text-lg font-bold leading-tight tracking-[-0.015em]">Daira</h2>
+</div>
+<nav class="hidden md:flex items-center gap-8 ml-8 flex-1">
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary transition-colors text-sm font-medium leading-normal" href="#">Dashboard</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary transition-colors text-sm font-medium leading-normal" href="#">My Children</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary transition-colors text-sm font-medium leading-normal" href="#">Screening</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary transition-colors text-sm font-medium leading-normal" href="#">Results</a>
+<a class="text-primary text-sm font-bold leading-normal relative after:content-[''] after:absolute after:-bottom-[21px] after:left-0 after:w-full after:h-0.5 after:bg-primary" href="#">PEP Builder</a>
+</nav>
+<div class="flex flex-1 justify-end gap-3 sm:gap-4 items-center">
+<button class="flex items-center justify-center rounded-lg size-10 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+</button>
+<div class="bg-center bg-no-repeat bg-cover rounded-full size-10 border-2 border-white dark:border-slate-800 shadow-sm" data-alt="Profile picture of a parent" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBg7POM2zG8Jc_c9ulkm_glgw9Q1CBdaRWYkIc1RoBviFmN9e5zrsx-K_2LVAKVWAvDGI_XVCYZYBTtbjLbYJFEVWaSxjQ7L2L9WyLvIzvnbboZNjyACO_RQSXhvlBTAUEgla2u8XlEhyjqPPXsHkL0NAn0YjoAXuvqzjhOYnej4-HGOVMw7EXjh7ogbROvVgoC6ecdYHXS2-2ITFTvnkHKUslQtK-mAjqKPlM6eqcQjl-othXANey57dLAlupW-lM_UXXEegvTqY_t");'></div>
+</div>
+</header>
+<!-- Main Content Container -->
+<main class="flex-1 w-full max-w-[1400px] mx-auto px-4 md:px-8 py-8">
+<!-- Page Header -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+<div class="flex flex-col gap-2">
+<div class="flex items-center gap-3">
+<h1 class="text-slate-900 dark:text-white text-3xl md:text-4xl font-bold tracking-tight">PEP for Arjun</h1>
+<span class="inline-flex items-center rounded-full bg-emerald-100 dark:bg-emerald-900/30 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400 ring-1 ring-inset ring-emerald-600/20">Active Plan</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-base">Fall 2023 • 3 Active Goals • 85% Plan Completion</p>
+</div>
+<div class="flex gap-3">
+<button class="hidden md:flex items-center justify-center gap-2 rounded-lg h-10 px-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition shadow-sm">
+<span class="material-symbols-outlined text-[20px]">print</span>
+<span>Print</span>
+</button>
+<button class="flex items-center justify-center gap-2 rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold hover:bg-primary/90 transition shadow-md shadow-primary/20">
+<span class="material-symbols-outlined text-[20px]">add</span>
+<span>Create New Goal</span>
+</button>
+</div>
+</div>
+<!-- Dashboard Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- Left Column (Main Content) -->
+<div class="lg:col-span-8 flex flex-col gap-8">
+<!-- Stats Overview -->
+<section class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+<div class="bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-100 dark:border-slate-700 shadow-sm flex flex-col gap-1 hover:shadow-md transition-shadow">
+<div class="flex items-center gap-2 text-primary mb-1">
+<span class="material-symbols-outlined">flag</span>
+<span class="text-xs font-bold uppercase tracking-wider">Active Goals</span>
+</div>
+<span class="text-3xl font-bold text-slate-900 dark:text-white">3</span>
+<span class="text-sm text-slate-500 dark:text-slate-400">Next review in 12 days</span>
+</div>
+<div class="bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-100 dark:border-slate-700 shadow-sm flex flex-col gap-1 hover:shadow-md transition-shadow">
+<div class="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 mb-1">
+<span class="material-symbols-outlined">check_circle</span>
+<span class="text-xs font-bold uppercase tracking-wider">Completion</span>
+</div>
+<span class="text-3xl font-bold text-slate-900 dark:text-white">85%</span>
+<span class="text-sm text-slate-500 dark:text-slate-400">Great progress this week!</span>
+</div>
+<div class="bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-100 dark:border-slate-700 shadow-sm flex flex-col gap-1 hover:shadow-md transition-shadow">
+<div class="flex items-center gap-2 text-amber-600 dark:text-amber-400 mb-1">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="text-xs font-bold uppercase tracking-wider">Activities</span>
+</div>
+<span class="text-3xl font-bold text-slate-900 dark:text-white">12</span>
+<span class="text-sm text-slate-500 dark:text-slate-400">Sessions completed</span>
+</div>
+</section>
+<!-- Active Goals Section -->
+<section>
+<div class="flex items-center justify-between mb-4">
+<h2 class="text-xl font-bold text-slate-900 dark:text-white">Current Goals</h2>
+<button class="text-sm font-medium text-primary hover:text-primary/80">View all history</button>
+</div>
+<div class="flex flex-col gap-4">
+<!-- Goal Card 1 -->
+<div class="bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-100 dark:border-slate-700 shadow-sm">
+<div class="flex flex-col sm:flex-row justify-between gap-4 mb-3">
+<div class="flex items-start gap-3">
+<div class="p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
+<span class="material-symbols-outlined">touch_app</span>
+</div>
+<div>
+<h3 class="font-bold text-lg text-slate-900 dark:text-white">Improve Pincer Grasp</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400">Motor Skills • Due Nov 15</p>
+</div>
+</div>
+<div class="text-right">
+<span class="text-2xl font-bold text-slate-900 dark:text-white">75%</span>
+</div>
+</div>
+<div class="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2 mb-4">
+<div class="bg-primary h-2 rounded-full transition-all duration-500" style="width: 75%"></div>
+</div>
+<div class="flex items-center gap-2 bg-slate-50 dark:bg-slate-700/50 rounded-lg p-3">
+<span class="material-symbols-outlined text-slate-400">lightbulb</span>
+<p class="text-sm text-slate-600 dark:text-slate-300"><strong>Latest Activity:</strong> Stacking blocks (5/10 sessions completed)</p>
+</div>
+</div>
+<!-- Goal Card 2 -->
+<div class="bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-100 dark:border-slate-700 shadow-sm">
+<div class="flex flex-col sm:flex-row justify-between gap-4 mb-3">
+<div class="flex items-start gap-3">
+<div class="p-2 rounded-lg bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400">
+<span class="material-symbols-outlined">record_voice_over</span>
+</div>
+<div>
+<h3 class="font-bold text-lg text-slate-900 dark:text-white">Verbalize Needs</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400">Communication • Due Dec 01</p>
+</div>
+</div>
+<div class="text-right">
+<span class="text-2xl font-bold text-slate-900 dark:text-white">40%</span>
+</div>
+</div>
+<div class="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2 mb-4">
+<div class="bg-purple-500 h-2 rounded-full transition-all duration-500" style="width: 40%"></div>
+</div>
+<div class="flex items-center gap-2 bg-slate-50 dark:bg-slate-700/50 rounded-lg p-3">
+<span class="material-symbols-outlined text-slate-400">lightbulb</span>
+<p class="text-sm text-slate-600 dark:text-slate-300"><strong>Latest Activity:</strong> Picture card exchange (Daily practice)</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Daily Planner Widget -->
+<section>
+<div class="flex items-center justify-between mb-4">
+<h2 class="text-xl font-bold text-slate-900 dark:text-white">Today's Plan</h2>
+<div class="flex bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
+<button class="px-3 py-1 bg-white dark:bg-slate-700 shadow-sm rounded-md text-xs font-bold text-slate-900 dark:text-white">Daily</button>
+<button class="px-3 py-1 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition">Weekly</button>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
+<div class="divide-y divide-slate-100 dark:divide-slate-700">
+<div class="p-4 flex items-center gap-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition cursor-pointer group">
+<div class="flex-shrink-0">
+<input class="size-5 rounded border-slate-300 text-primary focus:ring-primary/20 cursor-pointer" type="checkbox"/>
+</div>
+<div class="flex-1">
+<h4 class="text-sm font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">Play-dough sculpting</h4>
+<p class="text-xs text-slate-500 dark:text-slate-400">15 mins • Motor Skills</p>
+</div>
+<div class="flex-shrink-0 text-slate-400 text-xs font-medium">10:00 AM</div>
+</div>
+<div class="p-4 flex items-center gap-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition cursor-pointer group">
+<div class="flex-shrink-0">
+<input checked="" class="size-5 rounded border-slate-300 text-primary focus:ring-primary/20 cursor-pointer" type="checkbox"/>
+</div>
+<div class="flex-1 opacity-50">
+<h4 class="text-sm font-bold text-slate-900 dark:text-white line-through">Reading Picture Book</h4>
+<p class="text-xs text-slate-500 dark:text-slate-400">20 mins • Communication</p>
+</div>
+<div class="flex-shrink-0 text-slate-400 text-xs font-medium">Completed</div>
+</div>
+<div class="p-4 flex items-center gap-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition cursor-pointer group">
+<div class="flex-shrink-0">
+<input class="size-5 rounded border-slate-300 text-primary focus:ring-primary/20 cursor-pointer" type="checkbox"/>
+</div>
+<div class="flex-1">
+<h4 class="text-sm font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">Sorting Colors</h4>
+<p class="text-xs text-slate-500 dark:text-slate-400">10 mins • Cognitive</p>
+</div>
+<div class="flex-shrink-0 text-slate-400 text-xs font-medium">4:00 PM</div>
+</div>
+</div>
+<div class="p-3 bg-slate-50 dark:bg-slate-900/20 text-center border-t border-slate-100 dark:border-slate-700">
+<button class="text-sm font-bold text-primary hover:underline">Add activity for today</button>
+</div>
+</div>
+</section>
+<!-- Intervention Library -->
+<section>
+<div class="flex items-center justify-between mb-4">
+<h2 class="text-xl font-bold text-slate-900 dark:text-white">Suggested Interventions</h2>
+<button class="text-sm font-medium text-primary hover:text-primary/80">Browse Library</button>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+<!-- Card 1 -->
+<div class="group bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 overflow-hidden shadow-sm hover:shadow-md transition-all">
+<div class="h-32 bg-slate-200 dark:bg-slate-700 bg-cover bg-center" data-alt="Child playing with colorful building blocks" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDPzVNcFa9BSWJWJxfpuRsAAFnsxX3OJueZOiJ_9wTeS6Mszwt2Rs8TUGbQABWx5tCqX5Nwy_xwlyVbxUy0wxMr6m8hSOLxpcKUrDbs5jm93uzjklvnFuRhDfRhrEu0H-rsG5ntgQleRReO4O32GO2P-WbrIXPI3s2jV0dA0OPk7PoYWWomWZyY0UsYAE4WJkBz2N98wJoecrR26-1KKRHhtVdc4gNS3yn_sOL8vt8zR980l8A6BhfDOe9eHWkBDP7rD7UcKA-_xpkq");'></div>
+<div class="p-4">
+<div class="flex gap-2 mb-2">
+<span class="px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-[10px] font-bold uppercase text-blue-700 dark:text-blue-300">Motor</span>
+<span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-[10px] font-bold uppercase text-slate-600 dark:text-slate-300">Age 3-5</span>
+</div>
+<h4 class="font-bold text-slate-900 dark:text-white mb-1 group-hover:text-primary transition">Block Tower Challenge</h4>
+<p class="text-xs text-slate-500 dark:text-slate-400 mb-3">Builds fine motor precision and patience.</p>
+<button class="w-full py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition">Add to Plan</button>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="group bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 overflow-hidden shadow-sm hover:shadow-md transition-all">
+<div class="h-32 bg-slate-200 dark:bg-slate-700 bg-cover bg-center" data-alt="Parent and child reading a book together" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDWb5QtH0rzQsgCGsyMIcfBkUn90SFi7blCz7fUWJZXW4k4KXnOqf6la5Q2jrRAKyfi2IHwBThO6MoPzTelfM-1p3lzWhblB2KBMoRp2tHVhvmqR_KeeM5k0kjxB0iT6qLcL-jv1MD7sUrroeJoxIe6Rzo0749T0o3C97hXwCEfmhI9GtUnhaJDuhixOxfkzZ4CQK1porCPQ1IACAvhmGz_IgGbf7OjX93QgxReFKlVkRt2nAS036VSGD3PpZpAM9aFDWOxKdOB6_aw");'></div>
+<div class="p-4">
+<div class="flex gap-2 mb-2">
+<span class="px-2 py-0.5 rounded bg-purple-100 dark:bg-purple-900/30 text-[10px] font-bold uppercase text-purple-700 dark:text-purple-300">Social</span>
+<span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-[10px] font-bold uppercase text-slate-600 dark:text-slate-300">Age 4-6</span>
+</div>
+<h4 class="font-bold text-slate-900 dark:text-white mb-1 group-hover:text-primary transition">Emotion Charades</h4>
+<p class="text-xs text-slate-500 dark:text-slate-400 mb-3">Helps identify and express feelings.</p>
+<button class="w-full py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition">Add to Plan</button>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="group bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 overflow-hidden shadow-sm hover:shadow-md transition-all hidden sm:block">
+<div class="h-32 bg-slate-200 dark:bg-slate-700 bg-cover bg-center" data-alt="Colorful sorting beads on a table" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAa1JgqpK-yiPE0z3q7hay3oJAKlHjK64Wgra0-w42G-WBHsdm-5ke6__-nY0KZOf2M0BHuL_1zXQbz9HjmozEKk0sDNl6Ju5-5lF-6PxiX_PA9FIdaAr0zZTayIXXf_L4-zoRR0CLc-H8Why2561gpT6gVS15tHCvF3tCfGeIIuwEMeEX0e2w-nFj8vxWDdtyMcCyclNm2peon3EN-SAG97SY2z15haNsTcTpHMH7ZBuL3bKeI3AqWZefIcQClax6jLWNrLUa0b_bR");'></div>
+<div class="p-4">
+<div class="flex gap-2 mb-2">
+<span class="px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-900/30 text-[10px] font-bold uppercase text-amber-700 dark:text-amber-300">Cognitive</span>
+<span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-[10px] font-bold uppercase text-slate-600 dark:text-slate-300">Age 3-5</span>
+</div>
+<h4 class="font-bold text-slate-900 dark:text-white mb-1 group-hover:text-primary transition">Pattern Beads</h4>
+<p class="text-xs text-slate-500 dark:text-slate-400 mb-3">Recognize and continue sequences.</p>
+<button class="w-full py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition">Add to Plan</button>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Right Column (Sidebar) -->
+<div class="lg:col-span-4 flex flex-col gap-6">
+<!-- Collaboration / Action Card -->
+<div class="bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-100 dark:border-slate-700 shadow-sm">
+<h3 class="font-bold text-slate-900 dark:text-white mb-4">Collaboration</h3>
+<div class="flex items-center justify-between mb-4">
+<div class="flex items-center gap-3">
+<div class="bg-primary/10 text-primary p-2 rounded-lg">
+<span class="material-symbols-outlined">school</span>
+</div>
+<div class="text-sm">
+<p class="font-bold text-slate-900 dark:text-white">Share with Teacher</p>
+<p class="text-xs text-slate-500 dark:text-slate-400">Ms. Sarah (Special Ed)</p>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+</label>
+</div>
+<button class="w-full flex items-center justify-center gap-2 mb-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition">
+<span class="material-symbols-outlined text-[18px]">download</span>
+                            Export PDF for Classroom
+                        </button>
+<div class="pt-4 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
+<p class="mb-1"><strong>Last modified:</strong> Oct 12 by Dr. Smith</p>
+<p class="flex items-center gap-1 text-emerald-600 dark:text-emerald-400"><span class="material-symbols-outlined text-[14px]">check_circle</span> Approved by Parent (Oct 13)</p>
+</div>
+</div>
+<!-- Evidence Upload -->
+<div class="bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-100 dark:border-slate-700 shadow-sm">
+<div class="flex justify-between items-center mb-4">
+<h3 class="font-bold text-slate-900 dark:text-white">Progress Evidence</h3>
+<button class="text-primary hover:bg-primary/10 rounded-full p-1 transition"><span class="material-symbols-outlined">add</span></button>
+</div>
+<!-- Drag Drop Zone -->
+<div class="border-2 border-dashed border-slate-200 dark:border-slate-600 rounded-lg p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:border-primary/50 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition mb-4">
+<span class="material-symbols-outlined text-slate-400 text-3xl mb-2">cloud_upload</span>
+<p class="text-sm font-medium text-slate-700 dark:text-slate-300">Upload Photos or Audio</p>
+<p class="text-xs text-slate-400">Drag &amp; drop or click to browse</p>
+</div>
+<!-- Recent Files -->
+<div class="flex flex-col gap-3">
+<div class="flex items-center gap-3 p-2 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg transition">
+<div class="size-10 rounded-lg bg-slate-100 dark:bg-slate-900 bg-cover bg-center" data-alt="Thumbnail of a drawing" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBwRH9qyou8gBsmV7h4_IGQprpZwaz9hQ08PTHMnK7KnxWBETfQiyfgkfhz8mCn5wIdoIA8gJdPFfHUn13ijM96Md3Pe8HwwN_yba6v-OUiecaLFTJ5A-XPgonVTCQZM1k12n_A8_mOf6EI10AZH3-kVEpGWWgE1FkI9vFBgNVdMf8_AyM4pitZmns-exzo_x6HzneKJkGfjJAkrYzDx5zQx_goXzIsh9SqcWr4Lq5Xk9E2vmaYaUuZmxf3KbaG5t2ANDj7BL3rd7ZI");'></div>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-bold text-slate-900 dark:text-white truncate">Drawing_Session_1.jpg</p>
+<p class="text-xs text-slate-500 dark:text-slate-400">Today • 10:30 AM</p>
+</div>
+<button class="text-slate-400 hover:text-slate-600 dark:hover:text-white"><span class="material-symbols-outlined">more_vert</span></button>
+</div>
+<div class="flex items-center gap-3 p-2 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg transition">
+<div class="size-10 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400">
+<span class="material-symbols-outlined">mic</span>
+</div>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-bold text-slate-900 dark:text-white truncate">Verbal_Practice.mp3</p>
+<p class="text-xs text-slate-500 dark:text-slate-400">Yesterday • 4:15 PM</p>
+</div>
+<button class="text-slate-400 hover:text-slate-600 dark:hover:text-white"><span class="material-symbols-outlined">more_vert</span></button>
+</div>
+</div>
+</div>
+<!-- Parent Notes -->
+<div class="bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-100 dark:border-slate-700 shadow-sm flex flex-col flex-1">
+<h3 class="font-bold text-slate-900 dark:text-white mb-2">Parent Reflections</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400 mb-4">Private notes on mood and progress.</p>
+<textarea class="w-full flex-1 min-h-[120px] rounded-lg border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-sm text-slate-700 dark:text-white focus:ring-primary focus:border-primary p-3 resize-none" placeholder="Arjun seemed very engaged today during block play..."></textarea>
+<div class="flex justify-end mt-2">
+<span class="text-[10px] text-slate-400 italic">Autosaved 2 mins ago</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

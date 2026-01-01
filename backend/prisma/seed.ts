@@ -318,6 +318,7 @@ async function main() {
     await prisma.assessment.create({
         data: {
             patientId: patient1.id,
+            clinicianId: clinician.id,
             assessmentType: 'ISAA',
             status: 'completed',
             responses: JSON.stringify({ q1: 2, q2: 1, q3: 3, q4: 2 }),
@@ -329,6 +330,8 @@ async function main() {
                 self_help: 28
             }),
             interpretation: 'Mild ASD indicators. Level 1 - Requiring Support. Strong motor skills observed. Areas for focus: social communication and self-help skills.',
+            administeredBy: clinician.id,
+            administeredDate: new Date('2024-10-20'),
             completedAt: new Date('2024-10-20')
         }
     });
@@ -336,10 +339,12 @@ async function main() {
     await prisma.assessment.create({
         data: {
             patientId: patient2.id,
+            clinicianId: clinician.id,
             assessmentType: 'ADHD',
             status: 'in_progress',
             responses: JSON.stringify({ q1: 3, q2: 2, q3: 3 }),
-            currentQuestion: 15
+            currentQuestion: 15,
+            administeredBy: clinician.id
         }
     });
     console.log('  ✓ Created 2 assessments');

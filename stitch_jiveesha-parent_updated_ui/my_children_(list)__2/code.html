@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Daira - My Children</title>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "primary-light": "#eef4ff", // Very light blue for backgrounds
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                        "slate-850": "#111318",
+                        "slate-500": "#616f89",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"]
+                    },
+                    boxShadow: {
+                        "soft": "0 4px 20px rgba(19, 91, 236, 0.08)",
+                        "glass": "0 8px 32px 0 rgba(31, 38, 135, 0.07)",
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Lexend', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings:
+            'FILL' 0,
+            'wght' 400,
+            'GRAD' 0,
+            'opsz' 24
+        }
+        .material-symbols-outlined.fill {
+            font-variation-settings:
+            'FILL' 1,
+            'wght' 400,
+            'GRAD' 0,
+            'opsz' 24
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-850 dark:text-white overflow-x-hidden">
+<div class="relative flex min-h-screen w-full flex-col">
+<!-- Navigation -->
+<header class="sticky top-0 z-50 flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 bg-white/90 backdrop-blur-md dark:bg-background-dark/90 dark:border-slate-800 px-6 py-3 lg:px-10">
+<div class="flex items-center gap-4">
+<div class="text-primary size-8 flex items-center justify-center">
+<svg class="size-8" fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M13.8261 30.5736C16.7203 29.8826 20.2244 29.4783 24 29.4783C27.7756 29.4783 31.2797 29.8826 34.1739 30.5736C36.9144 31.2278 39.9967 32.7669 41.3563 33.8352L24.8486 7.36089C24.4571 6.73303 23.5429 6.73303 23.1514 7.36089L6.64374 33.8352C8.00331 32.7669 11.0856 31.2278 13.8261 30.5736Z" fill="currentColor"></path>
+<path clip-rule="evenodd" d="M24 40C28.8081 40 33.0758 39.319 36.0709 38.2772C37.5778 37.7531 38.6545 37.1746 39.3151 36.6314C39.9006 36.1499 39.9857 35.8511 39.998 35.764C39.9944 35.7463 39.9875 35.7155 39.9748 35.6706C39.9436 35.5601 39.8949 35.4259 39.8346 35.2825C39.8168 35.2403 39.7989 35.1993 39.7813 35.1602C38.5103 34.2887 35.9788 33.0607 33.7095 32.5189C30.9875 31.8691 27.6413 31.4783 24 31.4783C20.3587 31.4783 17.0125 31.8691 14.2905 32.5189C12.0012 33.0654 9.44505 34.3104 8.18538 35.1832C8.17384 35.2075 8.16216 35.233 8.15052 35.2592C8.09919 35.3751 8.05721 35.4886 8.02977 35.589C8.00356 35.6848 8.00039 35.7333 8.00004 35.7388C8.00004 35.739 8 35.7393 8.00004 35.7388C8.00004 35.7641 8.0104 36.0767 8.68485 36.6314C9.34546 37.1746 10.4222 37.7531 11.9291 38.2772C14.9242 39.319 19.1919 40 24 40Z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+<h2 class="text-slate-850 dark:text-white text-xl font-bold tracking-tight">Daira</h2>
+</div>
+<div class="hidden lg:flex flex-1 items-center justify-center gap-8">
+<a class="text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-white text-sm font-medium transition-colors" href="#">Dashboard</a>
+<a class="text-primary dark:text-white text-sm font-medium bg-primary-light dark:bg-primary/20 px-3 py-1.5 rounded-full" href="#">My Children</a>
+<a class="text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-white text-sm font-medium transition-colors" href="#">Screening</a>
+<a class="text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-white text-sm font-medium transition-colors" href="#">Results</a>
+<a class="text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-white text-sm font-medium transition-colors" href="#">PEP Builder</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="relative p-2 text-slate-500 hover:text-primary dark:text-slate-400 transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500"></span>
+</button>
+<div class="h-9 w-9 overflow-hidden rounded-full bg-slate-200 border border-slate-200 bg-center bg-cover" data-alt="User profile picture of a parent" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAgCgtYVoHGrZCg3ClFyPDtfD30sYT79O_N4QnsKccbHhS4dk7s9MzaDfJZD3b1oOxLNO0iM6pNLi6MkfU7ETew0ulMuMIKSR4ocJlPnrUhicUZMNLQU4j49807tV5ifGoTJIgSRE2OwIJ8enFwI6cwJp_deinSBbxt5biefOzkI461MJAIQhFYIqrizNd0vuDW8I0eWvfEWj_M9olAVkQqlRNZbQxZmVyPN_HUk9MuSBkQliwJz7IArJOXXgKn5FPuht36wu9WldpY");'>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-1 bg-gradient-to-b from-primary/5 to-transparent dark:from-background-dark dark:to-background-dark">
+<div class="mx-auto max-w-7xl px-4 py-8 lg:px-8">
+<!-- Page Header -->
+<div class="flex flex-col gap-6 md:flex-row md:items-end md:justify-between mb-8">
+<div class="flex flex-col gap-2">
+<h1 class="text-slate-850 dark:text-white text-3xl md:text-4xl font-bold tracking-tight">My Children</h1>
+<p class="text-slate-500 dark:text-slate-400 text-base">Manage profiles, track screenings, and view PEP progress.</p>
+</div>
+<button class="group flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-primary/30 transition-all hover:bg-blue-600 hover:scale-[1.02] active:scale-95">
+<span class="material-symbols-outlined text-[20px]">add</span>
+<span>Add Child</span>
+</button>
+</div>
+<!-- Filters -->
+<div class="mb-8 flex flex-wrap gap-3 overflow-x-auto pb-2 scrollbar-hide">
+<button class="flex h-9 items-center justify-center gap-2 rounded-lg bg-slate-850 dark:bg-white px-4 text-sm font-medium text-white dark:text-slate-900 shadow-sm transition-transform hover:scale-105">
+                        All Children
+                    </button>
+<button class="flex h-9 items-center justify-center gap-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 text-sm font-medium text-slate-600 dark:text-slate-300 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                        Needs Screening
+                        <span class="flex h-5 w-5 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30 text-xs font-bold text-red-600 dark:text-red-400">1</span>
+</button>
+<button class="flex h-9 items-center justify-center gap-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 text-sm font-medium text-slate-600 dark:text-slate-300 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                        At Risk
+                    </button>
+<button class="flex h-9 items-center justify-center gap-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 text-sm font-medium text-slate-600 dark:text-slate-300 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                        PEP Active
+                        <span class="flex h-5 w-5 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30 text-xs font-bold text-green-600 dark:text-green-400">1</span>
+</button>
+<button class="flex h-9 items-center justify-center gap-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 text-sm font-medium text-slate-600 dark:text-slate-300 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                        Age Filter
+                        <span class="material-symbols-outlined text-[18px]">keyboard_arrow_down</span>
+</button>
+</div>
+<!-- Grid Layout -->
+<div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
+<!-- Card 1: Urgent / Needs Screening -->
+<article class="group relative flex flex-col justify-between rounded-xl bg-white dark:bg-slate-800 p-5 shadow-soft hover:shadow-xl transition-all duration-300 border border-transparent hover:border-primary/20 dark:border-slate-700">
+<!-- Card Header -->
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-3">
+<div class="h-14 w-14 overflow-hidden rounded-full border-2 border-white shadow-md bg-cover bg-center" data-alt="Portrait of a young boy named Liam" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBHt-kGVWAFjEwycrvr10h1eTDE0pZu4Z6p0UFIDeoasV8Q0NEYplML-97rED0FL8Kjf-z_SxI4Pw1VmzyrzcFmgTC6CsRnSiYZBsKrk0T-zXWOr7jU1E3ptsJevpzi24qZJcVdUstgFox1BKUdDjm5ZNs8XY2IuOeQm_9sZN9BVQlPR51QVErabantYJ2znO4GiM59_18OUY4-sFwZn1wsBA26aAWNaD6__yZoSHKwygB6CPE4aAI8V0-BgGL345voYZV_55C3GIos");'>
+</div>
+<div>
+<h3 class="text-lg font-bold text-slate-850 dark:text-white leading-tight">Liam Johnson</h3>
+<p class="text-sm font-medium text-slate-500 dark:text-slate-400">Age 4 • Class Pre-K</p>
+</div>
+</div>
+<button class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<!-- Status Badge Area -->
+<div class="mt-5 flex items-center gap-2">
+<span class="inline-flex items-center gap-1.5 rounded-full bg-amber-50 dark:bg-amber-900/20 px-3 py-1 text-xs font-bold text-amber-700 dark:text-amber-400 border border-amber-100 dark:border-amber-800/30">
+<span class="material-symbols-outlined text-[16px]">warning</span>
+                                Screening Due
+                            </span>
+<span class="inline-flex items-center gap-1.5 rounded-full bg-slate-50 dark:bg-slate-700/50 px-3 py-1 text-xs font-medium text-slate-600 dark:text-slate-300">
+                                Needs Attention
+                            </span>
+</div>
+<!-- Card Body Content -->
+<div class="mt-4 flex flex-col gap-3 rounded-lg bg-slate-50 dark:bg-slate-700/30 p-3">
+<div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+<span class="material-symbols-outlined text-[18px] text-slate-400">history</span>
+<span>Last screening: <span class="font-medium text-slate-800 dark:text-white">6 months ago</span></span>
+</div>
+<div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+<span class="material-symbols-outlined text-[18px] text-slate-400">school</span>
+<span>School: <span class="text-primary hover:underline cursor-pointer">Little Stars Academy</span></span>
+</div>
+</div>
+<!-- Action Footer -->
+<div class="mt-6 flex flex-col gap-3">
+<button class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-md shadow-primary/20 transition-transform hover:bg-blue-600 active:scale-95">
+<span class="material-symbols-outlined fill text-[20px]">play_circle</span>
+                                Quick Start Screening
+                            </button>
+<div class="flex items-center justify-between gap-2 border-t border-slate-100 dark:border-slate-700 pt-3">
+<button class="flex flex-1 items-center justify-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[18px]">share</span>
+                                    Share Report
+                                </button>
+<div class="h-4 w-px bg-slate-200 dark:bg-slate-700"></div>
+<button class="flex flex-1 items-center justify-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[18px]">folder_open</span>
+                                    Docs (2)
+                                </button>
+</div>
+</div>
+</article>
+<!-- Card 2: On Track / PEP Active -->
+<article class="group relative flex flex-col justify-between rounded-xl bg-white dark:bg-slate-800 p-5 shadow-soft hover:shadow-xl transition-all duration-300 border border-transparent hover:border-primary/20 dark:border-slate-700">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-3">
+<div class="h-14 w-14 overflow-hidden rounded-full border-2 border-white shadow-md bg-cover bg-center" data-alt="Portrait of a young girl named Sophie" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBhoHteLzWEC07cDmQBcdNc2D5fJ2lWZj15NDvnlN0YtxmRjWkDe3Xrtx0rNJbpRA53jTLpTQuteVNMaCBf9-xXUBJYOJ4BLkCEnYtkwM5BYHNpaC0iGDS9hcxyvrSiPdJ5EBbkvzzYesjy3yoV38s90Nh54XXonk-ZujCAv8qGEaXdXPKirqYiK5kW28OjcX3VPCME0ErC3e6gfnscF_QU-vFGKM0cSY5ke9raZWVd2pzhqa68xr8sz-jHhvplI5_OPMmMzbw1fGHp");'>
+</div>
+<div>
+<h3 class="text-lg font-bold text-slate-850 dark:text-white leading-tight">Sophie Johnson</h3>
+<p class="text-sm font-medium text-slate-500 dark:text-slate-400">Age 7 • 2nd Grade</p>
+</div>
+</div>
+<button class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<div class="mt-5 flex items-center gap-2">
+<span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1 text-xs font-bold text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800/30">
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+                                PEP Active
+                            </span>
+<span class="inline-flex items-center gap-1.5 rounded-full bg-slate-50 dark:bg-slate-700/50 px-3 py-1 text-xs font-medium text-slate-600 dark:text-slate-300">
+                                On Track
+                            </span>
+</div>
+<!-- Progress Section -->
+<div class="mt-4 flex flex-col gap-3 rounded-lg bg-slate-50 dark:bg-slate-700/30 p-3">
+<div class="flex items-center justify-between">
+<span class="text-xs font-bold text-slate-700 dark:text-slate-200">Reading Goals</span>
+<span class="text-xs font-bold text-primary dark:text-blue-400">75%</span>
+</div>
+<div class="h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-600">
+<div class="h-full rounded-full bg-primary transition-all duration-500" style="width: 75%"></div>
+</div>
+<div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 pt-1">
+<span class="material-symbols-outlined text-[18px] text-slate-400">event</span>
+<span>Next Check-in: <span class="font-medium text-slate-800 dark:text-white">Oct 12</span></span>
+</div>
+</div>
+<div class="mt-6 flex flex-col gap-3">
+<button class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm font-bold text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                                View Progress
+                            </button>
+<div class="flex items-center justify-between gap-2 border-t border-slate-100 dark:border-slate-700 pt-3">
+<button class="flex flex-1 items-center justify-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[18px]">share</span>
+                                    Share Report
+                                </button>
+<div class="h-4 w-px bg-slate-200 dark:bg-slate-700"></div>
+<button class="flex flex-1 items-center justify-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[18px]">folder_open</span>
+                                    Docs (5)
+                                </button>
+</div>
+</div>
+</article>
+<!-- Card 3: At Risk / Integration Promo -->
+<article class="group relative flex flex-col justify-between rounded-xl bg-white dark:bg-slate-800 p-5 shadow-soft hover:shadow-xl transition-all duration-300 border border-transparent hover:border-primary/20 dark:border-slate-700">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-3">
+<div class="h-14 w-14 overflow-hidden rounded-full border-2 border-white shadow-md bg-cover bg-center" data-alt="Portrait of a young toddler named Noah" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAkZWF01triv_-K7dcQompoBtYQcmwvYXTaHOUlu6a9wtscNuOxu73wo3zlF2Htpf-uzbz95P98y-dj7up7nVXU91yYsp8wQ1dnWhZQDb4ow8wXqVkiH--EzDcB0raToDGlYuALOix7ntgYr31EqMaB9kOxHsRofazTIdeoZadTaSis_pf8BLRjBLoxkQmUcOmRAUEbIX-b5zqcZ0uTzcjhMj44WRvfQD3BsuMuhUVfInGOEZPpidEuh4jcwrLuKSCPLe08HN0-heoZ");'>
+</div>
+<div>
+<h3 class="text-lg font-bold text-slate-850 dark:text-white leading-tight">Noah Johnson</h3>
+<p class="text-sm font-medium text-slate-500 dark:text-slate-400">Age 2 • Toddler</p>
+</div>
+</div>
+<button class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<div class="mt-5 flex items-center gap-2">
+<span class="inline-flex items-center gap-1.5 rounded-full bg-red-50 dark:bg-red-900/20 px-3 py-1 text-xs font-bold text-red-600 dark:text-red-400 border border-red-100 dark:border-red-800/30">
+<span class="material-symbols-outlined text-[16px]">priority_high</span>
+                                At Risk
+                            </span>
+<span class="inline-flex items-center gap-1.5 rounded-full bg-slate-50 dark:bg-slate-700/50 px-3 py-1 text-xs font-medium text-slate-600 dark:text-slate-300">
+                                Follow Up
+                            </span>
+</div>
+<!-- Integration Prompt instead of body -->
+<div class="mt-4 flex flex-col gap-3 rounded-lg bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 p-3">
+<div class="flex items-start gap-3">
+<div class="rounded-full bg-white dark:bg-slate-800 p-1.5 text-primary shadow-sm">
+<span class="material-symbols-outlined text-[18px]">school</span>
+</div>
+<div class="flex flex-col gap-1">
+<p class="text-xs font-bold text-slate-800 dark:text-slate-200">Connect with School</p>
+<p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">Invite Noah's teacher to collaborate on screenings and PEPs.</p>
+</div>
+</div>
+<button class="self-end text-xs font-bold text-primary hover:text-blue-700 dark:hover:text-blue-400">
+                                Link Now →
+                            </button>
+</div>
+<div class="mt-6 flex flex-col gap-3">
+<button class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-md shadow-primary/20 transition-transform hover:bg-blue-600 active:scale-95">
+<span class="material-symbols-outlined fill text-[20px]">medical_services</span>
+                                Consult Specialist
+                            </button>
+<div class="flex items-center justify-between gap-2 border-t border-slate-100 dark:border-slate-700 pt-3">
+<button class="flex flex-1 items-center justify-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[18px]">share</span>
+                                    Share Report
+                                </button>
+<div class="h-4 w-px bg-slate-200 dark:bg-slate-700"></div>
+<button class="flex flex-1 items-center justify-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[18px]">folder_open</span>
+                                    Docs (1)
+                                </button>
+</div>
+</div>
+</article>
+</div>
+<!-- Empty State / Promo Section -->
+<div class="mt-12 flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 bg-white/50 dark:bg-slate-800/30 p-8 text-center">
+<div class="mb-4 rounded-full bg-primary-light dark:bg-slate-700 p-4 text-primary dark:text-blue-400">
+<span class="material-symbols-outlined text-4xl">family_restroom</span>
+</div>
+<h3 class="text-lg font-bold text-slate-850 dark:text-white">Expecting another child?</h3>
+<p class="mt-1 max-w-md text-sm text-slate-500 dark:text-slate-400">
+                        Early intervention is key. Set up a profile for your new child to start tracking their development milestones from day one.
+                    </p>
+<button class="mt-4 text-sm font-bold text-primary hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
+                        Create New Profile →
+                    </button>
+</div>
+</div>
+</main>
+</div>
+</body></html>

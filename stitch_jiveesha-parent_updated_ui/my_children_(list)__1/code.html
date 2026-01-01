@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Daira - My Children</title>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "primary-light": "#eef4ff",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                        "slate-850": "#111318",
+                        "slate-500": "#616f89",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"]
+                    },
+                    boxShadow: {
+                        "soft": "0 4px 20px rgba(19, 91, 236, 0.08)",
+                        "glass": "0 8px 32px 0 rgba(31, 38, 135, 0.07)",
+                        "modal": "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Lexend', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24
+        }
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24
+        }.modal-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .modal-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .modal-scroll::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 20px;
+        }
+        .dark .modal-scroll::-webkit-scrollbar-thumb {
+            background-color: #475569;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-850 dark:text-white overflow-hidden h-screen">
+<div class="relative flex h-full w-full flex-col overflow-y-auto">
+<header class="sticky top-0 z-40 flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 bg-white/90 backdrop-blur-md dark:bg-background-dark/90 dark:border-slate-800 px-6 py-3 lg:px-10">
+<div class="flex items-center gap-4">
+<div class="text-primary size-8 flex items-center justify-center">
+<svg class="size-8" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M13.8261 30.5736C16.7203 29.8826 20.2244 29.4783 24 29.4783C27.7756 29.4783 31.2797 29.8826 34.1739 30.5736C36.9144 31.2278 39.9967 32.7669 41.3563 33.8352L24.8486 7.36089C24.4571 6.73303 23.5429 6.73303 23.1514 7.36089L6.64374 33.8352C8.00331 32.7669 11.0856 31.2278 13.8261 30.5736Z" fill="currentColor"></path>
+<path clip-rule="evenodd" d="M24 40C28.8081 40 33.0758 39.319 36.0709 38.2772C37.5778 37.7531 38.6545 37.1746 39.3151 36.6314C39.9006 36.1499 39.9857 35.8511 39.998 35.764C39.9944 35.7463 39.9875 35.7155 39.9748 35.6706C39.9436 35.5601 39.8949 35.4259 39.8346 35.2825C39.8168 35.2403 39.7989 35.1993 39.7813 35.1602C38.5103 34.2887 35.9788 33.0607 33.7095 32.5189C30.9875 31.8691 27.6413 31.4783 24 31.4783C20.3587 31.4783 17.0125 31.8691 14.2905 32.5189C12.0012 33.0654 9.44505 34.3104 8.18538 35.1832C8.17384 35.2075 8.16216 35.233 8.15052 35.2592C8.09919 35.3751 8.05721 35.4886 8.02977 35.589C8.00356 35.6848 8.00039 35.7333 8.00004 35.7388C8.00004 35.739 8 35.7393 8.00004 35.7388C8.00004 35.7641 8.0104 36.0767 8.68485 36.6314C9.34546 37.1746 10.4222 37.7531 11.9291 38.2772C14.9242 39.319 19.1919 40 24 40Z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+<h2 class="text-slate-850 dark:text-white text-xl font-bold tracking-tight">Daira</h2>
+</div>
+<div class="hidden lg:flex flex-1 items-center justify-center gap-8">
+<a class="text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-white text-sm font-medium transition-colors" href="#">Dashboard</a>
+<a class="text-primary dark:text-white text-sm font-medium bg-primary-light dark:bg-primary/20 px-3 py-1.5 rounded-full" href="#">My Children</a>
+<a class="text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-white text-sm font-medium transition-colors" href="#">Screening</a>
+<a class="text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-white text-sm font-medium transition-colors" href="#">Results</a>
+<a class="text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-white text-sm font-medium transition-colors" href="#">PEP Builder</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="relative p-2 text-slate-500 hover:text-primary dark:text-slate-400 transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500"></span>
+</button>
+<div class="h-9 w-9 overflow-hidden rounded-full bg-slate-200 border border-slate-200 bg-center bg-cover" data-alt="User profile picture of a parent" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAgCgtYVoHGrZCg3ClFyPDtfD30sYT79O_N4QnsKccbHhS4dk7s9MzaDfJZD3b1oOxLNO0iM6pNLi6MkfU7ETew0ulMuMIKSR4ocJlPnrUhicUZMNLQU4j49807tV5ifGoTJIgSRE2OwIJ8enFwI6cwJp_deinSBbxt5biefOzkI461MJAIQhFYIqrizNd0vuDW8I0eWvfEWj_M9olAVkQqlRNZbQxZmVyPN_HUk9MuSBkQliwJz7IArJOXXgKn5FPuht36wu9WldpY");'>
+</div>
+</div>
+</header>
+<main class="flex-1 bg-gradient-to-b from-primary/5 to-transparent dark:from-background-dark dark:to-background-dark">
+<div class="mx-auto max-w-7xl px-4 py-8 lg:px-8">
+<div class="flex flex-col gap-6 md:flex-row md:items-end md:justify-between mb-8">
+<div class="flex flex-col gap-2">
+<h1 class="text-slate-850 dark:text-white text-3xl md:text-4xl font-bold tracking-tight">My Children</h1>
+<p class="text-slate-500 dark:text-slate-400 text-base">Manage profiles, track screenings, and view PEP progress.</p>
+</div>
+<button class="group flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-primary/30 transition-all hover:bg-blue-600 hover:scale-[1.02] active:scale-95">
+<span class="material-symbols-outlined text-[20px]">add</span>
+<span>Add Child</span>
+</button>
+</div>
+<div class="mb-8 flex flex-wrap gap-3 overflow-x-auto pb-2 scrollbar-hide">
+<button class="flex h-9 items-center justify-center gap-2 rounded-lg bg-slate-850 dark:bg-white px-4 text-sm font-medium text-white dark:text-slate-900 shadow-sm transition-transform hover:scale-105">
+                        All Children
+                    </button>
+<button class="flex h-9 items-center justify-center gap-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 text-sm font-medium text-slate-600 dark:text-slate-300 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                        Needs Screening
+                        <span class="flex h-5 w-5 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30 text-xs font-bold text-red-600 dark:text-red-400">1</span>
+</button>
+<button class="flex h-9 items-center justify-center gap-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 text-sm font-medium text-slate-600 dark:text-slate-300 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                        At Risk
+                    </button>
+<button class="flex h-9 items-center justify-center gap-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 text-sm font-medium text-slate-600 dark:text-slate-300 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                        PEP Active
+                        <span class="flex h-5 w-5 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30 text-xs font-bold text-green-600 dark:text-green-400">1</span>
+</button>
+<button class="flex h-9 items-center justify-center gap-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 text-sm font-medium text-slate-600 dark:text-slate-300 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                        Age Filter
+                        <span class="material-symbols-outlined text-[18px]">keyboard_arrow_down</span>
+</button>
+</div>
+<div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
+<article class="group relative flex flex-col justify-between rounded-xl bg-white dark:bg-slate-800 p-5 shadow-soft hover:shadow-xl transition-all duration-300 border border-transparent hover:border-primary/20 dark:border-slate-700">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-3">
+<div class="h-14 w-14 overflow-hidden rounded-full border-2 border-white shadow-md bg-cover bg-center" data-alt="Portrait of a young boy named Liam" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBHt-kGVWAFjEwycrvr10h1eTDE0pZu4Z6p0UFIDeoasV8Q0NEYplML-97rED0FL8Kjf-z_SxI4Pw1VmzyrzcFmgTC6CsRnSiYZBsKrk0T-zXWOr7jU1E3ptsJevpzi24qZJcVdUstgFox1BKUdDjm5ZNs8XY2IuOeQm_9sZN9BVQlPR51QVErabantYJ2znO4GiM59_18OUY4-sFwZn1wsBA26aAWNaD6__yZoSHKwygB6CPE4aAI8V0-BgGL345voYZV_55C3GIos");'>
+</div>
+<div>
+<h3 class="text-lg font-bold text-slate-850 dark:text-white leading-tight">Liam Johnson</h3>
+<p class="text-sm font-medium text-slate-500 dark:text-slate-400">Age 4 • Class Pre-K</p>
+</div>
+</div>
+<button class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<div class="mt-5 flex items-center gap-2">
+<span class="inline-flex items-center gap-1.5 rounded-full bg-amber-50 dark:bg-amber-900/20 px-3 py-1 text-xs font-bold text-amber-700 dark:text-amber-400 border border-amber-100 dark:border-amber-800/30">
+<span class="material-symbols-outlined text-[16px]">warning</span>
+                                Screening Due
+                            </span>
+<span class="inline-flex items-center gap-1.5 rounded-full bg-slate-50 dark:bg-slate-700/50 px-3 py-1 text-xs font-medium text-slate-600 dark:text-slate-300">
+                                Needs Attention
+                            </span>
+</div>
+<div class="mt-4 flex flex-col gap-3 rounded-lg bg-slate-50 dark:bg-slate-700/30 p-3">
+<div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+<span class="material-symbols-outlined text-[18px] text-slate-400">history</span>
+<span>Last screening: <span class="font-medium text-slate-800 dark:text-white">6 months ago</span></span>
+</div>
+<div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+<span class="material-symbols-outlined text-[18px] text-slate-400">school</span>
+<span>School: <span class="text-primary hover:underline cursor-pointer">Little Stars Academy</span></span>
+</div>
+</div>
+<div class="mt-6 flex flex-col gap-3">
+<button class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-md shadow-primary/20 transition-transform hover:bg-blue-600 active:scale-95">
+<span class="material-symbols-outlined fill text-[20px]">play_circle</span>
+                                Quick Start Screening
+                            </button>
+<div class="flex items-center justify-between gap-2 border-t border-slate-100 dark:border-slate-700 pt-3">
+<button class="flex flex-1 items-center justify-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[18px]">share</span>
+                                    Share Report
+                                </button>
+<div class="h-4 w-px bg-slate-200 dark:bg-slate-700"></div>
+<button class="flex flex-1 items-center justify-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[18px]">folder_open</span>
+                                    Docs (2)
+                                </button>
+</div>
+</div>
+</article>
+<article class="group relative flex flex-col justify-between rounded-xl bg-white dark:bg-slate-800 p-5 shadow-soft hover:shadow-xl transition-all duration-300 border border-transparent hover:border-primary/20 dark:border-slate-700">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-3">
+<div class="h-14 w-14 overflow-hidden rounded-full border-2 border-white shadow-md bg-cover bg-center" data-alt="Portrait of a young girl named Sophie" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBhoHteLzWEC07cDmQBcdNc2D5fJ2lWZj15NDvnlN0YtxmRjWkDe3Xrtx0rNJbpRA53jTLpTQuteVNMaCBf9-xXUBJYOJ4BLkCEnYtkwM5BYHNpaC0iGDS9hcxyvrSiPdJ5EBbkvzzYesjy3yoV38s90Nh54XXonk-ZujCAv8qGEaXdXPKirqYiK5kW28OjcX3VPCME0ErC3e6gfnscF_QU-vFGKM0cSY5ke9raZWVd2pzhqa68xr8sz-jHhvplI5_OPMmMzbw1fGHp");'>
+</div>
+<div>
+<h3 class="text-lg font-bold text-slate-850 dark:text-white leading-tight">Sophie Johnson</h3>
+<p class="text-sm font-medium text-slate-500 dark:text-slate-400">Age 7 • 2nd Grade</p>
+</div>
+</div>
+<button class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<div class="mt-5 flex items-center gap-2">
+<span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1 text-xs font-bold text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800/30">
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+                                PEP Active
+                            </span>
+<span class="inline-flex items-center gap-1.5 rounded-full bg-slate-50 dark:bg-slate-700/50 px-3 py-1 text-xs font-medium text-slate-600 dark:text-slate-300">
+                                On Track
+                            </span>
+</div>
+<div class="mt-4 flex flex-col gap-3 rounded-lg bg-slate-50 dark:bg-slate-700/30 p-3">
+<div class="flex items-center justify-between">
+<span class="text-xs font-bold text-slate-700 dark:text-slate-200">Reading Goals</span>
+<span class="text-xs font-bold text-primary dark:text-blue-400">75%</span>
+</div>
+<div class="h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-600">
+<div class="h-full rounded-full bg-primary transition-all duration-500" style="width: 75%"></div>
+</div>
+<div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 pt-1">
+<span class="material-symbols-outlined text-[18px] text-slate-400">event</span>
+<span>Next Check-in: <span class="font-medium text-slate-800 dark:text-white">Oct 12</span></span>
+</div>
+</div>
+<div class="mt-6 flex flex-col gap-3">
+<button class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm font-bold text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                                View Progress
+                            </button>
+<div class="flex items-center justify-between gap-2 border-t border-slate-100 dark:border-slate-700 pt-3">
+<button class="flex flex-1 items-center justify-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[18px]">share</span>
+                                    Share Report
+                                </button>
+<div class="h-4 w-px bg-slate-200 dark:bg-slate-700"></div>
+<button class="flex flex-1 items-center justify-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[18px]">folder_open</span>
+                                    Docs (5)
+                                </button>
+</div>
+</div>
+</article>
+<article class="group relative flex flex-col justify-between rounded-xl bg-white dark:bg-slate-800 p-5 shadow-soft hover:shadow-xl transition-all duration-300 border border-transparent hover:border-primary/20 dark:border-slate-700">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-3">
+<div class="h-14 w-14 overflow-hidden rounded-full border-2 border-white shadow-md bg-cover bg-center" data-alt="Portrait of a young toddler named Noah" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAkZWF01triv_-K7dcQompoBtYQcmwvYXTaHOUlu6a9wtscNuOxu73wo3zlF2Htpf-uzbz95P98y-dj7up7nVXU91yYsp8wQ1dnWhZQDb4ow8wXqVkiH--EzDcB0raToDGlYuALOix7ntgYr31EqMaB9kOxHsRofazTIdeoZadTaSis_pf8BLRjBLoxkQmUcOmRAUEbIX-b5zqcZ0uTzcjhMj44WRvfQD3BsuMuhUVfInGOEZPpidEuh4jcwrLuKSCPLe08HN0-heoZ");'>
+</div>
+<div>
+<h3 class="text-lg font-bold text-slate-850 dark:text-white leading-tight">Noah Johnson</h3>
+<p class="text-sm font-medium text-slate-500 dark:text-slate-400">Age 2 • Toddler</p>
+</div>
+</div>
+<button class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<div class="mt-5 flex items-center gap-2">
+<span class="inline-flex items-center gap-1.5 rounded-full bg-red-50 dark:bg-red-900/20 px-3 py-1 text-xs font-bold text-red-600 dark:text-red-400 border border-red-100 dark:border-red-800/30">
+<span class="material-symbols-outlined text-[16px]">priority_high</span>
+                                At Risk
+                            </span>
+<span class="inline-flex items-center gap-1.5 rounded-full bg-slate-50 dark:bg-slate-700/50 px-3 py-1 text-xs font-medium text-slate-600 dark:text-slate-300">
+                                Follow Up
+                            </span>
+</div>
+<div class="mt-4 flex flex-col gap-3 rounded-lg bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 p-3">
+<div class="flex items-start gap-3">
+<div class="rounded-full bg-white dark:bg-slate-800 p-1.5 text-primary shadow-sm">
+<span class="material-symbols-outlined text-[18px]">school</span>
+</div>
+<div class="flex flex-col gap-1">
+<p class="text-xs font-bold text-slate-800 dark:text-slate-200">Connect with School</p>
+<p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">Invite Noah's teacher to collaborate on screenings and PEPs.</p>
+</div>
+</div>
+<button class="self-end text-xs font-bold text-primary hover:text-blue-700 dark:hover:text-blue-400">
+                                Link Now →
+                            </button>
+</div>
+<div class="mt-6 flex flex-col gap-3">
+<button class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-md shadow-primary/20 transition-transform hover:bg-blue-600 active:scale-95">
+<span class="material-symbols-outlined fill text-[20px]">medical_services</span>
+                                Consult Specialist
+                            </button>
+<div class="flex items-center justify-between gap-2 border-t border-slate-100 dark:border-slate-700 pt-3">
+<button class="flex flex-1 items-center justify-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[18px]">share</span>
+                                    Share Report
+                                </button>
+<div class="h-4 w-px bg-slate-200 dark:bg-slate-700"></div>
+<button class="flex flex-1 items-center justify-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[18px]">folder_open</span>
+                                    Docs (1)
+                                </button>
+</div>
+</div>
+</article>
+</div>
+<div class="mt-12 flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 bg-white/50 dark:bg-slate-800/30 p-8 text-center">
+<div class="mb-4 rounded-full bg-primary-light dark:bg-slate-700 p-4 text-primary dark:text-blue-400">
+<span class="material-symbols-outlined text-4xl">family_restroom</span>
+</div>
+<h3 class="text-lg font-bold text-slate-850 dark:text-white">Expecting another child?</h3>
+<p class="mt-1 max-w-md text-sm text-slate-500 dark:text-slate-400">
+                        Early intervention is key. Set up a profile for your new child to start tracking their development milestones from day one.
+                    </p>
+<button class="mt-4 text-sm font-bold text-primary hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
+                        Create New Profile →
+                    </button>
+</div>
+</div>
+</main>
+</div>
+<div aria-labelledby="modal-title" aria-modal="true" class="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/35 backdrop-blur-[10px] p-4 sm:p-6 opacity-100 transition-opacity duration-300" role="dialog">
+<div class="relative flex max-h-[90vh] w-full max-w-4xl flex-col rounded-2xl bg-white/95 dark:bg-slate-800/95 shadow-modal backdrop-blur-xl transition-all">
+<div class="flex flex-shrink-0 items-start justify-between border-b border-slate-100 dark:border-slate-700 p-6 pb-4">
+<div class="pr-6">
+<h2 class="text-xl font-bold text-slate-800 dark:text-white" id="modal-title">New Student Registration</h2>
+<p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Please provide accurate details to help us personalize screening and support.</p>
+</div>
+<button class="group rounded-lg bg-slate-50 p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:bg-slate-700/50 dark:hover:bg-slate-700 dark:hover:text-slate-200 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2" type="button">
+<span class="sr-only">Close</span>
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<div class="flex-1 overflow-y-auto p-6 modal-scroll">
+<form class="flex flex-col gap-8">
+<div class="flex flex-col gap-6">
+<div class="flex items-center gap-2">
+<span class="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">1</span>
+<h3 class="text-base font-semibold text-slate-800 dark:text-white">Demographic Details</h3>
+<div class="h-px flex-1 bg-slate-100 dark:bg-slate-700"></div>
+</div>
+<div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+<div class="col-span-1">
+<label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1" for="respondent-name">
+                                    Name of Respondent <span class="text-red-500">*</span>
+</label>
+<input class="w-full rounded-lg border-slate-200 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10 dark:border-slate-600 dark:bg-slate-900/50 dark:text-white dark:focus:ring-primary/20" id="respondent-name" placeholder="Enter full name" type="text"/>
+</div>
+<div class="col-span-1">
+<label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1" for="relationship">
+                                    Relationship with Child <span class="text-red-500">*</span>
+</label>
+<select class="w-full rounded-lg border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10 dark:border-slate-600 dark:bg-slate-900/50 dark:text-white dark:focus:ring-primary/20" id="relationship">
+<option disabled="" selected="" value="">Select relationship</option>
+<option value="mother">Mother</option>
+<option value="father">Father</option>
+<option value="grandmother">Grandmother</option>
+<option value="grandfather">Grandfather</option>
+<option value="caregiver">Caregiver</option>
+<option value="other">Other</option>
+</select>
+</div>
+</div>
+<div class="grid grid-cols-1 gap-6 sm:grid-cols-12">
+<div class="sm:col-span-5">
+<label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1" for="child-name">
+                                    Name of the Child <span class="text-red-500">*</span>
+</label>
+<input class="w-full rounded-lg border-slate-200 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10 dark:border-slate-600 dark:bg-slate-900/50 dark:text-white dark:focus:ring-primary/20" id="child-name" placeholder="Child's full name" type="text"/>
+</div>
+<div class="sm:col-span-3">
+<label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1" for="dob">
+                                    Date of Birth <span class="text-red-500">*</span>
+</label>
+<input class="w-full rounded-lg border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10 dark:border-slate-600 dark:bg-slate-900/50 dark:text-white dark:focus:ring-primary/20" id="dob" max="2024-12-31" type="date"/>
+</div>
+<div class="sm:col-span-2">
+<div class="flex gap-2">
+<div class="flex-1">
+<label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Years</label>
+<input class="w-full rounded-lg border-slate-100 bg-slate-50 px-2 py-2 text-sm text-slate-500 text-center dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 cursor-not-allowed" readonly="" type="text" value="--"/>
+</div>
+<div class="flex-1">
+<label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Months</label>
+<input class="w-full rounded-lg border-slate-100 bg-slate-50 px-2 py-2 text-sm text-slate-500 text-center dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 cursor-not-allowed" readonly="" type="text" value="--"/>
+</div>
+</div>
+</div>
+<div class="sm:col-span-2">
+<label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1" for="gender">
+                                    Gender <span class="text-red-500">*</span>
+</label>
+<select class="w-full rounded-lg border-slate-200 bg-white px-2 py-2 text-sm text-slate-700 focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10 dark:border-slate-600 dark:bg-slate-900/50 dark:text-white dark:focus:ring-primary/20" id="gender">
+<option disabled="" selected="" value="">Select</option>
+<option value="male">Male</option>
+<option value="female">Female</option>
+<option value="other">Other</option>
+<option value="prefer_not_say">Prefer not to say</option>
+</select>
+</div>
+</div>
+<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+<div class="col-span-1">
+<label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1" for="living-since">
+                                    Living with child since
+                                </label>
+<div class="flex gap-2">
+<input class="w-full rounded-lg border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10 dark:border-slate-600 dark:bg-slate-900/50 dark:text-white dark:focus:ring-primary/20" id="living-since" type="month"/>
+<button class="whitespace-nowrap rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-700" type="button">Since Birth</button>
+</div>
+</div>
+<div class="col-span-1 lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+<div>
+<label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                        Current Residence
+                                    </label>
+<div class="flex gap-2">
+<input class="flex-1 rounded-lg border-slate-200 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10 dark:border-slate-600 dark:bg-slate-900/50 dark:text-white dark:focus:ring-primary/20" placeholder="City" type="text"/>
+<select class="w-28 rounded-lg border-slate-200 bg-white px-2 py-2 text-sm text-slate-700 focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10 dark:border-slate-600 dark:bg-slate-900/50 dark:text-white dark:focus:ring-primary/20">
+<option disabled="" selected="">State</option>
+<option>CA</option>
+<option>NY</option>
+<option>TX</option>
+</select>
+</div>
+</div>
+<div>
+<label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1" for="contact">
+                                        Contact Number <span class="text-red-500">*</span>
+</label>
+<div class="flex rounded-lg border border-slate-200 bg-white dark:border-slate-600 dark:bg-slate-900/50 overflow-hidden focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10 transition-shadow">
+<span class="flex items-center bg-slate-50 border-r border-slate-200 px-3 text-sm text-slate-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400">+1</span>
+<input class="w-full border-none bg-transparent px-3 py-2 text-sm placeholder:text-slate-400 focus:ring-0 dark:text-white" id="contact" placeholder="000 000 0000" type="tel"/>
+</div>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+<div class="col-span-1">
+<label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1" for="diagnosis">
+                                    Earlier Diagnosis (if any)
+                                </label>
+<textarea class="w-full rounded-lg border-slate-200 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10 dark:border-slate-600 dark:bg-slate-900/50 dark:text-white dark:focus:ring-primary/20 resize-none" id="diagnosis" placeholder="Mention any previous medical, developmental, or learning diagnosis..." rows="3"></textarea>
+</div>
+<div class="col-span-1">
+<label class="flex items-center gap-2 text-sm font-medium text-amber-700 dark:text-amber-400 mb-1" for="allergies">
+<span class="material-symbols-outlined text-[18px]">warning</span>
+                                    Allergies / Special Notes
+                                </label>
+<textarea class="w-full rounded-lg border-amber-200 bg-amber-50/50 px-3 py-2 text-sm placeholder:text-amber-700/50 text-amber-900 focus:border-amber-400 focus:outline-none focus:ring-4 focus:ring-amber-200/50 dark:border-amber-800 dark:bg-amber-900/10 dark:text-amber-100 dark:focus:ring-amber-900/30 resize-none" id="allergies" placeholder="Any allergies or special conditions we should be aware of?" rows="3"></textarea>
+</div>
+</div>
+</div>
+<hr class="border-slate-100 dark:border-slate-700"/>
+<div class="rounded-xl bg-slate-50 p-5 dark:bg-slate-700/20 border border-slate-100 dark:border-slate-700/50">
+<div class="flex items-center gap-2 mb-4">
+<span class="flex h-6 w-6 items-center justify-center rounded-full bg-slate-200 text-xs font-bold text-slate-600 dark:bg-slate-700 dark:text-slate-300">2</span>
+<h3 class="text-base font-semibold text-slate-800 dark:text-white">Socio-Economic Details</h3>
+<span class="text-xs text-slate-400 ml-auto font-normal hidden sm:inline-block">Helps in contextualizing screening results</span>
+</div>
+<div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+<div class="col-span-1 sm:col-span-2 lg:col-span-1">
+<label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1" for="respondent-edu">
+                                    Education of Respondent
+                                </label>
+<input class="w-full rounded-lg border-slate-200 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10 dark:border-slate-600 dark:bg-slate-900/50 dark:text-white dark:focus:ring-primary/20" id="respondent-edu" placeholder="e.g. Graduate, Post Graduate" type="text"/>
+</div>
+<div class="col-span-1 sm:col-span-2 lg:col-span-1 grid grid-cols-1 gap-4">
+<div class="bg-white/50 dark:bg-slate-800/50 rounded-lg p-3 border border-slate-100 dark:border-slate-700/50">
+<span class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Kuppuswamy Scale Parameters</span>
+<div class="space-y-4">
+<div>
+<label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Education of Head of Family</label>
+<select class="w-full rounded-md border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-700 focus:border-primary focus:outline-none dark:border-slate-600 dark:bg-slate-900 dark:text-white">
+<option>Professionals / Honours</option>
+<option>Graduate / Diploma</option>
+<option>Intermediate / Post High School</option>
+<option>High School Certificate</option>
+<option>Middle School Certificate</option>
+<option>Primary School Certificate</option>
+<option>Illiterate</option>
+</select>
+</div>
+<div>
+<label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Occupation of Head of Family</label>
+<select class="w-full rounded-md border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-700 focus:border-primary focus:outline-none dark:border-slate-600 dark:bg-slate-900 dark:text-white">
+<option>Legislators, Officials &amp; Managers</option>
+<option>Professionals</option>
+<option>Technicians &amp; Associate Professionals</option>
+<option>Clerks</option>
+<option>Skilled Workers</option>
+<option>Semiskilled Workers</option>
+<option>Unskilled Workers</option>
+</select>
+</div>
+<div>
+<label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Monthly Income (Family)</label>
+<select class="w-full rounded-md border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-700 focus:border-primary focus:outline-none dark:border-slate-600 dark:bg-slate-900 dark:text-white">
+<option>&gt; ₹2,00,000</option>
+<option>₹1,00,000 - ₹1,99,999</option>
+<option>₹50,000 - ₹99,999</option>
+<option>₹30,000 - ₹49,999</option>
+<option>₹10,000 - ₹29,999</option>
+<option>&lt; ₹10,000</option>
+</select>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</form>
+</div>
+<div class="flex flex-shrink-0 flex-col gap-3 border-t border-slate-100 bg-white/80 backdrop-blur dark:bg-slate-900/80 dark:border-slate-700 p-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+<span class="text-xs text-slate-500 dark:text-slate-400 text-center sm:text-left">
+<span class="material-symbols-outlined align-middle text-[16px] mr-1">info</span>
+                    You can edit these details later.
+                </span>
+<div class="flex flex-col gap-3 sm:flex-row">
+<button class="rounded-lg border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-800 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white transition-colors" type="button">
+                        Cancel
+                    </button>
+<button class="flex items-center justify-center gap-2 rounded-lg bg-primary/50 px-5 py-2.5 text-sm font-bold text-white shadow-sm cursor-not-allowed transition-all" disabled="" type="button">
+<span>Save &amp; Create Profile</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+
+</body></html>

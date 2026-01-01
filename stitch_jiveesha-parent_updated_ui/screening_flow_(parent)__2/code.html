@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Daira - Parent Screening Flow</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem", // rounded-lg typically
+                        "md": "0.375rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1rem",
+                        "full": "9999px"
+                    },
+                    boxShadow: {
+                        'soft': '0 10px 40px -10px rgba(19, 91, 236, 0.08)',
+                        'glass': '0 4px 30px rgba(0, 0, 0, 0.03)',
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Lexend', sans-serif;
+        }
+        /* Custom scrollbar for webkit */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 20px;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white transition-colors duration-200">
+<div class="relative flex min-h-screen flex-col overflow-x-hidden">
+<!-- Top Navigation -->
+<header class="sticky top-0 z-50 flex w-full flex-col bg-white/90 dark:bg-background-dark/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+<div class="flex items-center justify-between px-6 py-4 lg:px-10">
+<div class="flex items-center gap-3">
+<div class="flex items-center justify-center size-10 rounded-xl bg-primary/10 text-primary">
+<span class="material-symbols-outlined text-[28px]">child_care</span>
+</div>
+<h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Daira</h1>
+</div>
+<!-- Desktop Nav Links -->
+<nav class="hidden md:flex flex-1 justify-center gap-8">
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-medium transition-colors" href="#">Dashboard</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-medium transition-colors" href="#">My children</a>
+<a class="text-primary font-semibold text-sm bg-primary/5 px-3 py-1.5 rounded-full" href="#">Screening</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-medium transition-colors" href="#">Results</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-medium transition-colors" href="#">PEP Builder</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="p-2 text-slate-500 hover:text-primary transition-colors md:hidden">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<div class="hidden md:flex items-center gap-3">
+<div class="flex flex-col items-end">
+<span class="text-sm font-semibold text-slate-900 dark:text-white">Sarah M.</span>
+<span class="text-xs text-slate-500 dark:text-slate-400">Parent</span>
+</div>
+<div class="size-10 rounded-full bg-slate-200 bg-cover bg-center border-2 border-white dark:border-slate-700 shadow-sm" data-alt="Portrait of a smiling woman" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBrXyHREmoJ5n08d3g3711eklBSih4IB9we-ec4qIT0LMepreqlb0_sWtJlRiguKVMg3fwCfKrw-mPNNnWszQXyEGdb-bgrrpEQZOxCLS95AfKRQm6-BJugPE51h0DLAQ9-SDMBJIi-wpfhY5UvCXfDfEjZYjo4YPOqZ414AcoUhFgzq15d_FAs75nKEpRiY76wJIjWz0_lS4HrnKC_2NSIcMhG6evd8JqjRZNq9-5WGjYpkwbzV8fmwykbBlrFmdvk-Bi3_gj_H3Lb");'></div>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="relative flex grow flex-col items-center py-8 px-4 md:px-6">
+<!-- Background Gradient -->
+<div class="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent pointer-events-none -z-10"></div>
+<div class="flex flex-col w-full max-w-3xl gap-6">
+<!-- Progress & Autosave Header -->
+<div class="flex flex-col gap-2">
+<div class="flex justify-between items-end mb-1">
+<div>
+<span class="text-xs font-semibold uppercase tracking-wider text-primary mb-1 block">Developmental Screening</span>
+<h2 class="text-slate-900 dark:text-white font-semibold text-lg">Social &amp; Emotional · Age 4-5 Years</h2>
+</div>
+<div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+<span class="material-symbols-outlined text-[16px] animate-pulse text-green-500">cloud_done</span>
+                            Autosaved just now
+                        </div>
+</div>
+<div class="relative w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+<div class="absolute left-0 top-0 h-full bg-primary rounded-full transition-all duration-500 ease-out" style="width: 20%;"></div>
+</div>
+<div class="flex justify-between text-xs font-medium text-slate-500 dark:text-slate-400 px-1">
+<span>Question 4 of 20</span>
+<span>20% Completed</span>
+</div>
+</div>
+<!-- Main Question Card -->
+<div class="bg-white dark:bg-slate-800 rounded-2xl shadow-soft p-6 md:p-10 border border-slate-100 dark:border-slate-700 relative overflow-hidden">
+<!-- Decorative background blob for card -->
+<div class="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+<!-- Question Header -->
+<div class="relative z-10 flex flex-col gap-6">
+<div class="flex justify-between items-start gap-4">
+<h3 class="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white leading-tight">
+                                Does your child make eye contact when you speak to them?
+                            </h3>
+<!-- Accessibility Controls Inline (Desktop) -->
+<div class="hidden sm:flex gap-2 shrink-0">
+<button class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors" title="Read Aloud">
+<span class="material-symbols-outlined">volume_up</span>
+</button>
+<button class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors" title="Increase Text Size">
+<span class="material-symbols-outlined">text_increase</span>
+</button>
+</div>
+</div>
+<!-- Accordion: Why this matters -->
+<details class="group bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-200 dark:border-slate-600 overflow-hidden transition-all duration-300">
+<summary class="flex cursor-pointer items-center justify-between gap-4 px-5 py-3 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+<div class="flex items-center gap-2 text-primary font-medium">
+<span class="material-symbols-outlined">info</span>
+<span>Why this matters?</span>
+</div>
+<span class="material-symbols-outlined text-slate-400 group-open:rotate-180 transition-transform duration-300">expand_more</span>
+</summary>
+<div class="px-5 pb-5 pt-2 text-slate-600 dark:text-slate-300 text-sm leading-relaxed border-t border-slate-200 dark:border-slate-600">
+                                Eye contact is a foundational skill for communication. It shows that your child is attending to you and interested in social interaction. Consistent eye contact suggests healthy social-emotional development.
+                            </div>
+</details>
+<!-- Visual Aid -->
+<div class="flex flex-col gap-3">
+<p class="text-sm font-medium text-slate-900 dark:text-white flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">play_circle</span>
+                                See an example of this behavior
+                            </p>
+<div class="relative aspect-video w-full md:w-2/3 rounded-xl overflow-hidden bg-slate-900 group cursor-pointer shadow-md">
+<div class="absolute inset-0 bg-cover bg-center opacity-60 transition-opacity group-hover:opacity-40" data-alt="Parent and child making eye contact while smiling" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBaGYFbMHTMAG7LA1pFTFnXrxK0UP2ZAGcUCcWvaN1vlDNP_N8zDcBGFnNI4BOEA5lsfW5euxXTzNsWidNKGj1Yqpe_NhihQrqUrwYSpEmFxTtBs12ir8YU-rTksxNJq454581xVehGuYxfj5FFPUIuyfwamtjaj5bZ-_8GR1CoqTTyqTGdFwwxHNxHpQHBNZFJtgceVT9LJ71HVxFe3avciJYKo1zmMhLZUNzqxreu7ms-nVkJJYtjmuPW7IzuVOU0CckqcGPsY4zZ");'></div>
+<div class="absolute inset-0 flex items-center justify-center">
+<div class="size-14 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+<span class="material-symbols-outlined text-white text-3xl fill">play_arrow</span>
+</div>
+</div>
+<span class="absolute bottom-3 right-3 bg-black/70 text-white text-xs px-2 py-1 rounded font-medium">0:45</span>
+</div>
+</div>
+<!-- Answer Options -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+<label class="cursor-pointer group">
+<input class="peer sr-only" name="q4" type="radio"/>
+<div class="flex flex-col items-center justify-center gap-2 p-6 rounded-xl border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 hover:border-primary/50 hover:bg-primary/5 dark:hover:bg-primary/10 peer-checked:border-primary peer-checked:bg-primary/10 transition-all shadow-sm">
+<span class="material-symbols-outlined text-4xl text-slate-300 group-hover:text-primary peer-checked:text-primary transition-colors">check_circle</span>
+<span class="text-lg font-semibold text-slate-900 dark:text-white group-hover:text-primary peer-checked:text-primary">Yes</span>
+</div>
+</label>
+<label class="cursor-pointer group">
+<input class="peer sr-only" name="q4" type="radio"/>
+<div class="flex flex-col items-center justify-center gap-2 p-6 rounded-xl border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 hover:border-primary/50 hover:bg-primary/5 dark:hover:bg-primary/10 peer-checked:border-primary peer-checked:bg-primary/10 transition-all shadow-sm">
+<span class="material-symbols-outlined text-4xl text-slate-300 group-hover:text-primary peer-checked:text-primary transition-colors">timelapse</span>
+<span class="text-lg font-semibold text-slate-900 dark:text-white group-hover:text-primary peer-checked:text-primary">Sometimes</span>
+</div>
+</label>
+<label class="cursor-pointer group">
+<input class="peer sr-only" name="q4" type="radio"/>
+<div class="flex flex-col items-center justify-center gap-2 p-6 rounded-xl border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 hover:border-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/10 peer-checked:border-rose-500 peer-checked:bg-rose-50 dark:peer-checked:bg-rose-900/10 transition-all shadow-sm">
+<span class="material-symbols-outlined text-4xl text-slate-300 group-hover:text-rose-500 peer-checked:text-rose-500 transition-colors">cancel</span>
+<span class="text-lg font-semibold text-slate-900 dark:text-white group-hover:text-rose-500 peer-checked:text-rose-500">Not Yet</span>
+</div>
+</label>
+</div>
+<!-- Secondary Actions -->
+<div class="flex flex-wrap items-center gap-4 text-sm mt-2">
+<button class="text-slate-500 hover:text-primary transition-colors underline decoration-slate-300 underline-offset-4">
+                                I don't know
+                            </button>
+<span class="text-slate-300">|</span>
+<button class="text-slate-500 hover:text-primary transition-colors underline decoration-slate-300 underline-offset-4">
+                                Prefer not to answer
+                            </button>
+</div>
+<!-- Upload Area (Optional) -->
+<div class="mt-4 pt-6 border-t border-slate-100 dark:border-slate-700">
+<p class="text-sm font-medium text-slate-900 dark:text-white mb-3">Upload a video (Optional)</p>
+<div class="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl p-6 flex flex-col items-center justify-center text-center hover:border-primary hover:bg-primary/5 transition-all cursor-pointer group">
+<div class="size-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center mb-2 group-hover:bg-white text-primary">
+<span class="material-symbols-outlined">cloud_upload</span>
+</div>
+<p class="text-sm text-slate-600 dark:text-slate-300">
+<span class="font-semibold text-primary">Click to upload</span> or drag and drop
+                                </p>
+<p class="text-xs text-slate-400 mt-1">MP4, MOV up to 10MB</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Actions -->
+<div class="flex flex-col-reverse sm:flex-row items-center justify-between gap-4 mt-4">
+<button class="w-full sm:w-auto px-6 py-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">arrow_back</span>
+                        Back
+                    </button>
+<button class="w-full sm:w-auto px-8 py-3 rounded-xl bg-primary hover:bg-blue-600 text-white font-semibold shadow-lg shadow-blue-500/30 transition-all hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                        Submit &amp; Request Verification
+                        <span class="material-symbols-outlined text-sm">send</span>
+</button>
+</div>
+</div>
+</main>
+<!-- Floating Accessibility Fab (Mobile/Tablet) -->
+<div class="fixed bottom-6 right-6 sm:hidden z-40">
+<button class="size-12 rounded-full bg-white dark:bg-slate-700 shadow-xl flex items-center justify-center text-primary border border-slate-100 dark:border-slate-600">
+<span class="material-symbols-outlined">accessibility_new</span>
+</button>
+</div>
+</div>
+</body></html>

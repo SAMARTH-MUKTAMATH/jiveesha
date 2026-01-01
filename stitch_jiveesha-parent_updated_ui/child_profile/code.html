@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Daira - Child Profile</title>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&amp;family=Noto+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "primary-light": "#eef4ff",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"],
+                        "body": ["Noto Sans", "sans-serif"],
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar for cleaner look in specific sections */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-[#111318] dark:text-white font-display overflow-x-hidden antialiased">
+<!-- Subtle Background Gradient -->
+<div class="fixed inset-0 pointer-events-none bg-gradient-to-b from-primary/5 to-transparent h-[500px] z-0"></div>
+<div class="relative flex h-auto min-h-screen w-full flex-col z-10">
+<!-- Navigation -->
+<header class="sticky top-0 z-50 flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#f0f2f4] dark:border-gray-800 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md px-4 py-3 md:px-10">
+<div class="flex items-center gap-4 text-[#111318] dark:text-white">
+<div class="size-8 text-primary flex items-center justify-center bg-primary/10 rounded-lg">
+<span class="material-symbols-outlined text-[24px]">spa</span>
+</div>
+<h2 class="text-[#111318] dark:text-white text-xl font-bold leading-tight tracking-[-0.015em]">Daira</h2>
+</div>
+<!-- Desktop Nav -->
+<div class="hidden md:flex flex-1 justify-center gap-8">
+<a class="text-[#616f89] dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors text-sm font-medium leading-normal" href="#">Dashboard</a>
+<a class="text-[#111318] dark:text-white font-semibold text-sm leading-normal" href="#">My Children</a>
+<a class="text-[#616f89] dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors text-sm font-medium leading-normal" href="#">Screening</a>
+<a class="text-[#616f89] dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors text-sm font-medium leading-normal" href="#">Results</a>
+<a class="text-[#616f89] dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors text-sm font-medium leading-normal" href="#">PEP Builder</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="flex size-10 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-[#f0f2f4] dark:bg-gray-800 text-[#111318] dark:text-white hover:bg-primary/10 transition-colors">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+</button>
+<div class="bg-center bg-no-repeat bg-cover rounded-full size-10 border-2 border-white dark:border-gray-700 shadow-sm" data-alt="User profile avatar showing a smiling parent" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAa2UpsTwVkUhVxhiKrq3GBVpRVMvx7ZfaBQFy3pbWGnPCkDiWe39so9vayq2kuqeSASGBkvL6EYHRaQcT-SF3HwZ9pJWMho5fAuJYlDIG2n57Y_Ndie0DO-XKoKHumt3pr2dgZvWDGwRPG_AH_xK6j7GWWHKTKFKN_ShahI2ZOgnPFy3kWkdYdsh5faYhsnAbDY7xXKtYxBzFbDC0Edu9xv3tTO30l_TAkCzEfDD2B5GGt3ADcY-S4V-SdhDirLveVOaCs0waXTsXn");'></div>
+<button class="md:hidden text-[#111318] dark:text-white">
+<span class="material-symbols-outlined">menu</span>
+</button>
+</div>
+</header>
+<!-- Main Content -->
+<main class="layout-container flex h-full grow flex-col px-4 md:px-10 lg:px-20 py-8 w-full max-w-[1400px] mx-auto">
+<!-- Profile Header Card -->
+<div class="w-full bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-gray-700 mb-8 transition-all hover:shadow-md">
+<div class="flex flex-col md:flex-row gap-6 items-start md:items-center justify-between">
+<div class="flex flex-col sm:flex-row gap-6 items-center sm:items-start text-center sm:text-left w-full">
+<div class="relative group">
+<div class="bg-center bg-no-repeat bg-cover rounded-2xl size-24 md:size-32 shadow-inner" data-alt="Portrait of a young child named Aarav smiling" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDgNJis8kBymQT2Ku7AssLJVXbQqDGxwCRm78zTH1Jbx3uyRrqGAAlFk-IONu3vvhDAmyShQx3N87868kaxwOHl6WqhCBXJ1dSAOlTdldK-t7TiPOgLg-4zWPG5uUUyM8xwOkwfLOMw2nzOH41U3wAqFFRVjQYcOUZ7r_nLp8_4P6rzmDtU4COXabKUpqgUkHVjPvkzhD4YK9OsZUiw--NPdeqk5N64u0lkB01T3aXTO9iuDPQvytSoWEAwGcqtvSpdXaUlq_hKd2cF");'></div>
+<div class="absolute bottom-[-10px] right-[-10px] bg-green-500 text-white rounded-full p-1.5 border-4 border-white dark:border-gray-800 flex items-center justify-center" title="Screening Complete">
+<span class="material-symbols-outlined text-[16px]">check</span>
+</div>
+</div>
+<div class="flex flex-col justify-center gap-1">
+<h1 class="text-[#111318] dark:text-white text-3xl font-bold tracking-tight">Aarav Patel</h1>
+<div class="flex flex-wrap items-center justify-center sm:justify-start gap-2 md:gap-3 text-[#616f89] dark:text-gray-400 text-sm md:text-base">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[18px]">cake</span> 4 Yrs, 2 Mos</span>
+<span class="hidden sm:inline">•</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[18px]">badge</span> ID: #DAIRA-8291</span>
+<span class="hidden sm:inline">•</span>
+<span class="px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-bold uppercase tracking-wide">Active</span>
+</div>
+<div class="mt-2 flex flex-wrap gap-2 justify-center sm:justify-start">
+<span class="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">Pre-K Level 2</span>
+<span class="px-3 py-1 rounded-full bg-orange-50 text-orange-600 text-xs font-semibold">Allergy: Peanuts</span>
+</div>
+</div>
+</div>
+<div class="flex w-full md:w-auto gap-3 mt-4 md:mt-0">
+<button class="flex-1 md:flex-none cursor-pointer items-center justify-center rounded-xl h-10 px-6 bg-white border border-slate-200 dark:bg-gray-700 dark:border-gray-600 hover:bg-slate-50 dark:hover:bg-gray-600 text-[#111318] dark:text-white text-sm font-bold transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[18px] mr-2">edit</span> Edit
+                        </button>
+<button class="flex-1 md:flex-none cursor-pointer items-center justify-center rounded-xl h-10 px-6 bg-primary hover:bg-blue-700 text-white text-sm font-bold transition-colors shadow-md shadow-primary/20">
+<span class="material-symbols-outlined text-[18px] mr-2">add_circle</span> New Entry
+                        </button>
+</div>
+</div>
+</div>
+<!-- Dashboard Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+<!-- Left Column (Sidebar-ish) -->
+<div class="lg:col-span-4 flex flex-col gap-6">
+<!-- Demographics & School Card -->
+<div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-gray-700">
+<div class="flex items-center justify-between mb-4">
+<h3 class="text-lg font-bold text-[#111318] dark:text-white">School &amp; Info</h3>
+<button class="text-primary text-sm font-semibold">Update</button>
+</div>
+<div class="space-y-4">
+<div class="flex items-start gap-3">
+<div class="size-10 rounded-lg bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined">school</span>
+</div>
+<div>
+<p class="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold tracking-wider">Institution</p>
+<p class="text-sm font-medium text-[#111318] dark:text-white">Sunshine Valley Prep</p>
+<p class="text-xs text-gray-500">Class: Sunflower-B</p>
+</div>
+</div>
+<div class="flex items-start gap-3">
+<div class="size-10 rounded-lg bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 shrink-0">
+<span class="material-symbols-outlined">calendar_month</span>
+</div>
+<div>
+<p class="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold tracking-wider">Date of Birth</p>
+<p class="text-sm font-medium text-[#111318] dark:text-white">August 14, 2019</p>
+</div>
+</div>
+<div class="flex items-start gap-3">
+<div class="size-10 rounded-lg bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 shrink-0">
+<span class="material-symbols-outlined">location_on</span>
+</div>
+<div>
+<p class="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold tracking-wider">Primary Location</p>
+<p class="text-sm font-medium text-[#111318] dark:text-white">Mumbai, MH</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Medical/Ed Summary -->
+<div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-gray-700">
+<div class="flex items-center gap-2 mb-3">
+<span class="material-symbols-outlined text-orange-500">medical_services</span>
+<h3 class="text-lg font-bold text-[#111318] dark:text-white">Background Summary</h3>
+</div>
+<p class="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-4">
+                            Aarav has shown mild sensitivity to loud auditory stimuli. No other significant medical history. Currently following the standard immunization schedule.
+                        </p>
+<div class="flex flex-wrap gap-2">
+<span class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-md text-xs font-medium text-gray-600 dark:text-gray-300">Auditory Sensitive</span>
+<span class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-md text-xs font-medium text-gray-600 dark:text-gray-300">Visual Learner</span>
+</div>
+</div>
+<!-- Consent Dashboard -->
+<div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-gray-700">
+<h3 class="text-lg font-bold text-[#111318] dark:text-white mb-4">Access &amp; Consent</h3>
+<div class="space-y-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="bg-cover bg-center size-8 rounded-full" data-alt="Doctor profile picture" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDmxbEYFUmCfPavJ1RDdjlw9qH6-ojbjjO0-XGnR-gu-kzDDnsaBWwh9BSlA2PbMsQ1r7B20o20sxIw8hLBk_MRIWadjnB6IZS6N9e-x-06XjzKekpJX1CasDd23mgmwmP1KgVIHNxE7L04FQnjvvdj8abTfoh1ikEaE5Q_H1_i7Kz_wQknKnkdC3A35ZXiJyfRsf9gK6OwWx2KHiS4wcHfzrZy8IFlgyzOgZibYaCddosjjYWTmu8ZDmr8nl2NHPshR2N-WkT2reap");'></div>
+<div>
+<p class="text-sm font-semibold text-[#111318] dark:text-white">Dr. Sarah Smith</p>
+<p class="text-xs text-gray-500">Pediatrician</p>
+</div>
+</div>
+<div class="relative inline-flex h-6 w-11 items-center rounded-full bg-primary">
+<span class="translate-x-6 inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
+</div>
+</div>
+<div class="w-full h-px bg-slate-100 dark:bg-gray-700"></div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="bg-cover bg-center size-8 rounded-full" data-alt="Teacher profile picture" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDAU8IoHZXgIVUBBFYecZv2sWBAPxzhM12u3XDp7f3bF1daVxSILYS2upLalZNh1JSi9CxPnkBs-xX-haYBzdiS8a4Myre5Q77MMuBRbp5LoKwkeFFfsXuSeU_3BA42_OhrqaBki438EenN0-v0IPvVZPmYgeUTDthusrTZ7tdPT59-qmLZKUoAWJvQidZqcD5zWWNZBOrJeLcZ9gkWplQmcv4Hg3We6ivSgu16eghK7mSZZipE9WVyg-4gCwI2fUZaW485Zr8dJ-69");'></div>
+<div>
+<p class="text-sm font-semibold text-[#111318] dark:text-white">Mr. Rahul V.</p>
+<p class="text-xs text-gray-500">Class Teacher</p>
+</div>
+</div>
+<div class="relative inline-flex h-6 w-11 items-center rounded-full bg-primary">
+<span class="translate-x-6 inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
+</div>
+</div>
+<div class="w-full h-px bg-slate-100 dark:bg-gray-700"></div>
+<div class="flex items-center justify-between opacity-60">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
+<span class="material-symbols-outlined text-sm">person</span>
+</div>
+<div>
+<p class="text-sm font-semibold text-[#111318] dark:text-white">School Nurse</p>
+<p class="text-xs text-gray-500">General Access</p>
+</div>
+</div>
+<div class="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200 dark:bg-gray-700">
+<span class="translate-x-1 inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
+</div>
+</div>
+</div>
+<button class="w-full mt-4 text-center text-sm text-primary hover:underline font-medium">Manage Permissions</button>
+</div>
+</div>
+<!-- Right Column (Main Content) -->
+<div class="lg:col-span-8 flex flex-col gap-6">
+<!-- Timeline & Progress -->
+<div class="bg-white dark:bg-gray-800 rounded-2xl p-6 md:p-8 shadow-sm border border-slate-100 dark:border-gray-700">
+<div class="flex items-center justify-between mb-6">
+<h2 class="text-xl font-bold text-[#111318] dark:text-white">Development Timeline</h2>
+<span class="text-sm text-gray-500">Updated today</span>
+</div>
+<!-- Timeline Content -->
+<div class="relative">
+<!-- Line -->
+<div class="absolute left-[19px] top-4 bottom-4 w-0.5 bg-gray-200 dark:bg-gray-700"></div>
+<div class="space-y-8">
+<!-- Step 1: Complete -->
+<div class="relative flex items-start gap-6">
+<div class="z-10 flex items-center justify-center size-10 rounded-full bg-green-100 text-green-600 border-4 border-white dark:border-gray-800 dark:bg-green-900/30">
+<span class="material-symbols-outlined text-[20px]">check</span>
+</div>
+<div class="flex-1 bg-slate-50 dark:bg-gray-700/50 p-4 rounded-xl">
+<div class="flex justify-between items-start">
+<div>
+<h4 class="font-bold text-[#111318] dark:text-white">Initial Screening</h4>
+<p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Completed comprehensive development assessment.</p>
+</div>
+<span class="text-xs font-semibold text-gray-400 bg-white dark:bg-gray-700 px-2 py-1 rounded border border-gray-100 dark:border-gray-600">Oct 12</span>
+</div>
+</div>
+</div>
+<!-- Step 2: Complete -->
+<div class="relative flex items-start gap-6">
+<div class="z-10 flex items-center justify-center size-10 rounded-full bg-green-100 text-green-600 border-4 border-white dark:border-gray-800 dark:bg-green-900/30">
+<span class="material-symbols-outlined text-[20px]">analytics</span>
+</div>
+<div class="flex-1 bg-slate-50 dark:bg-gray-700/50 p-4 rounded-xl">
+<div class="flex justify-between items-start">
+<div>
+<h4 class="font-bold text-[#111318] dark:text-white">Results Analysis</h4>
+<p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Analysis reviewed by Dr. Sarah Smith.</p>
+</div>
+<span class="text-xs font-semibold text-gray-400 bg-white dark:bg-gray-700 px-2 py-1 rounded border border-gray-100 dark:border-gray-600">Oct 15</span>
+</div>
+</div>
+</div>
+<!-- Step 3: Current -->
+<div class="relative flex items-start gap-6">
+<div class="z-10 flex items-center justify-center size-10 rounded-full bg-primary text-white border-4 border-white dark:border-gray-800 shadow-lg shadow-primary/30">
+<span class="material-symbols-outlined text-[20px]">construction</span>
+</div>
+<div class="flex-1 bg-white dark:bg-gray-800 border-2 border-primary/20 p-4 rounded-xl shadow-sm">
+<div class="flex justify-between items-start">
+<div>
+<h4 class="font-bold text-primary">PEP Builder (Active)</h4>
+<p class="text-sm text-gray-600 dark:text-gray-300 mt-1">Personalized Education Plan is currently being generated based on screening results.</p>
+<button class="mt-3 px-4 py-2 bg-primary text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition">Continue Setup</button>
+</div>
+<span class="flex size-2 bg-red-500 rounded-full animate-pulse mt-2"></span>
+</div>
+</div>
+</div>
+<!-- Step 4: Future -->
+<div class="relative flex items-start gap-6 opacity-60">
+<div class="z-10 flex items-center justify-center size-10 rounded-full bg-gray-100 text-gray-400 border-4 border-white dark:border-gray-800 dark:bg-gray-700">
+<span class="material-symbols-outlined text-[20px]">calendar_clock</span>
+</div>
+<div class="flex-1 p-4 rounded-xl border border-dashed border-gray-300 dark:border-gray-700">
+<h4 class="font-bold text-gray-500 dark:text-gray-400">Progress Review</h4>
+<p class="text-sm text-gray-400 mt-1">Scheduled for Nov 01</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Quick Start Activities -->
+<div>
+<div class="flex items-center justify-between mb-4">
+<h3 class="text-xl font-bold text-[#111318] dark:text-white">Recommended Activities</h3>
+<a class="text-sm font-semibold text-primary flex items-center hover:underline" href="#">View All <span class="material-symbols-outlined text-sm ml-1">arrow_forward</span></a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<!-- Card 1 -->
+<div class="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-slate-100 dark:border-gray-700 hover:-translate-y-1 transition-transform duration-300 cursor-pointer group">
+<div class="h-24 rounded-lg bg-orange-100 dark:bg-orange-900/20 mb-3 flex items-center justify-center group-hover:bg-orange-200 dark:group-hover:bg-orange-900/40 transition-colors" data-alt="Abstract icon representing motor skills activity">
+<span class="material-symbols-outlined text-4xl text-orange-500">toys</span>
+</div>
+<h4 class="font-bold text-[#111318] dark:text-white mb-1">Block Building</h4>
+<p class="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">Enhance fine motor skills by stacking blocks in patterns.</p>
+<div class="mt-3 flex items-center gap-2">
+<span class="text-[10px] font-bold uppercase tracking-wider text-orange-600 bg-orange-50 dark:bg-orange-900/30 px-2 py-0.5 rounded">Motor</span>
+<span class="text-[10px] text-gray-400">10 mins</span>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-slate-100 dark:border-gray-700 hover:-translate-y-1 transition-transform duration-300 cursor-pointer group">
+<div class="h-24 rounded-lg bg-purple-100 dark:bg-purple-900/20 mb-3 flex items-center justify-center group-hover:bg-purple-200 dark:group-hover:bg-purple-900/40 transition-colors" data-alt="Abstract icon representing social skills activity">
+<span class="material-symbols-outlined text-4xl text-purple-500">groups</span>
+</div>
+<h4 class="font-bold text-[#111318] dark:text-white mb-1">Group Play</h4>
+<p class="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">Encourage sharing and turn-taking with siblings or friends.</p>
+<div class="mt-3 flex items-center gap-2">
+<span class="text-[10px] font-bold uppercase tracking-wider text-purple-600 bg-purple-50 dark:bg-purple-900/30 px-2 py-0.5 rounded">Social</span>
+<span class="text-[10px] text-gray-400">20 mins</span>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-slate-100 dark:border-gray-700 hover:-translate-y-1 transition-transform duration-300 cursor-pointer group">
+<div class="h-24 rounded-lg bg-blue-100 dark:bg-blue-900/20 mb-3 flex items-center justify-center group-hover:bg-blue-200 dark:group-hover:bg-blue-900/40 transition-colors" data-alt="Abstract icon representing cognitive skills activity">
+<span class="material-symbols-outlined text-4xl text-blue-500">psychology</span>
+</div>
+<h4 class="font-bold text-[#111318] dark:text-white mb-1">Color Sort</h4>
+<p class="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">Identify and categorize objects by their primary colors.</p>
+<div class="mt-3 flex items-center gap-2">
+<span class="text-[10px] font-bold uppercase tracking-wider text-blue-600 bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded">Cognitive</span>
+<span class="text-[10px] text-gray-400">15 mins</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Grid: Documents & Communication -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Documents Vault -->
+<div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-gray-700 flex flex-col h-full">
+<div class="flex items-center justify-between mb-4">
+<h3 class="text-lg font-bold text-[#111318] dark:text-white">Documents Vault</h3>
+<button class="size-8 rounded-full bg-slate-50 dark:bg-gray-700 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-gray-600 transition">
+<span class="material-symbols-outlined text-gray-600 dark:text-gray-300">add</span>
+</button>
+</div>
+<!-- File List -->
+<div class="flex-1 flex flex-col gap-3">
+<div class="flex items-center gap-3 p-3 rounded-lg border border-slate-100 dark:border-gray-700 hover:bg-slate-50 dark:hover:bg-gray-700/50 transition cursor-pointer group">
+<div class="size-10 rounded bg-red-50 text-red-500 flex items-center justify-center">
+<span class="material-symbols-outlined">picture_as_pdf</span>
+</div>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-semibold truncate text-[#111318] dark:text-white">Assessment_Report_2023.pdf</p>
+<p class="text-xs text-gray-400">2.4 MB • Oct 15</p>
+</div>
+<span class="material-symbols-outlined text-gray-300 group-hover:text-primary transition">download</span>
+</div>
+<div class="flex items-center gap-3 p-3 rounded-lg border border-slate-100 dark:border-gray-700 hover:bg-slate-50 dark:hover:bg-gray-700/50 transition cursor-pointer group">
+<div class="size-10 rounded bg-blue-50 text-blue-500 flex items-center justify-center">
+<span class="material-symbols-outlined">description</span>
+</div>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-semibold truncate text-[#111318] dark:text-white">School_Consent_Form.docx</p>
+<p class="text-xs text-gray-400">1.1 MB • Sep 02</p>
+</div>
+<span class="material-symbols-outlined text-gray-300 group-hover:text-primary transition">download</span>
+</div>
+</div>
+<!-- Upload Area -->
+<div class="mt-4 border-2 border-dashed border-slate-200 dark:border-gray-600 rounded-lg p-4 flex flex-col items-center justify-center text-center cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition bg-slate-50/50 dark:bg-gray-800/50">
+<span class="material-symbols-outlined text-gray-400 mb-1">cloud_upload</span>
+<p class="text-xs font-medium text-gray-500 dark:text-gray-400">Click or drag to upload</p>
+</div>
+</div>
+<!-- Communication Log -->
+<div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-gray-700 flex flex-col h-full">
+<div class="flex items-center justify-between mb-4">
+<h3 class="text-lg font-bold text-[#111318] dark:text-white">Communication Log</h3>
+<button class="text-primary text-xs font-bold uppercase tracking-wider">View All</button>
+</div>
+<div class="flex flex-col gap-4 max-h-[300px] overflow-y-auto scrollbar-hide">
+<!-- Log Entry -->
+<div class="flex gap-3">
+<div class="bg-cover bg-center size-8 rounded-full mt-1 shrink-0" data-alt="Teacher thumbnail" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDHA0kMKCIok0CAzc4DJCb0kuzuBzNAnVXiLOZeJRldXWAxvMRGmvxJnwPZpHmOjziwldvOArXhCzWzb_1aL2CJ6IAoWV7N7gmqc3Gs8ttDLPcvQr9MovQXkZPCQiKx82GV_QuyEUjATwpULCQovb9xm2bvqCPLjDqgQ3ItJA4765qarWk0DOuroLSnz8QCtY0UO2HvFf0UQysOuF7kiDdtzxvFhKHw5U0y3_xej8NJrAIn94XfuzRLEfqA8SgfGRk_p8Diy7WlEaBh");'></div>
+<div class="bg-slate-50 dark:bg-gray-700 p-3 rounded-2xl rounded-tl-none text-sm">
+<p class="font-semibold text-[#111318] dark:text-white text-xs mb-1">Mr. Rahul V. <span class="text-gray-400 font-normal ml-1">Yesterday</span></p>
+<p class="text-gray-600 dark:text-gray-300">Aarav participated well in the group reading session today. He seems to be enjoying the picture books.</p>
+</div>
+</div>
+<!-- Log Entry (Self) -->
+<div class="flex gap-3 flex-row-reverse">
+<div class="bg-cover bg-center size-8 rounded-full mt-1 shrink-0" data-alt="Parent thumbnail" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBB06GU9c2gnBff3BDZ_45ehA_FBojxjPLqxZ2rCoc1ZOU3rOF_s4tG8wNGqQLivleQZZRFNiiBWkBnL69XlVV3K1iFR-kTQIo0b6npHBmiqFl4NyXFSpbbDCh6t_BXVRZfDmvc7VDbUZf1dEdjOdqxSoBhZYM1aYtwF4qyG-xEUD8mOuPPwhzfpgGQU4krqwIJT2S67H9FIp-LV4vwT39t5wzSC0AZIbpT7UuXG3egkN1zF2ohTGevXChyTyoZIOKbfilgidSzy-fm");'></div>
+<div class="bg-primary/10 dark:bg-primary/20 p-3 rounded-2xl rounded-tr-none text-sm">
+<p class="font-semibold text-[#111318] dark:text-white text-xs mb-1 text-right">You <span class="text-gray-400 font-normal mr-1">Yesterday</span></p>
+<p class="text-gray-800 dark:text-gray-200">That's great to hear! We've been practicing at home.</p>
+</div>
+</div>
+<!-- Log Entry -->
+<div class="flex gap-3">
+<div class="bg-cover bg-center size-8 rounded-full mt-1 shrink-0" data-alt="Doctor thumbnail" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuADcKfsoeVH_oG8PLawRo7xVIyCkR4Nlo1kgtS4L2dnar5uzipeWoQTiyLcW6_C6YPKcSSPx5qAZ7OUjFIoqpSPZaYfGwqSRHpC2PZwCdmEh0c9x0lE9mm85_8OlsnoIQAgeWa5hvmMvFuNklvgpVPeGlQsDeMYYfZIBglkH27TM1lCWKhnAPB3wqCHgfMDuq3fUQA0cdtnLMX6DMT9ois10ZOFpIGjOi9OtN2oM3jv9ThAQV1dXWzYqh-EKiufX2kgE_mpT1U00iyo");'></div>
+<div class="bg-slate-50 dark:bg-gray-700 p-3 rounded-2xl rounded-tl-none text-sm">
+<p class="font-semibold text-[#111318] dark:text-white text-xs mb-1">Dr. Sarah Smith <span class="text-gray-400 font-normal ml-1">Oct 16</span></p>
+<p class="text-gray-600 dark:text-gray-300">Report analysis is complete. Please review the Documents vault.</p>
+</div>
+</div>
+</div>
+<div class="mt-4 relative">
+<input class="w-full bg-slate-50 dark:bg-gray-900 border-none rounded-full py-2.5 pl-4 pr-10 text-sm focus:ring-1 focus:ring-primary" placeholder="Add a note..." type="text"/>
+<button class="absolute right-2 top-1.5 text-primary hover:text-blue-700 p-1 rounded-full">
+<span class="material-symbols-outlined text-[20px]">send</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>
