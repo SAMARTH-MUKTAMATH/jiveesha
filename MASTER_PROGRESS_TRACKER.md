@@ -13,9 +13,9 @@
 ```
 Phase 1: Clinician Backend    [██████████] 10/10 (100%) ✅ COMPLETE
 Phase 2: Parent Backend        [██████████]  8/8  (100%) ✅ COMPLETE  
-Phase 3: Parent Frontend       [          ]  0/20 (0%)   ⏳ PENDING
+Phase 3: Parent Frontend       [          ]  0/18 (0%)   ⏳ PENDING
 ─────────────────────────────────────────────────────────
-Total Progress                 [██████░░░░] 18/38 (47%)
+Total Progress                 [█████░░░░░] 18/36 (50%)
 ```
 
 ---
@@ -103,10 +103,12 @@ Total Progress                 [██████░░░░] 18/38 (47%)
 
 ## ⏳ PHASE 3: PARENT FRONTEND (PENDING)
 
-**Status:** 0/20 prompts complete  
-**Duration:** ~8-10 hours estimated  
+**Status:** 0/18 prompts complete (reduced from 20)  
+**Duration:** ~7-9 hours estimated  
 **Figma Designs:** 14 complete screens  
 **React Components:** 50+ to create  
+
+**Note:** Screening question UI (M-CHAT, ASQ) will use pre-coded frameworks provided separately
 
 ### Section J: Authentication & Onboarding
 - ⏳ 3-J1: Login/Register Pages
@@ -121,11 +123,10 @@ Total Progress                 [██████░░░░] 18/38 (47%)
 - ⏳ 3-L2: Child Profile View
 - ⏳ 3-L3: Add Child Flow
 
-### Section M: Screening Flow
-- ⏳ 3-M1: Screening Selection
-- ⏳ 3-M2: Screening Questions UI
-- ⏳ 3-M3: Screening Results View
-- ⏳ 3-M4: Screening History
+### Section M: Screening (CONTAINER/PLACEHOLDER ONLY)
+- ⏳ 3-M1: Screening Container & Navigation (placeholder for pre-coded framework)
+- ⏳ 3-M2: Screening History & Results (placeholder for pre-coded framework)
+**Note:** Actual screening question UI will be integrated from pre-coded frameworks
 
 ### Section N: Consent & Sharing
 - ⏳ 3-N1: Consent Management UI

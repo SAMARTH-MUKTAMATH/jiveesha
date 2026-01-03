@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Welcome from './pages/Welcome';
+import AddChild from './pages/AddChild';
 import authService from './services/auth.service';
 
 function App() {
@@ -11,6 +13,16 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+
+        {/* Protected Routes */}
+        <Route
+          path="/welcome"
+          element={isAuthenticated ? <Welcome /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/onboarding/add-child"
+          element={isAuthenticated ? <AddChild /> : <Navigate to="/login" />}
+        />
         <Route
           path="/dashboard"
           element={
@@ -37,6 +49,7 @@ function App() {
             )
           }
         />
+
         <Route path="/" element={<Navigate to="/login" />} />
       </Routes>
     </BrowserRouter>

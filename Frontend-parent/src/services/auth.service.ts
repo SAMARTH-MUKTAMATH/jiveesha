@@ -65,6 +65,8 @@ class AuthService {
             localStorage.setItem('token', response.data.data.token);
             localStorage.setItem('user', JSON.stringify(response.data.data.user));
             localStorage.setItem('userRole', 'parent');
+            // Set flag for new user to trigger onboarding
+            localStorage.setItem('isNewUser', 'true');
         }
         return response.data;
     }
