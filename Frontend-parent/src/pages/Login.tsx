@@ -25,7 +25,7 @@ export default function Login() {
         try {
             setLoading(true);
             setError('');
-            await authService.login(data);
+            await authService.login({ ...data, role: 'parent' });
             navigate('/dashboard');
         } catch (err: any) {
             setError(err.response?.data?.error?.message || 'Invalid email or password');

@@ -3,6 +3,25 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Welcome from './pages/Welcome';
 import AddChild from './pages/AddChild';
+import Dashboard from './pages/Dashboard';
+import ChildrenList from './pages/ChildrenList';
+import ChildProfile from './pages/ChildProfile';
+import EditChild from './pages/EditChild';
+import ScreeningSelect from './pages/ScreeningSelect';
+import ScreeningInProgress from './pages/ScreeningInProgress';
+import ScreeningHistory from './pages/ScreeningHistory';
+import ScreeningResults from './pages/ScreeningResults';
+import ConsentManagement from './pages/ConsentManagement';
+import ShareWithProfessional from './pages/ShareWithProfessional';
+import ProfessionalReferrals from './pages/ProfessionalReferrals';
+import EditConsentPermissions from './pages/EditConsentPermissions';
+import PEPDashboard from './pages/PEPDashboard';
+import PEPActivities from './pages/PEPActivities';
+import ActivityDetails from './pages/ActivityDetails';
+import PEPProgress from './pages/PEPProgress';
+import ResourceLibrary from './pages/ResourceLibrary';
+import Settings from './pages/Settings';
+import JournalTimeline from './pages/JournalTimeline';
 import authService from './services/auth.service';
 
 function App() {
@@ -25,29 +44,79 @@ function App() {
         />
         <Route
           path="/dashboard"
-          element={
-            isAuthenticated ? (
-              <div className="min-h-screen bg-gray-50 p-8">
-                <div className="max-w-4xl mx-auto">
-                  <div className="bg-white rounded-2xl shadow-xl p-8">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-4">Parent Dashboard</h1>
-                    <p className="text-gray-600 mb-6">Dashboard will be built in next prompt.</p>
-                    <p className="text-sm text-gray-500 mb-4">
-                      Logged in as: <span className="font-medium">{authService.getCurrentUser()?.email}</span>
-                    </p>
-                    <button
-                      onClick={() => authService.logout()}
-                      className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
-                    >
-                      Logout
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <Navigate to="/login" />
-            )
-          }
+          element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/children"
+          element={isAuthenticated ? <ChildrenList /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/children/:id"
+          element={isAuthenticated ? <ChildProfile /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/children/:id/edit"
+          element={isAuthenticated ? <EditChild /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/screening/select"
+          element={isAuthenticated ? <ScreeningSelect /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/screening/:id/start"
+          element={isAuthenticated ? <ScreeningInProgress /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/screening/history"
+          element={isAuthenticated ? <ScreeningHistory /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/screening/:id/results"
+          element={isAuthenticated ? <ScreeningResults /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/consent"
+          element={isAuthenticated ? <ConsentManagement /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/consent/share"
+          element={isAuthenticated ? <ShareWithProfessional /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/consent/:id/edit"
+          element={isAuthenticated ? <EditConsentPermissions /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/referrals"
+          element={isAuthenticated ? <ProfessionalReferrals /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/pep"
+          element={isAuthenticated ? <PEPDashboard /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/pep/:id/activities"
+          element={isAuthenticated ? <PEPActivities /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/pep/:pepId/activities/:activityId"
+          element={isAuthenticated ? <ActivityDetails /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/pep/:id/progress"
+          element={isAuthenticated ? <PEPProgress /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/resources"
+          element={isAuthenticated ? <ResourceLibrary /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/settings"
+          element={isAuthenticated ? <Settings /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/journal"
+          element={isAuthenticated ? <JournalTimeline /> : <Navigate to="/login" />}
         />
 
         <Route path="/" element={<Navigate to="/login" />} />

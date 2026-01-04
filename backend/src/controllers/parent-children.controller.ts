@@ -11,20 +11,22 @@ export const addChild = async (req: Request, res: Response) => {
     try {
         const userId = (req as any).userId;
         const {
-            patientId,
-            relationshipType,
-            isPrimary,
-            canConsent
+            firstName,
+            lastName,
+            dateOfBirth,
+            gender,
+            medicalHistory,
+            currentConcerns
         } = req.body;
 
         // Validate required fields
-        if (!patientId || !relationshipType) {
+        if (!firstName || !lastName || !dateOfBirth || !gender) {
             return res.status(400).json({
                 success: false,
                 error: {
                     code: 'VALIDATION_ERROR',
                     message: 'Missing required fields',
-                    details: ['patientId and relationshipType are required']
+                    details: ['firstName, lastName, dateOfBirth, and gender are required']
                 }
             });
         }
@@ -45,66 +47,22 @@ export const addChild = async (req: Request, res: Response) => {
             });
         }
 
-        // Check if patient exists
-        const patient = await prisma.patient.findUnique({
-            where: { id: patientId }
-        });
-
-        if (!patient) {
-            return res.status(404).json({
-                success: false,
-                error: {
-                    code: 'PATIENT_NOT_FOUND',
-                    message: 'Child not found'
-                }
-            });
-        }
-
-        // Check if relationship already exists
-        const existing = await prisma.parentChild.findUnique({
-            where: {
-                parentId_patientId: {
-                    parentId: user.parent.id,
-                    patientId
-                }
-            }
-        });
-
-        if (existing) {
-            return res.status(409).json({
-                success: false,
-                error: {
-                    code: 'RELATIONSHIP_EXISTS',
-                    message: 'This child is already linked to your account'
-                }
-            });
-        }
-
-        // Create relationship
-        const relationship = await prisma.parentChild.create({
+        // Create child using the new Child model
+        const child = await prisma.child.create({
             data: {
                 parentId: user.parent.id,
-                patientId,
-                relationshipType,
-                isPrimary: isPrimary || false,
-                canConsent: canConsent !== undefined ? canConsent : true
-            },
-            include: {
-                patient: {
-                    select: {
-                        id: true,
-                        firstName: true,
-                        lastName: true,
-                        dateOfBirth: true,
-                        gender: true
-                    }
-                }
+                firstName,
+                lastName,
+                dateOfBirth: new Date(dateOfBirth),
+                gender,
+                medicalHistory: medicalHistory || null,
+                currentConcerns: currentConcerns || null
             }
         });
 
         res.status(201).json({
             success: true,
-            data: relationship,
+            data: child,
             message: 'Child added successfully'
         });
     } catch (error) {
@@ -132,22 +90,9 @@ export const getChildren = async (req: Request, res: Response) => {
             include: {
                 parent: {
                     include: {
-                        children: {
-                            include: {
-                                patient: {
-                                    select: {
-                                        id: true,
-                                        firstName: true,
-                                        lastName: true,
-                                        dateOfBirth: true,
-                                        gender: true,
-                                        profilePicture: true,
-                                        medicalHistory: true
-                                    }
-                                }
-                            },
+                        myChildren: {
                             orderBy: {
-                                addedAt: 'desc'
+                                createdAt: 'desc'
                             }
                         }
                     }
@@ -167,7 +112,7 @@ export const getChildren = async (req: Request, res: Response) => {
 
         res.json({
             success: true,
-            data: user.parent.children
+            data: user.parent.myChildren
         });
     } catch (error) {
         console.error('Get children error:', error);
@@ -183,12 +128,12 @@ export const getChildren = async (req: Request, res: Response) => {
 
 /**
  * Get single child details
- * GET /api/v1/parent/children/:patientId
+ * GET /api/v1/parent/children/:childId
  */
 export const getChild = async (req: Request, res: Response) => {
     try {
         const userId = (req as any).userId;
-        const { patientId } = req.params;
+        const { patientId: childId } = req.params;
 
         const user = await prisma.user.findUnique({
             where: { id: userId },
@@ -205,20 +150,15 @@ export const getChild = async (req: Request, res: Response) => {
             });
         }
 
-        // Check if parent has access to this child
-        const relationship = await prisma.parentChild.findUnique({
+        // Get child from Child model
+        const child = await prisma.child.findFirst({
             where: {
-                parentId_patientId: {
-                    parentId: user.parent.id,
-                    patientId
-                }
-            },
-            include: {
-                patient: true
+                id: childId,
+                parentId: user.parent.id
             }
         });
 
-        if (!relationship) {
+        if (!child) {
             return res.status(403).json({
                 success: false,
                 error: {
@@ -230,7 +170,7 @@ export const getChild = async (req: Request, res: Response) => {
 
         res.json({
             success: true,
-            data: relationship
+            data: child
         });
     } catch (error) {
         console.error('Get child error:', error);
@@ -245,14 +185,14 @@ export const getChild = async (req: Request, res: Response) => {
 };
 
 /**
- * Update relationship details
- * PUT /api/v1/parent/children/:patientId
+ * Update child details
+ * PUT /api/v1/parent/children/:childId
  */
 export const updateRelationship = async (req: Request, res: Response) => {
     try {
         const userId = (req as any).userId;
-        const { patientId } = req.params;
-        const { relationshipType, isPrimary, canConsent } = req.body;
+        const { patientId: childId } = req.params;
+        const { firstName, lastName, dateOfBirth, gender, medicalHistory, currentConcerns } = req.body;
 
         const user = await prisma.user.findUnique({
             where: { id: userId },
@@ -269,42 +209,49 @@ export const updateRelationship = async (req: Request, res: Response) => {
             });
         }
 
-        // Update relationship
-        const relationship = await prisma.parentChild.update({
+        // Verify parent owns this child
+        const existingChild = await prisma.child.findFirst({
             where: {
-                parentId_patientId: {
-                    parentId: user.parent.id,
-                    patientId
+                id: childId,
+                parentId: user.parent.id
+            }
+        });
+
+        if (!existingChild) {
+            return res.status(403).json({
+                success: false,
+                error: {
+                    code: 'ACCESS_DENIED',
+                    message: 'You do not have access to this child'
                 }
-            },
+            });
+        }
+
+        // Update child
+        const child = await prisma.child.update({
+            where: { id: childId },
             data: {
-                relationshipType,
-                isPrimary,
-                canConsent
-            },
-            include: {
-                patient: {
-                    select: {
-                        id: true,
-                        firstName: true,
-                        lastName: true
-                    }
-                }
+                firstName: firstName || existingChild.firstName,
+                lastName: lastName || existingChild.lastName,
+                dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : existingChild.dateOfBirth,
+                gender: gender || existingChild.gender,
+                medicalHistory: medicalHistory !== undefined ? medicalHistory : existingChild.medicalHistory,
+                currentConcerns: currentConcerns !== undefined ? currentConcerns : existingChild.currentConcerns
             }
         });
 
         res.json({
             success: true,
-            data: relationship,
-            message: 'Relationship updated successfully'
+            data: child,
+            message: 'Child updated successfully'
         });
     } catch (error) {
-        console.error('Update relationship error:', error);
+        console.error('Update child error:', error);
         res.status(500).json({
             success: false,
             error: {
-                code: 'UPDATE_RELATIONSHIP_FAILED',
-                message: 'Failed to update relationship'
+                code: 'UPDATE_CHILD_FAILED',
+                message: 'Failed to update child'
             }
         });
     }
@@ -312,12 +259,12 @@ export const updateRelationship = async (req: Request, res: Response) => {
 
 /**
  * Remove child from parent account
- * DELETE /api/v1/parent/children/:patientId
+ * DELETE /api/v1/parent/children/:childId
  */
 export const removeChild = async (req: Request, res: Response) => {
     try {
         const userId = (req as any).userId;
-        const { patientId } = req.params;
+        const { patientId: childId } = req.params;
 
         const user = await prisma.user.findUnique({
             where: { id: userId },
@@ -334,13 +281,28 @@ export const removeChild = async (req: Request, res: Response) => {
             });
         }
 
-        // Delete relationship
-        await prisma.parentChild.delete({
+        // Verify parent owns this child
+        const child = await prisma.child.findFirst({
             where: {
-                parentId_patientId: {
-                    parentId: user.parent.id,
-                    patientId
+                id: childId,
+                parentId: user.parent.id
+            }
+        });
+
+        if (!child) {
+            return res.status(403).json({
+                success: false,
+                error: {
+                    code: 'ACCESS_DENIED',
+                    message: 'You do not have access to this child'
                 }
+            });
+        }
+
+        // Delete child
+        await prisma.child.delete({
+            where: {
+                id: childId
             }
         });
 

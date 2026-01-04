@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { User, Calendar, Users as GenderIcon, FileText, Loader2, ArrowRight, ArrowLeft, Heart } from 'lucide-react';
 import Stepper from '../components/Stepper';
-import childrenService, { AddChildData } from '../services/children.service';
+import childrenService from '../services/children.service';
+import type { AddChildData } from '../services/children.service';
 
 interface FormData extends AddChildData { }
 
@@ -23,12 +24,38 @@ export default function AddChild() {
         register,
         handleSubmit,
         watch,
+        trigger,
         formState: { errors },
     } = useForm<FormData>();
 
     const formData = watch();
 
-    const nextStep = () => {
+    const nextStep = async () => {
+        // Clear any previous errors first
+        setError('');
+
+        // Validate current step before proceeding
+        let fieldsToValidate: (keyof FormData)[] = [];
+
+        if (currentStep === 0) {
+            // Step 1: Basic Info - validate required fields
+            fieldsToValidate = ['firstName', 'lastName', 'dateOfBirth'];
+        } else if (currentStep === 1) {
+            // Step 2: Details - validate required fields
+            fieldsToValidate = ['gender'];
+        }
+
+        // Trigger validation only for the current step's required fields
+        if (fieldsToValidate.length > 0) {
+            const isValid = await trigger(fieldsToValidate);
+
+            if (!isValid) {
+                setError('Please fill in all required fields before continuing.');
+                return;
+            }
+        }
+
+        // If validation passes, move to next step
         if (currentStep < steps.length - 1) {
             setCurrentStep(currentStep + 1);
         }
@@ -37,6 +64,7 @@ export default function AddChild() {
     const prevStep = () => {
         if (currentStep > 0) {
             setCurrentStep(currentStep - 1);
+            setError(''); // Clear errors when going back
         }
     };
 
