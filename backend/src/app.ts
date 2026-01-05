@@ -21,10 +21,14 @@ import reportRoutes from './routes/reports.routes';
 import messageRoutes from './routes/messages.routes';
 import parentAuthRoutes from './routes/parent-auth.routes';
 import parentChildrenRoutes from './routes/parent-children.routes';
+import parentAccessGrantsRoutes from './routes/parent-access-grants.routes';
 import consentRoutes from './routes/consent.routes';
 import parentScreeningRoutes from './routes/parent-screening.routes';
+import parentDashboardRoutes from './routes/parent-dashboard.routes';
 import pepRoutes from './routes/pep.routes';
 import resourceRoutes from './routes/resources.routes';
+import testTransformRoutes from './routes/test-transform.routes';
+import { responseTransformer } from './middleware/response-transformer';
 import { errorHandler } from './middleware/errorHandler';
 import { notFound } from './middleware/notFound';
 
@@ -42,7 +46,7 @@ app.use(cors({
         : ['http://localhost:3000', 'http://localhost:5173'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-User-ID']
 }));
 
 // Logging
@@ -53,6 +57,9 @@ if (process.env.NODE_ENV !== 'test') {
 // Body parsing
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Response transformer - MUST be before routes!
+app.use(responseTransformer);
 
 // Static files for uploads
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
@@ -84,10 +91,13 @@ app.use(`${API_PREFIX}/reports`, reportRoutes);
 app.use(`${API_PREFIX}/messages`, messageRoutes);
 app.use(`${API_PREFIX}/parent/auth`, parentAuthRoutes);
 app.use(`${API_PREFIX}/parent/children`, parentChildrenRoutes);
+app.use(`${API_PREFIX}/parent/access-grants`, parentAccessGrantsRoutes);
+app.use(`${API_PREFIX}/parent/dashboard`, parentDashboardRoutes);
 app.use(`${API_PREFIX}/consent`, consentRoutes);
 app.use(`${API_PREFIX}/parent/screening`, parentScreeningRoutes);
 app.use(`${API_PREFIX}/parent/pep`, pepRoutes);
 app.use(`${API_PREFIX}/parent/resources`, resourceRoutes);
+app.use(`${API_PREFIX}/test`, testTransformRoutes);
 
 // Error handlers
 app.use(notFound);

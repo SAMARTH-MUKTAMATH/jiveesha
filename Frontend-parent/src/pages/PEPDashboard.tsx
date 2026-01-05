@@ -87,8 +87,8 @@ export default function PEPDashboard() {
             const response = await pepService.createPEP({ childId: selectedChildId });
 
             if (response.success) {
-                // Navigate to PEP details/goals page
-                navigate(`/pep/${response.data.id}/goals`);
+                // Navigate to PEP activities page
+                navigate(`/pep/${response.data.id}/activities`);
             }
         } catch (error) {
             console.error('Failed to create PEP:', error);

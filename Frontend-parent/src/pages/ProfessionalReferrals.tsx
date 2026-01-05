@@ -6,7 +6,7 @@ import {
     XCircle, Calendar, Shield, FileText, Activity, TrendingUp, Edit
 } from 'lucide-react';
 import Layout from '../components/Layout';
-import consentService from '../services/consent.service';
+import { consentService } from '../services/consent.service';
 import type { Consent } from '../services/consent.service';
 
 type StatusFilter = 'all' | 'active' | 'pending' | 'expired';

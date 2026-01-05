@@ -11,7 +11,7 @@ export const createJournalEntry = async (req: Request, res: Response) => {
     try {
         const userId = (req as any).userId;
         const {
-            patientId,
+            personId,
             entryType,
             title,
             content,
@@ -24,13 +24,13 @@ export const createJournalEntry = async (req: Request, res: Response) => {
         } = req.body;
 
         // Validate required fields
-        if (!patientId || !entryType || !title || !content) {
+        if (!personId || !entryType || !title || !content) {
             return res.status(400).json({
                 success: false,
                 error: {
                     code: 'VALIDATION_ERROR',
                     message: 'Missing required fields',
-                    details: ['patientId, entryType, title, and content are required']
+                    details: ['personId, entryType, title, and content are required']
                 }
             });
         }
@@ -38,17 +38,27 @@ export const createJournalEntry = async (req: Request, res: Response) => {
         // Get user info for createdByName
         const user = await prisma.user.findUnique({
             where: { id: userId },
-            include: { profile: true }
+            include: {
+                clinicianProfile: true,
+                parent: true
+            }
         });
 
-        const createdByName = user?.profile
-            ? `${user.profile.firstName} ${user.profile.lastName}`
-            : 'Unknown';
+        let createdByName = 'Unknown';
+        let type = 'clinician';
+
+        if (user?.clinicianProfile) {
+            createdByName = `${user.clinicianProfile.firstName} ${user.clinicianProfile.lastName}`;
+            type = 'clinician';
+        } else if (user?.parent) {
+            createdByName = `${user.parent.firstName} ${user.parent.lastName}`;
+            type = 'parent';
+        }
 
         // Create entry with attachments
         const entry = await prisma.journalEntry.create({
             data: {
-                patientId,
+                personId,
                 entryType,
                 title,
                 content,
@@ -56,9 +66,9 @@ export const createJournalEntry = async (req: Request, res: Response) => {
                 linkedSessionId,
                 linkedGoalId,
                 linkedInterventionId,
-                visibility: visibility || 'clinician_only',
+                visibility: visibility || (type === 'parent' ? 'shared_with_team' : 'clinician_only'),
                 createdBy: userId,
-                createdByType: 'clinician',
+                createdByType: type,
                 createdByName,
                 attachments: {
                     create: attachments?.map((att: any) => ({
@@ -75,15 +85,6 @@ export const createJournalEntry = async (req: Request, res: Response) => {
         });
 
         // Log activity
-        await prisma.patientActivityLog.create({
-            data: {
-                patientId,
-                activityType: 'journal_entry_created',
-                description: `${entryType} journal entry: ${title}`,
-                metadata: JSON.stringify({ entryId: entry.id }),
-                createdBy: userId
-            }
-        });
 
         res.status(201).json({
             success: true,
@@ -103,11 +104,11 @@ export const createJournalEntry = async (req: Request, res: Response) => {
 
 /**
  * Get journal entries for a patient
- * GET /api/v1/journal/patient/:patientId
+ * GET /api/v1/journal/patient/:personId
  */
 export const getPatientJournalEntries = async (req: Request, res: Response) => {
     try {
-        const { patientId } = req.params;
+        const { personId } = req.params;
         const {
             entryType,
             startDate,
@@ -117,7 +118,7 @@ export const getPatientJournalEntries = async (req: Request, res: Response) => {
             limit = 20
         } = req.query;
 
-        const where: any = { patientId };
+        const where: any = { personId };
 
         if (entryType) where.entryType = entryType as string;
         if (visibility) where.visibility = visibility as string;
@@ -176,7 +177,7 @@ export const getJournalEntry = async (req: Request, res: Response) => {
             where: { id },
             include: {
                 attachments: true,
-                patient: {
+                person: {
                     select: {
                         id: true,
                         firstName: true,
@@ -227,7 +228,7 @@ export const updateJournalEntry = async (req: Request, res: Response) => {
         delete updateData.createdBy;
         delete updateData.createdByType;
         delete updateData.createdByName;
-        delete updateData.patientId;
+        delete updateData.personId;
 
         // Stringify tags if provided
         if (updateData.tags) {
@@ -243,15 +244,6 @@ export const updateJournalEntry = async (req: Request, res: Response) => {
         });
 
         // Log activity
-        await prisma.patientActivityLog.create({
-            data: {
-                patientId: entry.patientId,
-                activityType: 'journal_entry_updated',
-                description: `Journal entry updated: ${entry.title}`,
-                metadata: JSON.stringify({ entryId: entry.id }),
-                createdBy: (req as any).userId
-            }
-        });
 
         res.json({
             success: true,
@@ -280,7 +272,7 @@ export const deleteJournalEntry = async (req: Request, res: Response) => {
         // Get entry first for logging
         const entry = await prisma.journalEntry.findUnique({
             where: { id },
-            select: { patientId: true, title: true }
+            select: { personId: true, title: true }
         });
 
         if (!entry) {
@@ -299,14 +291,6 @@ export const deleteJournalEntry = async (req: Request, res: Response) => {
         });
 
         // Log activity
-        await prisma.patientActivityLog.create({
-            data: {
-                patientId: entry.patientId,
-                activityType: 'journal_entry_deleted',
-                description: `Journal entry deleted: ${entry.title}`,
-                createdBy: (req as any).userId
-            }
-        });
 
         res.json({
             success: true,
@@ -366,16 +350,16 @@ export const addJournalAttachment = async (req: Request, res: Response) => {
 export const getEntriesByType = async (req: Request, res: Response) => {
     try {
         const { entryType } = req.params;
-        const { patientId, limit = 10 } = req.query;
+        const { personId, limit = 10 } = req.query;
 
         const where: any = { entryType };
-        if (patientId) where.patientId = patientId as string;
+        if (personId) where.personId = personId as string;
 
         const entries = await prisma.journalEntry.findMany({
             where,
             include: {
                 attachments: true,
-                patient: {
+                person: {
                     select: {
                         id: true,
                         firstName: true,
@@ -413,20 +397,20 @@ export const getClinicianRecentEntries = async (req: Request, res: Response) => 
         const { limit = 20 } = req.query;
 
         // Get clinician's patients
-        const patients = await prisma.patient.findMany({
+        const patients = await prisma.clinicianPatientView.findMany({
             where: { clinicianId },
-            select: { id: true }
+            select: { personId: true }
         });
 
-        const patientIds = patients.map(p => p.id);
+        const personIds = patients.map((p: any) => p.personId);
 
         const entries = await prisma.journalEntry.findMany({
             where: {
-                patientId: { in: patientIds }
+                personId: { in: personIds }
             },
             include: {
                 attachments: true,
-                patient: {
+                person: {
                     select: {
                         id: true,
                         firstName: true,
@@ -449,6 +433,95 @@ export const getClinicianRecentEntries = async (req: Request, res: Response) => 
             error: {
                 code: 'GET_RECENT_ENTRIES_FAILED',
                 message: 'Failed to retrieve recent entries'
+            }
+        });
+    }
+};
+
+/**
+ * Get unified timeline for parent (Journal + Activities)
+ * GET /api/v1/journal/parent/timeline/:personId
+ */
+export const getParentTimeline = async (req: Request, res: Response) => {
+    try {
+        const { personId } = req.params;
+        const { limit = 50 } = req.query;
+
+        // 1. Get Journal Entries
+        const journalEntries = await prisma.journalEntry.findMany({
+            where: {
+                personId
+            },
+            include: { attachments: true },
+            orderBy: { createdAt: 'desc' },
+            take: Number(limit)
+        });
+
+        // 2. Get Activity Completions
+        const activityCompletions = await prisma.activityCompletion.findMany({
+            where: {
+                activity: {
+                    personId: personId
+                }
+            },
+            include: {
+                activity: true
+            },
+            orderBy: { completedAt: 'desc' },
+            take: Number(limit)
+        });
+
+        // 3. Transform and Merge
+        const timelineItems = [
+            ...journalEntries.map(entry => ({
+                id: entry.id,
+                type: 'journal',
+                entryType: entry.entryType, // observation, note, milestone
+                title: entry.title,
+                content: entry.content,
+                date: entry.createdAt,
+                author: entry.createdByName,
+                createdByType: entry.createdByType,
+                data: {
+                    attachments: entry.attachments,
+                    visibility: entry.visibility
+                }
+            })),
+            ...activityCompletions.map(completion => ({
+                id: completion.id,
+                type: 'activity',
+                entryType: 'activity_completion',
+                title: `Completed Activity: ${completion.activity.activityName}`,
+                content: completion.parentObservations || completion.challengesFaced || 'Activity completed',
+                date: completion.completedAt,
+                author: 'Parent',
+                data: {
+                    activityId: completion.activity.id,
+                    duration: completion.duration,
+                    photos: completion.photos, // String[]
+                    videos: completion.videos  // String[]
+                }
+            }))
+        ];
+
+        // 4. Sort by date desc
+        timelineItems.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+        // 5. Slice to limit
+        const finalItems = timelineItems.slice(0, Number(limit));
+
+        res.json({
+            success: true,
+            data: finalItems
+        });
+
+    } catch (error) {
+        console.error('Get parent timeline error:', error);
+        res.status(500).json({
+            success: false,
+            error: {
+                code: 'GET_TIMELINE_FAILED',
+                message: 'Failed to retrieve timeline'
             }
         });
     }

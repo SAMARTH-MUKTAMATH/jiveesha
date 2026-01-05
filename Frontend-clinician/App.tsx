@@ -46,7 +46,7 @@ import Footer from './components/Footer';
 
 const App: React.FC = () => {
   // views: 'welcome', 'login', 'signup', 'dashboard', 'credentials', 'registry', 'profile', 'consent', 'diagnostics', 'assessment-isaa', 'assessment-asd-deep', 'assessment-adhd', 'assessment-glad', 'assessment-results-isaa', 'iep-builder', 'iep-view', 'interventions', 'intervention-detail', 'report-generator', 'reports-library', 'report-viewer', 'patient-journal', 'messages', 'case-triage', 'consultation-manager', 'settings', 'help', 'search', 'schedule', 'patient-onboarding', 'patient-discharge', 'appointment-booking', 'appointment-reschedule', 'component-demo'
-  const [view, setView] = useState<'welcome' | 'login' | 'signup' | 'dashboard' | 'credentials' | 'registry' | 'profile' | 'consent' | 'diagnostics' | 'assessment-isaa' | 'assessment-asd-deep' | 'assessment-adhd' | 'assessment-glad' | 'assessment-results-isaa' | 'iep-builder' | 'iep-view' | 'interventions' | 'intervention-detail' | 'report-generator' | 'reports-library' | 'report-viewer' | 'patient-journal' | 'messages' | 'case-triage' | 'consultation-manager' | 'settings' | 'help' | 'search' | 'schedule' | 'patient-onboarding' | 'patient-discharge' | 'appointment-booking' | 'appointment-reschedule' | 'component-demo'>('welcome');
+  const [view, setView] = useState<'welcome' | 'login' | 'signup' | 'dashboard' | 'credentials' | 'registry' | 'profile' | 'consent' | 'diagnostics' | 'assessment-isaa' | 'assessment-asd-deep' | 'assessment-adhd' | 'assessment-glad' | 'assessment-results-isaa' | 'iep-builder' | 'iep-view' | 'interventions' | 'intervention-detail' | 'report-generator' | 'reports-library' | 'report-viewer' | 'patient-journal' | 'messages' | 'case-triage' | 'consultation-manager' | 'settings' | 'help' | 'search' | 'schedule' | 'patient-onboarding' | 'patient-discharge' | 'appointment-booking' | 'appointment-reschedule' | 'component-demo'>('dashboard');
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const [step, setStep] = useState(1);
   const [licenseType, setLicenseType] = useState<string | null>(null);
@@ -54,7 +54,7 @@ const App: React.FC = () => {
 
   const handleNext = (type?: string) => {
     if (type) setLicenseType(type);
-    
+
     if (step === 2.1) {
       setStep(2.2);
     } else if (step === 2.2) {
@@ -97,24 +97,34 @@ const App: React.FC = () => {
     setView(targetView as any);
   };
 
+  const handleConsentClick = (patientId: string) => {
+    setSelectedPatientId(patientId);
+    setView('consent');
+  };
+
   const renderView = () => {
     if (view === 'welcome') {
       return <WelcomeView onLogin={startLogin} onSignup={startSignup} />;
     }
-    
+
     if (view === 'login') {
       return <LoginPage onBack={() => setView('welcome')} onLoginSuccess={() => setView('dashboard')} />;
     }
 
     if (view === 'dashboard') {
       return (
-        <Dashboard 
-          onManageCredentials={() => setView('credentials')} 
+        <Dashboard
+          onManageCredentials={() => setView('credentials')}
+          onEditProfile={() => setView('settings')}
           onPatientClick={navigateToProfile}
           onMessagesClick={() => setView('messages')}
           onTriageClick={() => setView('case-triage')}
           onScheduleClick={() => setView('schedule')}
           onNewPatient={() => setView('patient-onboarding')}
+          onEditPatientConsent={(patientId) => {
+            setSelectedPatientId(patientId);
+            setView('patient-onboarding');
+          }}
         />
       );
     }
@@ -128,14 +138,14 @@ const App: React.FC = () => {
     }
 
     if (view === 'patient-onboarding') {
-      return <PatientOnboarding onBack={() => setView('registry')} onFinish={(id) => navigateToProfile(id)} />;
+      return <PatientOnboarding onBack={() => setView('registry')} onFinish={(id) => navigateToProfile(id)} patientId={selectedPatientId} />;
     }
 
     if (view === 'profile') {
       return (
-        <PatientProfile 
-          onBack={() => setView('registry')} 
-          patientId={selectedPatientId} 
+        <PatientProfile
+          onBack={() => setView('registry')}
+          patientId={selectedPatientId}
           onViewJournal={() => setView('patient-journal')}
           onViewMessages={() => setView('messages')}
           onViewConsultations={() => setView('consultation-manager')}
@@ -149,12 +159,12 @@ const App: React.FC = () => {
     }
 
     if (view === 'consent') {
-      return <ConsentCenter onBack={() => setView('dashboard')} />;
+      return <ConsentCenter onBack={() => setView('dashboard')} patientId={selectedPatientId} />;
     }
 
     if (view === 'diagnostics') {
-      return <DiagnosticSuite 
-        onBack={() => setView('dashboard')} 
+      return <DiagnosticSuite
+        onBack={() => setView('dashboard')}
         onStartAssessment={(id) => {
           if (id === 'isaa') setView('assessment-isaa');
           if (id === 'asd-deep') setView('assessment-asd-deep');
@@ -183,8 +193,8 @@ const App: React.FC = () => {
 
     if (view === 'assessment-results-isaa') {
       return (
-        <AssessmentResultsISAA 
-          onBack={() => setView('diagnostics')} 
+        <AssessmentResultsISAA
+          onBack={() => setView('diagnostics')}
           onGenerateReport={() => setView('report-generator')}
           onCreateIEP={() => setView('iep-builder')}
         />
@@ -193,8 +203,8 @@ const App: React.FC = () => {
 
     if (view === 'interventions') {
       return (
-        <InterventionsDashboard 
-          onStartIEP={() => setView('iep-builder')} 
+        <InterventionsDashboard
+          onStartIEP={() => setView('iep-builder')}
           onViewPlan={() => setView('intervention-detail')}
           onViewReports={() => setView('reports-library')}
         />
@@ -203,9 +213,9 @@ const App: React.FC = () => {
 
     if (view === 'intervention-detail') {
       return (
-        <InterventionPlanDetail 
-          onBack={() => setView('interventions')} 
-          onGenerateReport={() => setView('report-generator')} 
+        <InterventionPlanDetail
+          onBack={() => setView('interventions')}
+          onGenerateReport={() => setView('report-generator')}
         />
       );
     }
@@ -235,7 +245,7 @@ const App: React.FC = () => {
     }
 
     if (view === 'messages') {
-      return <MessagesCenter onBack={() => setView('dashboard')} />;
+      return <MessagesCenter onBack={() => setView('dashboard')} onNavigate={handleGlobalNavigate} />;
     }
 
     if (view === 'case-triage') {
@@ -247,7 +257,7 @@ const App: React.FC = () => {
     }
 
     if (view === 'settings') {
-      return <SettingsProfile onBack={() => setView('dashboard')} />;
+      return <SettingsProfile onBack={() => setView('dashboard')} onSave={() => setView('dashboard')} />;
     }
 
     if (view === 'help') {
@@ -281,7 +291,7 @@ const App: React.FC = () => {
       case 2.1:
         return <VerificationStep onNext={handleNext} onBack={handleBack} />;
       case 2.2:
-        return licenseType === 'nmc' 
+        return licenseType === 'nmc'
           ? <CredentialsNMC onNext={handleNext} onBack={handleBack} />
           : <CredentialsRCI onNext={handleNext} onBack={handleBack} />;
       case 3:
@@ -312,8 +322,8 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col bg-[#F8FAFC]">
       {!isAssessmentMode && !isDemoView && (
-        <Header 
-          variant={isDashboardView ? 'dashboard' : (view === 'welcome' ? 'landing' : (view === 'login' ? 'signup' : (step === 4 ? 'landing' : 'help')))} 
+        <Header
+          variant={isDashboardView ? 'dashboard' : (view === 'welcome' ? 'landing' : (view === 'login' ? 'signup' : (step === 4 ? 'landing' : 'help')))}
           activeTab={getActiveTab()}
           onTabChange={(tab) => {
             if (tab === 'Dashboard') setView('dashboard');
@@ -333,22 +343,22 @@ const App: React.FC = () => {
         />
       )}
 
-      <NotificationCenter 
-        isOpen={showNotifications} 
-        onClose={() => setShowNotifications(false)} 
+      <NotificationCenter
+        isOpen={showNotifications}
+        onClose={() => setShowNotifications(false)}
         onNavigate={handleGlobalNavigate}
       />
 
       <main className={`flex-1 flex flex-col items-center ${isDashboardView || isDemoView ? 'w-full' : 'py-8 px-4 sm:px-6 lg:px-8'} ${isApproved ? 'bg-gradient-to-b from-blue-50 to-white' : ''}`}>
         <div className={isDashboardView || isDemoView ? "w-full" : "w-full max-w-[720px]"}>
           {view === 'signup' && step < 4 && (
-            <Stepper 
-              currentStep={visualStep} 
-              isSubStep={step === 2.2} 
-              labelSuffix={step === 2.2 ? (licenseType?.toUpperCase() + ' Verification') : ''} 
+            <Stepper
+              currentStep={visualStep}
+              isSubStep={step === 2.2}
+              labelSuffix={step === 2.2 ? (licenseType?.toUpperCase() + ' Verification') : ''}
             />
           )}
-          
+
           <div className={`${isApproved || view === 'welcome' || isDashboardView || isDemoView ? '' : 'bg-white rounded-[12px] shadow-lg border border-slate-200 overflow-hidden mt-8 mb-6'}`}>
             {renderView()}
           </div>
@@ -368,9 +378,9 @@ const App: React.FC = () => {
       {!isDashboardView && !isDemoView && <Footer />}
       {isDashboardView && (
         <div className="bg-slate-50 border-t border-slate-200 py-4 text-center">
-           <button onClick={() => setView('component-demo')} className="text-[10px] font-black text-slate-300 uppercase tracking-widest hover:text-[#2563EB]">
-              View System Demos & States
-           </button>
+          <button onClick={() => setView('component-demo')} className="text-[10px] font-black text-slate-300 uppercase tracking-widest hover:text-[#2563EB]">
+            View System Demos & States
+          </button>
         </div>
       )}
     </div>

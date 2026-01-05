@@ -1,15 +1,43 @@
 import api from './api';
 
 export interface Child {
+    // Person fields
     id: string;
     firstName: string;
     lastName: string;
+    middleName?: string;
     dateOfBirth: string;
     gender: string;
-    photo?: string;
+    placeOfBirth?: string;
+    addressLine1?: string;
+    addressLine2?: string;
+    city?: string;
+    state?: string;
+    pinCode?: string;
+    country?: string;
+    udidNumber?: string;
+    primaryLanguage?: string;
+    languagesSpoken?: string[];
+    profilePictureUrl?: string;
+
+    // View fields
+    viewId: string;
+    parentId: string;
+    nickname?: string;
     medicalHistory?: string;
     currentConcerns?: string;
+    developmentalNotes?: string;
+    parentNotes?: string;
+    allergyNotes?: string;
+    relationshipType: string;
+    isPrimaryCaregiver: boolean;
+    preferredContactMethod?: string;
+    reminderPreferences?: any;
+
+    // Timestamps
+    addedAt: string;
     createdAt: string;
+    updatedAt: string;
 }
 
 export interface AddChildData {

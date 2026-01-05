@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { User, Calendar, Users as GenderIcon, FileText, Loader2, ArrowRight, ArrowLeft, Heart } from 'lucide-react';
+import { User, Calendar, Users, FileText, Loader2, ArrowRight, ArrowLeft, Heart } from 'lucide-react';
 import Stepper from '../components/Stepper';
 import childrenService from '../services/children.service';
 import type { AddChildData } from '../services/children.service';
 
-interface FormData extends AddChildData { }
+interface FormData extends AddChildData {
+    relationshipType?: string;
+}
 
 const steps = [
     { label: 'Basic Info', description: 'Name and birthday' },
@@ -196,7 +198,7 @@ export default function AddChild() {
                                         Gender
                                     </label>
                                     <div className="relative">
-                                        <GenderIcon className="absolute left-3 top-3.5 text-slate-400" size={18} />
+                                        <User className="absolute left-3 top-3.5 text-slate-400" size={18} />
                                         <select
                                             {...register('gender', { required: 'Please select gender' })}
                                             className="w-full h-12 pl-10 pr-4 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500/20 focus:border-[#2563EB] outline-none transition-all appearance-none"
@@ -210,6 +212,29 @@ export default function AddChild() {
                                     </div>
                                     {errors.gender && (
                                         <p className="mt-1.5 text-sm text-red-600 font-medium">{errors.gender.message}</p>
+                                    )}
+                                </div>
+
+                                {/* Relationship */}
+                                <div>
+                                    <label className="text-sm font-semibold text-slate-700 mb-1.5 block">
+                                        Relationship to Child
+                                    </label>
+                                    <div className="relative">
+                                        <Users className="absolute left-3 top-3.5 text-slate-400" size={18} />
+                                        <select
+                                            {...register('relationshipType', { required: 'Please select relationship' })}
+                                            className="w-full h-12 pl-10 pr-4 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500/20 focus:border-[#2563EB] outline-none transition-all appearance-none"
+                                        >
+                                            <option value="">Select relationship</option>
+                                            <option value="Mother">Mother</option>
+                                            <option value="Father">Father</option>
+                                            <option value="Guardian">Guardian</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    </div>
+                                    {errors.relationshipType && (
+                                        <p className="mt-1.5 text-sm text-red-600 font-medium">{errors.relationshipType.message}</p>
                                     )}
                                 </div>
 

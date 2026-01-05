@@ -32,14 +32,64 @@ const Header: React.FC<HeaderProps> = ({
 }) => {
   const isDashboard = variant === 'dashboard';
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [user, setUser] = useState(getCurrentUser());
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Get user info from localStorage
-  const user = getCurrentUser();
-  const userName = user?.profile ? `Dr. ${user.profile.first_name?.[0] || 'U'}. ${user.profile.last_name || 'User'}` : 'Dr. User';
-  const userFullName = user?.profile ? `${user.profile.first_name || 'Dr.'} ${user.profile.last_name || 'User'}` : 'Dr. User';
-  const userTitle = user?.profile?.professional_title || 'Healthcare Professional';
-  const userSeed = user?.profile?.first_name || 'User';
+  // Listen for storage changes to update user info
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const updatedUser = getCurrentUser();
+      setUser(updatedUser);
+    };
+
+    const handleProfileUpdate = (event: CustomEvent) => {
+      setUser(event.detail);
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('profileUpdated', handleProfileUpdate as EventListener);
+    window.addEventListener('visibilitychange', handleStorageChange);
+    window.addEventListener('focus', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('profileUpdated', handleProfileUpdate as EventListener);
+      window.removeEventListener('visibilitychange', handleStorageChange);
+      window.removeEventListener('focus', handleStorageChange);
+    };
+  }, []);
+
+
+  const userName = user?.profile ? `Dr. ${(user.profile.first_name || user.profile.firstName)?.[0] || 'U'}. ${user.profile.last_name || user.profile.lastName || 'User'}` : 'Dr. User';
+  const userFullName = user?.profile ? `${user.profile.first_name || user.profile.firstName || 'Dr.'} ${user.profile.last_name || user.profile.lastName || 'User'}` : 'Dr. User';
+  const userTitle = user?.profile?.professional_title || user?.profile?.professionalTitle || 'Healthcare Professional';
+  const userSeed = user?.profile?.first_name || user?.profile?.firstName || 'User';
+
+  // Get profile photo - check localStorage first, then API, then fallback to generated avatar
+  const getProfilePhoto = () => {
+    const storedPhoto = localStorage.getItem('clinician_photo');
+    const apiPhoto = user?.profile?.photo_url;
+
+    if (storedPhoto && storedPhoto.startsWith('data:')) {
+      return storedPhoto;
+    }
+    if (apiPhoto && apiPhoto !== 'photo_exists') {
+      if (apiPhoto.startsWith('http') || apiPhoto.startsWith('/')) {
+        return apiPhoto;
+      }
+    }
+
+    // 3. Fallback to gender-based static avatar
+    const gender = user?.profile?.gender?.toLowerCase();
+    if (gender === 'female') {
+      return '/female-avatar.png';
+    }
+    if (gender === 'other') {
+      return '/neutral-avatar.png';
+    }
+    // Default or male
+    return '/male-avatar.png';
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -110,7 +160,7 @@ const Header: React.FC<HeaderProps> = ({
                 className="flex items-center gap-2 pl-2 border-l border-slate-100 group cursor-pointer select-none"
               >
                 <div className="w-8 h-8 rounded-full bg-slate-200 overflow-hidden border border-slate-100 ring-2 ring-transparent group-hover:ring-blue-100 transition-all">
-                  <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${userSeed}`} alt="User" className="w-full h-full object-cover" />
+                  <img src={getProfilePhoto()} alt="User" className="w-full h-full object-cover" />
                 </div>
                 <span className="hidden sm:inline text-sm font-bold text-slate-700 group-hover:text-[#2563EB] transition-colors">{userName}</span>
                 <ChevronDown size={14} className={`text-slate-400 transition-transform ${isMenuOpen ? 'rotate-180' : ''}`} />

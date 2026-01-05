@@ -5,12 +5,7 @@ import {
     getPatient,
     updatePatient,
     deletePatient,
-    reactivatePatient,
-    addContact,
-    updateContact,
-    deleteContact,
-    getTimeline,
-    addTimelineEntry
+    reactivatePatient
 } from '../controllers/patients.controller';
 import { authenticate } from '../middleware/auth';
 
@@ -26,14 +21,5 @@ router.get('/:id', getPatient);
 router.put('/:id', updatePatient);
 router.delete('/:id', deletePatient);
 router.post('/:id/reactivate', reactivatePatient);
-
-// Patient contacts
-router.post('/:id/contacts', addContact);
-router.put('/:id/contacts/:contactId', updateContact);
-router.delete('/:id/contacts/:contactId', deleteContact);
-
-// Patient timeline/activity
-router.get('/:id/timeline', getTimeline);
-router.post('/:id/timeline', addTimelineEntry);
 
 export default router;

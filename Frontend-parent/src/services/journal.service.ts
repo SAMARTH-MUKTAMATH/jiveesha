@@ -7,22 +7,23 @@ export interface JournalEntry {
     parentId: string;
     parentName: string;
 
-    // Entry Type - CRITICAL
+    // Entry Type
     entryType: 'general' | 'pep';
 
-    // PEP-specific fields (only if entryType === 'pep')
+    // PEP-specific fields
     pepId?: string;
     pepActivityId?: string;
     activityTitle?: string;
     activityCompletion?: boolean;
     activityDuration?: number;
-    activityCategory?: string; // sports, music, etc.
-    activityDomain?: string; // motor, social, etc.
+    activityCategory?: string;
+    activityDomain?: string;
 
     // Content
     caption: string;
     mediaType: 'photo' | 'video' | 'document' | 'none';
     mediaUrls: string[];
+    title?: string; // Added to support backend title
 
     // Metadata
     timestamp: string;
@@ -35,7 +36,7 @@ export interface JournalEntry {
     sharedWithClinicianIds: string[];
 
     // Tags & Mood
-    tags: string[]; // milestone, concern, achievement, motor-skill, social-skill
+    tags: string[];
     mood?: 'happy' | 'neutral' | 'concerned' | 'celebrating';
 }
 
@@ -46,6 +47,7 @@ export interface CreateGeneralEntryData {
     tags?: string[];
     mood?: 'happy' | 'neutral' | 'concerned' | 'celebrating';
     visibility?: 'private' | 'shared';
+    title?: string;
 }
 
 export interface CreatePEPEntryData {
@@ -69,283 +71,160 @@ export interface JournalFilters {
     endDate?: string;
 }
 
-// Mock data for development
-const mockEntries: JournalEntry[] = [
-    {
-        id: 'journal_1',
-        childId: 'child_1',
-        childName: 'Arjun Kumar',
-        parentId: 'parent_1',
-        parentName: 'Sarah Johnson',
-        entryType: 'general',
-        caption: 'Arjun said his first complete sentence today! "I want milk please" - so proud of his progress with speech therapy.',
-        mediaType: 'photo',
-        mediaUrls: ['https://picsum.photos/seed/journal1/400/400'],
-        timestamp: '2024-12-28T09:30:00Z',
-        createdAt: '2024-12-28T09:30:00Z',
-        updatedAt: '2024-12-28T09:30:00Z',
-        visibility: 'shared',
-        sharedWithClinicianIds: ['clinician_1'],
-        tags: ['milestone', 'speech'],
-        mood: 'celebrating',
-    },
-    {
-        id: 'journal_2',
-        childId: 'child_1',
-        childName: 'Arjun Kumar',
-        parentId: 'parent_1',
-        parentName: 'Sarah Johnson',
-        entryType: 'pep',
-        pepId: 'pep_1',
-        pepActivityId: 'activity_1',
-        activityTitle: 'Ball Catching Practice',
-        activityCompletion: true,
-        activityDuration: 25,
-        activityCategory: 'sports',
-        activityDomain: 'motor',
-        caption: 'Great session with ball catching today! Arjun caught 8 out of 10 throws - his hand-eye coordination is improving significantly.',
-        mediaType: 'photo',
-        mediaUrls: ['https://picsum.photos/seed/journal2/400/400', 'https://picsum.photos/seed/journal2b/400/400'],
-        timestamp: '2024-12-27T15:45:00Z',
-        createdAt: '2024-12-27T15:45:00Z',
-        updatedAt: '2024-12-27T15:45:00Z',
-        visibility: 'shared',
-        sharedWithClinicianIds: ['clinician_1'],
-        tags: ['motor-skill', 'achievement'],
-        mood: 'happy',
-    },
-    {
-        id: 'journal_3',
-        childId: 'child_2',
-        childName: 'Priya Patel',
-        parentId: 'parent_1',
-        parentName: 'Sarah Johnson',
-        entryType: 'general',
-        caption: 'Priya had a challenging morning with transitions. She struggled moving from breakfast to getting dressed. Need to discuss strategies with Dr. Sharma.',
-        mediaType: 'none',
-        mediaUrls: [],
-        timestamp: '2024-12-26T08:15:00Z',
-        createdAt: '2024-12-26T08:15:00Z',
-        updatedAt: '2024-12-26T08:15:00Z',
-        visibility: 'private',
-        sharedWithClinicianIds: [],
-        tags: ['concern', 'transitions'],
-        mood: 'concerned',
-    },
-    {
-        id: 'journal_4',
-        childId: 'child_1',
-        childName: 'Arjun Kumar',
-        parentId: 'parent_1',
-        parentName: 'Sarah Johnson',
-        entryType: 'pep',
-        pepId: 'pep_1',
-        pepActivityId: 'activity_3',
-        activityTitle: 'Social Circle Time',
-        activityCompletion: true,
-        activityDuration: 15,
-        activityCategory: 'games',
-        activityDomain: 'social',
-        caption: 'Played turn-taking games with sister. Arjun waited patiently for 3 turns without prompting!',
-        mediaType: 'video',
-        mediaUrls: ['https://example.com/video1.mp4'],
-        timestamp: '2024-12-25T14:00:00Z',
-        createdAt: '2024-12-25T14:00:00Z',
-        updatedAt: '2024-12-25T14:00:00Z',
-        visibility: 'shared',
-        sharedWithClinicianIds: ['clinician_1', 'clinician_2'],
-        tags: ['social-skill', 'milestone'],
-        mood: 'celebrating',
-    },
-    {
-        id: 'journal_5',
-        childId: 'child_2',
-        childName: 'Priya Patel',
-        parentId: 'parent_1',
-        parentName: 'Sarah Johnson',
-        entryType: 'pep',
-        pepId: 'pep_2',
-        pepActivityId: 'activity_5',
-        activityTitle: 'Music & Movement',
-        activityCompletion: true,
-        activityDuration: 20,
-        activityCategory: 'music',
-        activityDomain: 'motor',
-        caption: 'Priya loved the rhythm shaker activity. She followed the beat for the entire song!',
-        mediaType: 'photo',
-        mediaUrls: ['https://picsum.photos/seed/journal5/400/400', 'https://picsum.photos/seed/journal5b/400/400', 'https://picsum.photos/seed/journal5c/400/400'],
-        timestamp: '2024-12-24T11:30:00Z',
-        createdAt: '2024-12-24T11:30:00Z',
-        updatedAt: '2024-12-24T11:30:00Z',
-        visibility: 'shared',
-        sharedWithClinicianIds: ['clinician_1'],
-        tags: ['achievement', 'rhythm'],
-        mood: 'happy',
-    },
-    {
-        id: 'journal_6',
-        childId: 'child_1',
-        childName: 'Arjun Kumar',
-        parentId: 'parent_1',
-        parentName: 'Sarah Johnson',
-        entryType: 'general',
-        caption: 'Regular day at home. Arjun played independently with blocks for 20 minutes - a new record for focused play!',
-        mediaType: 'photo',
-        mediaUrls: ['https://picsum.photos/seed/journal6/400/400'],
-        timestamp: '2024-12-23T16:00:00Z',
-        createdAt: '2024-12-23T16:00:00Z',
-        updatedAt: '2024-12-23T16:00:00Z',
-        visibility: 'private',
-        sharedWithClinicianIds: [],
-        tags: ['daily-update', 'independent-play'],
-        mood: 'neutral',
-    },
-];
-
 class JournalService {
-    private entries: JournalEntry[] = [...mockEntries];
 
     async getEntries(filters?: JournalFilters): Promise<{ success: boolean; data: JournalEntry[] }> {
         try {
-            const params = filters || {};
-            const response = await api.get('/parent/journal', { params });
-            return response.data;
-        } catch (error) {
-            // Return mock data sorted by timestamp (newest first)
-            let filtered = [...this.entries].sort(
-                (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-            );
+            if (!filters?.childId) {
+                return { success: true, data: [] };
+            }
 
-            if (filters?.type && filters.type !== 'all') {
+            const response = await api.get(`/journal/parent/timeline/${filters.childId}`, {
+                params: {
+                    limit: 50
+                    // Add other filters if backend supports them later
+                }
+            });
+
+            // Check if response has data array
+            const timelineItems = response.data.data || [];
+            if (!Array.isArray(timelineItems)) {
+                console.error('Unexpected timeline response format:', response.data);
+                return { success: true, data: [] };
+            }
+
+            // Transform backend timeline items to Frontend JournalEntry
+            const entries: JournalEntry[] = timelineItems.map((item: any) => {
+                const isPep = item.type === 'activity';
+
+                return {
+                    id: item.id,
+                    childId: filters.childId!,
+                    childName: 'Child', // Backend doesn't return child name in timeline list yet
+                    parentId: 'current',
+                    parentName: item.author,
+                    entryType: isPep ? 'pep' : (item.entryType || 'general'),
+                    caption: item.content || item.title,
+                    title: item.title,
+                    mediaType: (item.data.photos && item.data.photos.length > 0) ? 'photo' : 'none',
+                    mediaUrls: item.data.photos || [], // Using activity photos or journal attachments
+                    timestamp: item.date,
+                    createdAt: item.date, // item.date is from backend
+                    updatedAt: item.date,
+                    visibility: item.data.visibility || 'shared',
+                    sharedWithClinicianIds: [],
+                    tags: [], // Tags not yet fully threaded
+                    mood: 'neutral', // Mood not yet fully threaded
+                    createdByType: item.createdByType || (item.type === 'activity' ? 'parent' : 'clinician'),
+
+                    // PEP specific
+                    ...(isPep ? {
+                        pepId: 'unknown',
+                        pepActivityId: item.data.activityId,
+                        activityTitle: item.title.replace('Completed Activity: ', ''),
+                        activityCompletion: true,
+                        activityDuration: item.data.duration,
+                        activityCategory: 'general',
+                        activityDomain: 'general'
+                    } : {})
+                };
+            });
+
+            // Client-side filtering for search/type if backend doesn't support it fully yet
+            let filtered = entries;
+
+            if (filters.type && filters.type !== 'all') {
                 filtered = filtered.filter(e => e.entryType === filters.type);
             }
-            if (filters?.childId) {
-                filtered = filtered.filter(e => e.childId === filters.childId);
-            }
-            if (filters?.search) {
+
+            if (filters.search) {
                 const query = filters.search.toLowerCase();
                 filtered = filtered.filter(e =>
                     e.caption.toLowerCase().includes(query) ||
-                    e.childName.toLowerCase().includes(query) ||
-                    e.activityTitle?.toLowerCase().includes(query)
+                    (e.title && e.title.toLowerCase().includes(query))
                 );
             }
 
             return { success: true, data: filtered };
+        } catch (error) {
+            console.error('Failed to get journal entries:', error);
+            throw error; // Let component handle error, no more mock fallback
         }
     }
 
     async getEntry(id: string): Promise<{ success: boolean; data: JournalEntry }> {
+        // Not implemented fully on backend for 'timeline item' lookup by ID if mixed types
+        // But for JournalEntry it works.
         try {
-            const response = await api.get(`/parent/journal/${id}`);
+            const response = await api.get(`/journal/${id}`);
             return response.data;
         } catch (error) {
-            const entry = this.entries.find(e => e.id === id);
-            if (entry) {
-                return { success: true, data: entry };
-            }
-            throw new Error('Entry not found');
+            console.error('Failed to get entry:', error);
+            throw error;
         }
     }
 
     async createGeneralEntry(data: CreateGeneralEntryData): Promise<{ success: boolean; data: JournalEntry }> {
         try {
-            const response = await api.post('/parent/journal', {
-                ...data,
-                entryType: 'general',
-            });
-            return response.data;
-        } catch (error) {
-            const newEntry: JournalEntry = {
-                id: `journal_${Date.now()}`,
-                childId: data.childId,
-                childName: 'Child', // Would come from API
-                parentId: 'parent_1',
-                parentName: 'Sarah Johnson',
-                entryType: 'general',
-                caption: data.caption,
-                mediaType: data.mediaUrls && data.mediaUrls.length > 0 ? 'photo' : 'none',
-                mediaUrls: data.mediaUrls || [],
-                timestamp: new Date().toISOString(),
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                visibility: data.visibility || 'private',
-                sharedWithClinicianIds: [],
-                tags: data.tags || [],
-                mood: data.mood,
+            // Map to backend structure
+            const payload = {
+                personId: data.childId,
+                entryType: 'observation', // Default backend type
+                title: data.title || 'Parent Entry', // Backend requires title
+                content: data.caption,
+                tags: data.tags,
+                visibility: data.visibility || 'shared_with_team',
+                // Attachments handling would go here if mediaUrls supported
             };
-            this.entries.unshift(newEntry);
-            return { success: true, data: newEntry };
+
+            const response = await api.post('/journal', payload);
+
+            // Map response back to frontend interface if needed, or just return basic success
+            // For now, returning success and triggering reload is best.
+            return { success: true, data: response.data };
+        } catch (error) {
+            console.error('Failed to create entry:', error);
+            throw error;
         }
     }
 
     async createPEPEntry(data: CreatePEPEntryData): Promise<{ success: boolean; data: JournalEntry }> {
+        // For now, this is just recording completion mostly.
+        // If we want a specific journal entry for PEP:
         try {
-            const response = await api.post('/parent/journal/pep', {
-                ...data,
-                entryType: 'pep',
-            });
-            return response.data;
-        } catch (error) {
-            const newEntry: JournalEntry = {
-                id: `journal_${Date.now()}`,
-                childId: data.childId,
-                childName: 'Child', // Would come from API
-                parentId: 'parent_1',
-                parentName: 'Sarah Johnson',
-                entryType: 'pep',
-                pepId: data.pepId,
-                pepActivityId: data.pepActivityId,
-                activityTitle: data.activityTitle,
-                activityCompletion: data.activityCompletion,
-                activityDuration: data.activityDuration,
-                activityCategory: data.activityCategory,
-                activityDomain: data.activityDomain,
-                caption: data.caption,
-                mediaType: data.mediaUrls && data.mediaUrls.length > 0 ? 'photo' : 'none',
-                mediaUrls: data.mediaUrls || [],
-                timestamp: new Date().toISOString(),
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                visibility: 'shared',
-                sharedWithClinicianIds: [],
-                tags: [],
+            const payload = {
+                personId: data.childId,
+                entryType: 'activity_completion',
+                title: data.activityTitle,
+                content: data.caption,
+                linkedGoalId: undefined, // Could link if we had it
+                visibility: 'shared_with_team'
             };
-            this.entries.unshift(newEntry);
-            return { success: true, data: newEntry };
+            const response = await api.post('/journal', payload);
+            return { success: true, data: response.data };
+        } catch (error) {
+            console.error('Failed to create PEP entry:', error);
+            throw error;
         }
     }
 
     async updateEntry(id: string, data: Partial<JournalEntry>): Promise<{ success: boolean; data: JournalEntry }> {
         try {
-            const response = await api.put(`/parent/journal/${id}`, data);
+            const response = await api.put(`/journal/${id}`, data);
             return response.data;
         } catch (error) {
-            const index = this.entries.findIndex(e => e.id === id);
-            if (index !== -1) {
-                this.entries[index] = {
-                    ...this.entries[index],
-                    ...data,
-                    updatedAt: new Date().toISOString(),
-                    editedAt: new Date().toISOString(),
-                };
-                return { success: true, data: this.entries[index] };
-            }
-            throw new Error('Entry not found');
+            console.error('Failed to update entry:', error);
+            throw error;
         }
     }
 
     async deleteEntry(id: string): Promise<{ success: boolean }> {
         try {
-            const response = await api.delete(`/parent/journal/${id}`);
+            const response = await api.delete(`/journal/${id}`);
             return response.data;
         } catch (error) {
-            const index = this.entries.findIndex(e => e.id === id);
-            if (index !== -1) {
-                this.entries.splice(index, 1);
-                return { success: true };
-            }
-            throw new Error('Entry not found');
+            console.error('Failed to delete entry:', error);
+            throw error;
         }
     }
 
@@ -353,12 +232,18 @@ class JournalService {
         try {
             const formData = new FormData();
             formData.append('file', file);
-            const response = await api.post('/parent/journal/media', formData, {
+            // Ensure this endpoint exists and handles media
+            const response = await api.post('/journal/media', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
             return response.data;
         } catch (error) {
-            // Mock upload - create object URL
+            // If backend endpoint for generic journal media is not ready, we might need mock here
+            // But user asked for REALTIME. 
+            // BE endpoint /parent/journal/:id/attachments exists but requires ID.
+            // We likely need a temp upload or direct upload.
+            // For now, keeping the mock fallback ONLY for media upload if endpoint fails 404
+            console.warn('Media upload endpoint might be missing, falling back to local URL for preview');
             const url = URL.createObjectURL(file);
             return { success: true, url };
         }

@@ -1,0 +1,1312 @@
+// ============================================
+// DAIRA PLATFORM - UNIFIED SCHEMA v2.0.0
+// Three-View Architecture: Parent | Clinician | School
+// ============================================
+// 
+// ARCHITECTURE:
+// - Person: Core entity (single source of truth)
+// - Views: Different perspectives on the same person
+//   * ParentChildView: Parent's perspective
+//   * ClinicianPatientView: Clinician's perspective
+//   * SchoolStudentView: School's perspective
+// - AccessGrant: Unified permissions system
+//
+// TOTAL TABLES: 59
+// CATEGORIES: 11 (A-K)
+// ============================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev-v2.db"
+}
+
+// ============================================
+// CATEGORY A: CORE ENTITIES (5 tables)
+// ============================================
+
+// ────────────────────────────────────────────
+// Person - Single Source of Truth
+// ────────────────────────────────────────────
+
+model Person {
+  id String @id @default(uuid())
+
+  // Basic Information
+  firstName    String   @map("first_name")
+  lastName     String   @map("last_name")
+  middleName   String?  @map("middle_name")
+  dateOfBirth  DateTime @map("date_of_birth")
+  gender       String
+  placeOfBirth String?  @map("place_of_birth")
+
+  // Address (shared across all views)
+  addressLine1 String? @map("address_line1")
+  addressLine2 String? @map("address_line2")
+  city         String?
+  state        String?
+  pinCode      String? @map("pin_code")
+  country      String  @default("India")
+
+  // National Identifiers
+  udidNumber       String? @unique @map("udid_number")
+  aadhaarEncrypted String? @map("aadhaar_encrypted")
+
+  // Language
+  primaryLanguage String? @map("primary_language")
+  languagesSpoken String  @default("[]") @map("languages_spoken")
+
+  // Metadata
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  // Relationships to views (one-to-one)
+  parentView    ParentChildView?
+  clinicianView ClinicianPatientView?
+  schoolView    SchoolStudentView?
+
+  // Related data (all link to Person)
+  contacts        Contact[]
+  documents       Document[]
+  tags            Tag[]
+  screenings      Screening[]
+  assessments     Assessment[]
+  educationPlans  EducationPlan[]
+  activities      Activity[]
+  sessions        ConsultationSession[]
+  interventions   Intervention[]
+  journalEntries  JournalEntry[]
+  progressRecords ProgressRecord[]
+  accessGrants    AccessGrant[]
+  appointments    Appointment[]
+  Report          Report[]
+
+  @@index([firstName, lastName])
+  @@index([dateOfBirth])
+  @@index([udidNumber])
+  @@index([deletedAt])
+  @@map("persons")
+}
+
+// ────────────────────────────────────────────
+// ParentChildView - Parent's Perspective
+// ────────────────────────────────────────────
+
+model ParentChildView {
+  id       String @id @default(uuid())
+  personId String @unique @map("person_id")
+  parentId String @map("parent_id")
+
+  // Parent-specific fields
+  nickname           String?
+  medicalHistory     String? @map("medical_history")
+  currentConcerns    String? @map("current_concerns")
+  developmentalNotes String? @map("developmental_notes")
+  parentNotes        String? @map("parent_notes")
+  allergyNotes       String? @map("allergy_notes")
+
+  // Relationship metadata
+  relationshipType   String  @map("relationship_type") // mother, father, guardian, grandparent, other
+  isPrimaryCaregiver Boolean @default(false) @map("is_primary_caregiver")
+
+  // Preferences
+  preferredContactMethod String? @map("preferred_contact_method")
+  reminderPreferences    String  @default("{}") @map("reminder_preferences")
+
+  // Timestamps
+  addedAt   DateTime @default(now()) @map("added_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relationships
+  person Person @relation(fields: [personId], references: [id], onDelete: Cascade)
+  parent Parent @relation(fields: [parentId], references: [id], onDelete: Cascade)
+
+  @@index([parentId])
+  @@index([personId])
+  @@map("parent_child_views")
+}
+
+// ────────────────────────────────────────────
+// ClinicianPatientView - Clinician's Perspective
+// ────────────────────────────────────────────
+
+model ClinicianPatientView {
+  id          String @id @default(uuid())
+  personId    String @unique @map("person_id")
+  clinicianId String @map("clinician_id")
+
+  // Clinical Information
+  primaryConcerns    String? @map("primary_concerns")
+  presentingProblems String? @map("presenting_problems")
+  chiefComplaint     String? @map("chief_complaint")
+
+  // Diagnosis
+  existingDiagnosis String?   @map("existing_diagnosis")
+  diagnosisCodes    String    @default("[]") @map("diagnosis_codes")
+  diagnosisDate     DateTime? @map("diagnosis_date")
+
+  // Clinical History
+  developmentalHistory String? @map("developmental_history")
+  birthHistory         String? @map("birth_history")
+  medicalHistory       String? @map("medical_history")
+  familyHistory        String? @map("family_history")
+  socialHistory        String? @map("social_history")
+
+  // Current Status
+  currentMedications String  @default("[]") @map("current_medications")
+  allergies          String?
+  immunizationStatus String? @map("immunization_status")
+
+  // Treatment
+  treatmentPlan String? @map("treatment_plan")
+  clinicalNotes String? @map("clinical_notes")
+
+  // Case Management
+  caseStatus   String    @default("active") @map("case_status")
+  admittedAt   DateTime  @default(now()) @map("admitted_at")
+  dischargedAt DateTime? @map("discharged_at")
+
+  // Referral
+  referralSource String?   @map("referral_source")
+  referralDate   DateTime? @map("referral_date")
+  referralNotes  String?   @map("referral_notes")
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relationships
+  person    Person @relation(fields: [personId], references: [id], onDelete: Cascade)
+  clinician User   @relation(fields: [clinicianId], references: [id])
+
+  @@index([clinicianId])
+  @@index([personId])
+  @@index([caseStatus])
+  @@map("clinician_patient_views")
+}
+
+// ────────────────────────────────────────────
+// SchoolStudentView - School's Perspective
+// ────────────────────────────────────────────
+
+model SchoolStudentView {
+  id               String  @id @default(uuid())
+  personId         String  @unique @map("person_id")
+  schoolId         String  @map("school_id")
+  primaryTeacherId String? @map("primary_teacher_id")
+
+  // School Identification
+  studentId       String? @map("student_id")
+  rollNumber      String? @map("roll_number")
+  admissionNumber String? @map("admission_number")
+
+  // Academic Information
+  currentGrade String? @map("current_grade")
+  section      String?
+  academicYear String? @map("academic_year")
+
+  // Performance
+  academicPerformance String? @map("academic_performance")
+  attendanceRate      Float?  @map("attendance_rate")
+  behaviorRating      String? @map("behavior_rating")
+
+  // Support Services
+  receivingSupport Boolean @default(false) @map("receiving_support")
+  supportType      String? @map("support_type")
+  accommodations   String  @default("[]")
+
+  // Notes
+  teacherNotes  String? @map("teacher_notes")
+  behaviorNotes String? @map("behavior_notes")
+  academicNotes String? @map("academic_notes")
+
+  // Status
+  enrollmentStatus String    @default("active") @map("enrollment_status")
+  enrolledAt       DateTime  @default(now()) @map("enrolled_at")
+  withdrawnAt      DateTime? @map("withdrawn_at")
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relationships
+  person         Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
+  school         School   @relation(fields: [schoolId], references: [id])
+  primaryTeacher Teacher? @relation(fields: [primaryTeacherId], references: [id])
+
+  @@index([schoolId])
+  @@index([primaryTeacherId])
+  @@index([personId])
+  @@index([enrollmentStatus])
+  @@map("school_student_views")
+}
+
+// ────────────────────────────────────────────
+// AccessGrant - Unified Permissions System
+// ────────────────────────────────────────────
+
+model AccessGrant {
+  id String @id @default(uuid())
+
+  // Grantor (who owns/grants access)
+  grantorType String @map("grantor_type") // parent, clinician, school
+  grantorId   String @map("grantor_id")
+
+  // Grantee (who receives access)
+  granteeType String @map("grantee_type") // parent, clinician, school
+  granteeId   String @map("grantee_id")
+
+  // What they can access
+  personId String @map("person_id")
+
+  // Permissions (JSON)
+  permissions String @default("{}")
+  accessLevel String @default("view") @map("access_level")
+
+  // Token-based claiming
+  token          String?   @unique
+  tokenExpiresAt DateTime? @map("token_expires_at")
+
+  // Status
+  status String @default("pending")
+
+  // Timestamps
+  grantedAt   DateTime  @default(now()) @map("granted_at")
+  activatedAt DateTime? @map("activated_at")
+  expiresAt   DateTime? @map("expires_at")
+  revokedAt   DateTime? @map("revoked_at")
+
+  // Metadata
+  grantedByName  String  @map("granted_by_name")
+  grantedByEmail String  @map("granted_by_email")
+  granteeEmail   String? @map("grantee_email")
+  notes          String?
+
+  // Audit Trail (JSON)
+  auditLog String @default("[]") @map("audit_log")
+
+  // Relationships
+  person Person @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@index([grantorId, grantorType])
+  @@index([granteeId, granteeType])
+  @@index([personId])
+  @@index([token])
+  @@index([status])
+  @@map("access_grants")
+}
+
+// ============================================
+// CATEGORY B: USER ACCOUNTS (8 tables)
+// ============================================
+
+model User {
+  id                       String    @id @default(uuid())
+  email                    String    @unique
+  passwordHash             String    @map("password_hash")
+  role                     String    @default("clinician")
+  status                   String    @default("pending_verification")
+  emailVerified            Boolean   @default(false) @map("email_verified")
+  emailVerificationToken   String?   @map("email_verification_token")
+  emailVerificationExpires DateTime? @map("email_verification_expires")
+  passwordResetToken       String?   @map("password_reset_token")
+  passwordResetExpires     DateTime? @map("password_reset_expires")
+  createdAt                DateTime  @default(now()) @map("created_at")
+  updatedAt                DateTime  @updatedAt @map("updated_at")
+  lastLoginAt              DateTime? @map("last_login_at")
+  deletedAt                DateTime? @map("deleted_at")
+
+  clinicianProfile      ClinicianProfile?
+  parent                Parent?
+  credentials           Credential[]
+  refreshTokens         RefreshToken[]
+  auditLogs             AuditLog[]
+  locations             PracticeLocation[]
+  availability          ClinicianAvailability[]
+  timeOff               ClinicianTimeOff[]
+  preferences           UserPreferences?
+  clinicianPatientViews ClinicianPatientView[]
+  appointments          Appointment[]
+  sessions              ConsultationSession[]
+  assessments           Assessment[]
+  interventions         Intervention[]
+  reports               Report[]
+
+  @@map("users")
+}
+
+model Parent {
+  id                 String    @id @default(uuid())
+  userId             String    @unique @map("user_id")
+  phone              String?
+  phoneVerified      Boolean   @default(false) @map("phone_verified")
+  emergencyContact   String?   @map("emergency_contact")
+  emergencyPhone     String?   @map("emergency_phone")
+  preferredLanguage  String    @default("en") @map("preferred_language")
+  profilePictureUrl  String?   @map("profile_picture_url")
+  emailNotifications Boolean   @default(true) @map("email_notifications")
+  smsNotifications   Boolean   @default(false) @map("sms_notifications")
+  accountStatus      String    @default("active") @map("account_status")
+  lastLoginAt        DateTime? @map("last_login_at")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  childViews ParentChildView[]
+
+  @@index([userId])
+  @@index([phone])
+  @@map("parents")
+}
+
+model ClinicianProfile {
+  id                 String    @id @default(uuid())
+  userId             String    @unique @map("user_id")
+  firstName          String    @map("first_name")
+  middleName         String?   @map("middle_name")
+  lastName           String    @map("last_name")
+  professionalTitle  String?   @map("professional_title")
+  designation        String?
+  specializations    String    @default("[]")
+  languages          String    @default("[]")
+  phone              String?
+  alternatePhone     String?   @map("alternate_phone")
+  dateOfBirth        DateTime? @map("date_of_birth")
+  yearsOfPractice    Int?      @map("years_of_practice")
+  bio                String?
+  photoUrl           String?   @map("photo_url")
+  verificationStatus String    @default("pending") @map("verification_status")
+  verifiedAt         DateTime? @map("verified_at")
+  verifiedBy         String?   @map("verified_by")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("clinician_profiles")
+}
+
+model School {
+  id                String   @id @default(uuid())
+  name              String
+  schoolType        String   @map("school_type")
+  addressLine1      String?  @map("address_line1")
+  addressLine2      String?  @map("address_line2")
+  city              String?
+  state             String?
+  pinCode           String?  @map("pin_code")
+  country           String   @default("India")
+  phone             String?
+  email             String?
+  principalName     String?  @map("principal_name")
+  establishedYear   Int?     @map("established_year")
+  affiliationNumber String?  @map("affiliation_number")
+  status            String   @default("active")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  studentViews SchoolStudentView[]
+  teachers     Teacher[]
+
+  @@map("schools")
+}
+
+model Teacher {
+  id         String   @id @default(uuid())
+  schoolId   String   @map("school_id")
+  firstName  String   @map("first_name")
+  lastName   String   @map("last_name")
+  email      String?
+  phone      String?
+  subjects   String   @default("[]")
+  grades     String   @default("[]")
+  employeeId String?  @map("employee_id")
+  status     String   @default("active")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  school          School              @relation(fields: [schoolId], references: [id])
+  primaryStudents SchoolStudentView[]
+
+  @@index([schoolId])
+  @@map("teachers")
+}
+
+model Credential {
+  id                 String    @id @default(uuid())
+  userId             String    @map("user_id")
+  credentialType     String    @map("credential_type")
+  credentialNumber   String?   @map("credential_number")
+  issuingAuthority   String?   @map("issuing_authority")
+  issueDate          DateTime? @map("issue_date")
+  expiryDate         DateTime? @map("expiry_date")
+  documentUrl        String?   @map("document_url")
+  verificationStatus String    @default("pending") @map("verification_status")
+  verificationNotes  String?   @map("verification_notes")
+  verifiedBy         String?   @map("verified_by")
+  verifiedAt         DateTime? @map("verified_at")
+  rejectionReason    String?   @map("rejection_reason")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("credentials")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id")
+  token     String    @unique
+  expiresAt DateTime  @map("expires_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  revokedAt DateTime? @map("revoked_at")
+  ipAddress String?   @map("ip_address")
+  userAgent String?   @map("user_agent")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
+
+model UserPreferences {
+  userId               String   @id @map("user_id")
+  language             String   @default("en")
+  timezone             String   @default("Asia/Kolkata")
+  dateFormat           String   @default("DD/MM/YYYY") @map("date_format")
+  timeFormat           String   @default("12-hour") @map("time_format")
+  theme                String   @default("light")
+  notificationEmail    Boolean  @default(true) @map("notification_email")
+  notificationSms      Boolean  @default(true) @map("notification_sms")
+  notificationPush     Boolean  @default(true) @map("notification_push")
+  notificationSettings String   @default("{}") @map("notification_settings")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
+}
+
+// ============================================
+// CATEGORY C: CONTACTS & DOCUMENTS (4 tables)
+// ============================================
+
+model Contact {
+  id                     String   @id @default(uuid())
+  personId               String   @map("person_id")
+  contactType            String   @map("contact_type")
+  relationship           String?
+  firstName              String   @map("first_name")
+  lastName               String   @map("last_name")
+  phone                  String?
+  alternatePhone         String?  @map("alternate_phone")
+  email                  String?
+  whatsappNumber         String?  @map("whatsapp_number")
+  occupation             String?
+  addressLine1           String?  @map("address_line1")
+  addressLine2           String?  @map("address_line2")
+  city                   String?
+  state                  String?
+  pinCode                String?  @map("pin_code")
+  isPrimaryContact       Boolean  @default(false) @map("is_primary_contact")
+  canReceiveUpdates      Boolean  @default(true) @map("can_receive_updates")
+  preferredContactMethod String?  @map("preferred_contact_method")
+  languagePreference     String?  @map("language_preference")
+  createdAt              DateTime @default(now()) @map("created_at")
+  updatedAt              DateTime @updatedAt @map("updated_at")
+
+  person Person @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@index([personId])
+  @@map("contacts")
+}
+
+model Document {
+  id             String   @id @default(uuid())
+  personId       String   @map("person_id")
+  documentType   String?  @map("document_type")
+  fileName       String   @map("file_name")
+  fileUrl        String   @map("file_url")
+  fileSize       Int?     @map("file_size")
+  mimeType       String?  @map("mime_type")
+  uploadedBy     String   @map("uploaded_by")
+  uploadedByType String   @map("uploaded_by_type")
+  uploadedAt     DateTime @default(now()) @map("uploaded_at")
+  notes          String?
+  visibility     String   @default("private")
+
+  person Person @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@index([personId])
+  @@map("documents")
+}
+
+model Tag {
+  id          String   @id @default(uuid())
+  personId    String   @map("person_id")
+  tag         String
+  addedBy     String   @map("added_by")
+  addedByType String   @map("added_by_type")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  person Person @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@unique([personId, tag])
+  @@index([personId])
+  @@map("tags")
+}
+
+model AuditLog {
+  id           String   @id @default(uuid())
+  userId       String?  @map("user_id")
+  action       String
+  resourceType String?  @map("resource_type")
+  resourceId   String?  @map("resource_id")
+  ipAddress    String?  @map("ip_address")
+  userAgent    String?  @map("user_agent")
+  details      String?
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@map("audit_logs")
+}
+
+// ============================================
+// CATEGORY D: LOCATIONS & SCHEDULING (4 tables)
+// ============================================
+
+model PracticeLocation {
+  id           String   @id @default(uuid())
+  clinicianId  String   @map("clinician_id")
+  name         String
+  addressLine1 String?  @map("address_line1")
+  addressLine2 String?  @map("address_line2")
+  city         String?
+  state        String?
+  pinCode      String?  @map("pin_code")
+  country      String   @default("India")
+  roomInfo     String?  @map("room_info")
+  isPrimary    Boolean  @default(false) @map("is_primary")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  clinician    User                    @relation(fields: [clinicianId], references: [id], onDelete: Cascade)
+  availability ClinicianAvailability[]
+  appointments Appointment[]
+
+  @@map("practice_locations")
+}
+
+model ClinicianAvailability {
+  id          String   @id @default(uuid())
+  clinicianId String   @map("clinician_id")
+  dayOfWeek   Int      @map("day_of_week")
+  startTime   String   @map("start_time")
+  endTime     String   @map("end_time")
+  locationId  String?  @map("location_id")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  clinician User              @relation(fields: [clinicianId], references: [id], onDelete: Cascade)
+  location  PracticeLocation? @relation(fields: [locationId], references: [id])
+
+  @@unique([clinicianId, dayOfWeek, startTime, locationId])
+  @@map("clinician_availability")
+}
+
+model ClinicianTimeOff {
+  id          String   @id @default(uuid())
+  clinicianId String   @map("clinician_id")
+  startDate   DateTime @map("start_date")
+  endDate     DateTime @map("end_date")
+  reason      String?
+  allDay      Boolean  @default(true) @map("all_day")
+  startTime   String?  @map("start_time")
+  endTime     String?  @map("end_time")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  clinician User @relation(fields: [clinicianId], references: [id], onDelete: Cascade)
+
+  @@map("clinician_time_off")
+}
+
+model Appointment {
+  id              String   @id @default(uuid())
+  personId        String   @map("person_id")
+  clinicianId     String   @map("clinician_id")
+  date            DateTime
+  startTime       String   @map("start_time")
+  endTime         String   @map("end_time")
+  appointmentType String   @map("appointment_type")
+  format          String
+  locationId      String?  @map("location_id")
+  status          String   @default("scheduled")
+  notes           String?
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  person    Person            @relation(fields: [personId], references: [id])
+  clinician User              @relation(fields: [clinicianId], references: [id])
+  location  PracticeLocation? @relation(fields: [locationId], references: [id])
+
+  @@index([personId])
+  @@index([clinicianId])
+  @@index([date])
+  @@map("appointments")
+}
+
+// Categories E-K continuation for schema-v2.prisma
+
+// ============================================
+// CATEGORY E: SCREENINGS & ASSESSMENTS (6 tables)
+// ============================================
+
+model Screening {
+  id                   String    @id @default(uuid())
+  personId             String    @map("person_id")
+  conductedBy          String    @map("conducted_by")
+  conductedByType      String    @map("conducted_by_type")
+  screeningType        String    @map("screening_type")
+  ageAtScreening       Int       @map("age_at_screening")
+  status               String    @default("in_progress")
+  currentQuestion      Int       @default(1) @map("current_question")
+  totalQuestions       Int       @map("total_questions")
+  responses            String    @default("{}")
+  totalScore           Int?      @map("total_score")
+  riskLevel            String?   @map("risk_level")
+  screenerResult       String?   @map("screener_result")
+  recommendations      String?
+  followUpRequired     Boolean   @default(false) @map("follow_up_required")
+  professionalReferral Boolean   @default(false) @map("professional_referral")
+  mchatInitialScore    Int?      @map("mchat_initial_score")
+  mchatFollowUpScore   Int?      @map("mchat_follow_up_score")
+  startedAt            DateTime  @default(now()) @map("started_at")
+  completedAt          DateTime? @map("completed_at")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+
+  person             Person              @relation(fields: [personId], references: [id], onDelete: Cascade)
+  screeningResponses ScreeningResponse[]
+
+  @@index([personId])
+  @@index([screeningType])
+  @@index([status])
+  @@map("screenings")
+}
+
+model ScreeningResponse {
+  id                   String   @id @default(uuid())
+  screeningId          String   @map("screening_id")
+  questionId           String   @map("question_id")
+  questionText         String   @map("question_text")
+  answer               String
+  answerValue          Int      @map("answer_value")
+  isFollowUp           Boolean  @default(false) @map("is_follow_up")
+  parentFollowUpAnswer String?  @map("parent_follow_up_answer")
+  answeredAt           DateTime @default(now()) @map("answered_at")
+
+  screening Screening @relation(fields: [screeningId], references: [id], onDelete: Cascade)
+
+  @@index([screeningId])
+  @@map("screening_responses")
+}
+
+model MChatQuestion {
+  id                String   @id @default(uuid())
+  questionNumber    Int      @map("question_number")
+  questionText      String   @map("question_text")
+  isInitialScreener Boolean  @map("is_initial_screener")
+  isFollowUp        Boolean  @default(false) @map("is_follow_up")
+  criticalItem      Boolean  @default(false) @map("critical_item")
+  scoringKey        String   @map("scoring_key")
+  followUpPrompt    String?  @map("follow_up_prompt")
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  @@unique([questionNumber, isInitialScreener])
+  @@map("mchat_questions")
+}
+
+model ASQQuestion {
+  id             String   @id @default(uuid())
+  ageRange       String   @map("age_range")
+  domain         String
+  questionNumber Int      @map("question_number")
+  questionText   String   @map("question_text")
+  yesValue       Int      @default(10) @map("yes_value")
+  sometimesValue Int      @default(5) @map("sometimes_value")
+  notYetValue    Int      @default(0) @map("not_yet_value")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@unique([ageRange, domain, questionNumber])
+  @@map("asq_questions")
+}
+
+model Assessment {
+  id                   String    @id @default(uuid())
+  personId             String    @map("person_id")
+  clinicianId          String    @map("clinician_id")
+  assessmentType       String    @map("assessment_type")
+  status               String    @default("in_progress")
+  responses            String    @default("{}")
+  currentDomain        String?   @map("current_domain")
+  currentQuestion      Int?      @map("current_question")
+  totalQuestions       Int?      @map("total_questions")
+  totalScore           Int?      @map("total_score")
+  domainScores         String?   @map("domain_scores")
+  interpretation       String?
+  severityLevel        String?   @map("severity_level")
+  dsm5Criteria         String?   @map("dsm5_criteria")
+  recommendations      String?
+  administeredBy       String    @map("administered_by")
+  administeredDate     DateTime? @map("administered_date")
+  duration             Int?
+  completedAt          DateTime? @map("completed_at")
+  baselineAssessmentId String?   @map("baseline_assessment_id")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+
+  person    Person               @relation(fields: [personId], references: [id], onDelete: Cascade)
+  clinician User                 @relation(fields: [clinicianId], references: [id])
+  evidence  AssessmentEvidence[]
+
+  @@index([personId])
+  @@index([clinicianId])
+  @@index([assessmentType])
+  @@index([status])
+  @@map("assessments")
+}
+
+model AssessmentEvidence {
+  id           String   @id @default(uuid())
+  assessmentId String   @map("assessment_id")
+  evidenceType String   @map("evidence_type")
+  fileName     String   @map("file_name")
+  fileUrl      String   @map("file_url")
+  fileSize     Int?     @map("file_size")
+  description  String?
+  timestamp    String?
+  uploadedAt   DateTime @default(now()) @map("uploaded_at")
+
+  assessment Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+
+  @@index([assessmentId])
+  @@map("assessment_evidence")
+}
+
+// ============================================
+// CATEGORY F: EDUCATION PLANS (7 tables)
+// ============================================
+
+model EducationPlan {
+  id                String    @id @default(uuid())
+  personId          String    @map("person_id")
+  createdBy         String    @map("created_by")
+  createdByType     String    @map("created_by_type")
+  planType          String    @map("plan_type")
+  planName          String    @map("plan_name")
+  academicYear      String?   @map("academic_year")
+  focusAreas        String    @default("[]") @map("focus_areas")
+  startDate         DateTime  @map("start_date")
+  endDate           DateTime? @map("end_date")
+  nextReviewDate    DateTime? @map("next_review_date")
+  lastReviewDate    DateTime? @map("last_review_date")
+  status            String    @default("active")
+  overallProgress   Int       @default(0) @map("overall_progress")
+  description       String?
+  notes             String?
+  signedByParent    Boolean   @default(false) @map("signed_by_parent")
+  parentSignedAt    DateTime? @map("parent_signed_at")
+  signedByClinician Boolean   @default(false) @map("signed_by_clinician")
+  clinicianSignedAt DateTime? @map("clinician_signed_at")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  person         Person          @relation(fields: [personId], references: [id], onDelete: Cascade)
+  goals          EducationGoal[]
+  accommodations Accommodation[]
+  services       Service[]
+  teamMembers    TeamMember[]
+
+  @@index([personId])
+  @@index([createdBy, createdByType])
+  @@index([planType])
+  @@index([status])
+  @@map("education_plans")
+}
+
+model EducationGoal {
+  id                String    @id @default(uuid())
+  planId            String    @map("plan_id")
+  goalNumber        Int       @map("goal_number")
+  domain            String
+  priority          String?
+  goalStatement     String    @map("goal_statement")
+  baselineData      String?   @map("baseline_data")
+  targetCriteria    String    @map("target_criteria")
+  targetDate        DateTime? @map("target_date")
+  measurementMethod String?   @map("measurement_method")
+  currentProgress   Int       @default(0) @map("current_progress")
+  progressStatus    String    @default("not_started") @map("progress_status")
+  milestones        String    @default("[]")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  plan            EducationPlan        @relation(fields: [planId], references: [id], onDelete: Cascade)
+  objectives      GoalObjective[]
+  progressUpdates GoalProgressUpdate[]
+
+  @@index([planId])
+  @@map("education_goals")
+}
+
+model GoalObjective {
+  id              String    @id @default(uuid())
+  goalId          String    @map("goal_id")
+  objectiveNumber Int       @map("objective_number")
+  objectiveText   String    @map("objective_text")
+  criteria        String?
+  targetDate      DateTime? @map("target_date")
+  status          String    @default("not_started")
+  achievedDate    DateTime? @map("achieved_date")
+
+  goal EducationGoal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+
+  @@index([goalId])
+  @@map("goal_objectives")
+}
+
+model GoalProgressUpdate {
+  id                 String   @id @default(uuid())
+  goalId             String   @map("goal_id")
+  updateDate         DateTime @map("update_date")
+  progressPercentage Int      @map("progress_percentage")
+  status             String
+  notes              String?
+  evidence           String?
+  updatedBy          String   @map("updated_by")
+  updatedByType      String   @map("updated_by_type")
+
+  goal EducationGoal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+
+  @@index([goalId])
+  @@map("goal_progress_updates")
+}
+
+model Accommodation {
+  id                String  @id @default(uuid())
+  planId            String  @map("plan_id")
+  category          String
+  accommodationText String  @map("accommodation_text")
+  frequency         String?
+
+  plan EducationPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@index([planId])
+  @@map("accommodations")
+}
+
+model Service {
+  id                   String   @id @default(uuid())
+  planId               String   @map("plan_id")
+  serviceName          String   @map("service_name")
+  provider             String?
+  frequency            String
+  duration             Int
+  serviceType          String   @map("service_type")
+  setting              String
+  startDate            DateTime @map("start_date")
+  endDate              DateTime @map("end_date")
+  sessionsCompleted    Int      @default(0) @map("sessions_completed")
+  totalSessionsPlanned Int?     @map("total_sessions_planned")
+
+  plan EducationPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@index([planId])
+  @@map("services")
+}
+
+model TeamMember {
+  id           String    @id @default(uuid())
+  planId       String    @map("plan_id")
+  memberType   String    @map("member_type")
+  name         String
+  role         String
+  email        String?
+  phone        String?
+  organization String?
+  signed       Boolean   @default(false)
+  signedAt     DateTime? @map("signed_at")
+  signature    String?
+
+  plan EducationPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@index([planId])
+  @@map("team_members")
+}
+
+// ============================================
+// CATEGORY G: ACTIVITIES & PROGRESS (3 tables)
+// ============================================
+
+model Activity {
+  id               String    @id @default(uuid())
+  personId         String    @map("person_id")
+  goalId           String?   @map("goal_id")
+  createdBy        String    @map("created_by")
+  createdByType    String    @map("created_by_type")
+  activityName     String    @map("activity_name")
+  activityType     String    @map("activity_type")
+  domain           String
+  description      String
+  instructions     String?
+  materials        String    @default("[]")
+  duration         Int?
+  frequency        String?
+  linkedResourceId String?   @map("linked_resource_id")
+  completionCount  Int       @default(0) @map("completion_count")
+  lastCompletedAt  DateTime? @map("last_completed_at")
+  notes            String?
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  person      Person               @relation(fields: [personId], references: [id], onDelete: Cascade)
+  completions ActivityCompletion[]
+
+  @@index([personId])
+  @@index([goalId])
+  @@index([createdBy, createdByType])
+  @@map("activities")
+}
+
+model ActivityCompletion {
+  id                 String   @id @default(uuid())
+  activityId         String   @map("activity_id")
+  completedAt        DateTime @default(now()) @map("completed_at")
+  duration           Int?
+  childEngagement    String?  @map("child_engagement")
+  parentObservations String?  @map("parent_observations")
+  challengesFaced    String?  @map("challenges_faced")
+  successesNoted     String?  @map("successes_noted")
+  photos             String   @default("[]")
+  videos             String   @default("[]")
+
+  activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+
+  @@index([activityId])
+  @@index([completedAt])
+  @@map("activity_completions")
+}
+
+model ProgressRecord {
+  id             String   @id @default(uuid())
+  personId       String   @map("person_id")
+  recordedBy     String   @map("recorded_by")
+  recordedByType String   @map("recorded_by_type")
+  recordType     String   @map("record_type")
+  domain         String?
+  metric         String
+  value          String
+  notes          String?
+  recordDate     DateTime @map("record_date")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  person Person @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@index([personId])
+  @@index([recordDate])
+  @@map("progress_records")
+}
+
+// ============================================
+// CATEGORY H: SESSIONS & INTERVENTIONS (6 tables)
+// ============================================
+
+model ConsultationSession {
+  id                  String   @id @default(uuid())
+  personId            String   @map("person_id")
+  clinicianId         String   @map("clinician_id")
+  sessionDate         DateTime @map("session_date")
+  startTime           String   @map("start_time")
+  endTime             String   @map("end_time")
+  sessionType         String   @map("session_type")
+  format              String
+  status              String   @default("scheduled")
+  objectives          String?
+  activitiesConducted String?  @map("activities_conducted")
+  observations        String?
+  childResponse       String?  @map("child_response")
+  progressNotes       String?  @map("progress_notes")
+  homeRecommendations String?  @map("home_recommendations")
+  nextSessionPlan     String?  @map("next_session_plan")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  person       Person               @relation(fields: [personId], references: [id])
+  clinician    User                 @relation(fields: [clinicianId], references: [id])
+  attachments  SessionAttachment[]
+  participants SessionParticipant[]
+
+  @@index([personId])
+  @@index([clinicianId])
+  @@index([sessionDate])
+  @@map("consultation_sessions")
+}
+
+model SessionAttachment {
+  id         String   @id @default(uuid())
+  sessionId  String   @map("session_id")
+  fileType   String   @map("file_type")
+  fileName   String   @map("file_name")
+  fileUrl    String   @map("file_url")
+  fileSize   Int?     @map("file_size")
+  uploadedAt DateTime @default(now()) @map("uploaded_at")
+
+  session ConsultationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@map("session_attachments")
+}
+
+model SessionParticipant {
+  id              String  @id @default(uuid())
+  sessionId       String  @map("session_id")
+  participantType String  @map("participant_type")
+  participantId   String  @map("participant_id")
+  participantName String  @map("participant_name")
+  role            String?
+
+  session ConsultationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@map("session_participants")
+}
+
+model Intervention {
+  id               String    @id @default(uuid())
+  personId         String    @map("person_id")
+  clinicianId      String    @map("clinician_id")
+  interventionName String    @map("intervention_name")
+  interventionType String    @map("intervention_type")
+  targetBehavior   String    @map("target_behavior")
+  goalStatement    String    @map("goal_statement")
+  startDate        DateTime  @map("start_date")
+  endDate          DateTime? @map("end_date")
+  frequency        String?
+  duration         Int?
+  status           String    @default("active")
+  overallProgress  Int       @default(0) @map("overall_progress")
+  notes            String?
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  person          Person                 @relation(fields: [personId], references: [id], onDelete: Cascade)
+  clinician       User                   @relation(fields: [clinicianId], references: [id])
+  strategies      InterventionStrategy[]
+  progressRecords InterventionProgress[]
+
+  @@index([personId])
+  @@index([clinicianId])
+  @@index([status])
+  @@map("interventions")
+}
+
+model InterventionStrategy {
+  id              String  @id @default(uuid())
+  interventionId  String  @map("intervention_id")
+  strategyName    String  @map("strategy_name")
+  description     String
+  implementation  String?
+  expectedOutcome String? @map("expected_outcome")
+
+  intervention Intervention @relation(fields: [interventionId], references: [id], onDelete: Cascade)
+
+  @@index([interventionId])
+  @@map("intervention_strategies")
+}
+
+model InterventionProgress {
+  id                 String   @id @default(uuid())
+  interventionId     String   @map("intervention_id")
+  recordDate         DateTime @map("record_date")
+  progressPercentage Int      @map("progress_percentage")
+  observations       String?
+  dataPoints         String?  @map("data_points")
+  recordedBy         String   @map("recorded_by")
+
+  intervention Intervention @relation(fields: [interventionId], references: [id], onDelete: Cascade)
+
+  @@index([interventionId])
+  @@map("intervention_progress")
+}
+
+// ============================================
+// CATEGORY I: JOURNAL & REPORTS (3 tables)
+// ============================================
+
+model JournalEntry {
+  id                   String   @id @default(uuid())
+  personId             String   @map("person_id")
+  entryType            String   @map("entry_type")
+  title                String
+  content              String
+  tags                 String   @default("[]")
+  linkedSessionId      String?  @map("linked_session_id")
+  linkedGoalId         String?  @map("linked_goal_id")
+  linkedInterventionId String?  @map("linked_intervention_id")
+  visibility           String   @default("clinician_only")
+  createdBy            String   @map("created_by")
+  createdByType        String   @map("created_by_type")
+  createdByName        String   @map("created_by_name")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  person      Person              @relation(fields: [personId], references: [id], onDelete: Cascade)
+  attachments JournalAttachment[]
+
+  @@index([personId])
+  @@index([createdBy, createdByType])
+  @@index([entryType])
+  @@map("journal_entries")
+}
+
+model JournalAttachment {
+  id       String @id @default(uuid())
+  entryId  String @map("entry_id")
+  fileType String @map("file_type")
+  fileName String @map("file_name")
+  fileUrl  String @map("file_url")
+  fileSize Int?   @map("file_size")
+
+  entry JournalEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  @@index([entryId])
+  @@map("journal_attachments")
+}
+
+model Report {
+  id              String   @id @default(uuid())
+  personId        String   @map("person_id")
+  clinicianId     String   @map("clinician_id")
+  reportType      String   @map("report_type")
+  title           String
+  reportDate      DateTime @map("report_date")
+  reportingPeriod String?  @map("reporting_period")
+  summary         String
+  recommendations String?
+  fileUrl         String?  @map("file_url")
+  status          String   @default("draft")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  person    Person @relation(fields: [personId], references: [id])
+  clinician User   @relation(fields: [clinicianId], references: [id])
+
+  @@index([personId])
+  @@index([clinicianId])
+  @@index([reportType])
+  @@map("reports")
+}
+
+// ============================================
+// CATEGORY J: RESOURCES & NOTIFICATIONS (2 tables)
+// ============================================
+
+model Resource {
+  id           String   @id @default(uuid())
+  title        String
+  description  String
+  resourceType String   @map("resource_type")
+  contentUrl   String?  @map("content_url")
+  thumbnailUrl String?  @map("thumbnail_url")
+  fileUrl      String?  @map("file_url")
+  category     String
+  ageRange     String   @map("age_range")
+  tags         String   @default("[]")
+  difficulty   String?
+  views        Int      @default(0)
+  favorites    Int      @default(0)
+  author       String?
+  sourceUrl    String?  @map("source_url")
+  isPublished  Boolean  @default(true) @map("is_published")
+  isFeatured   Boolean  @default(false) @map("is_featured")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@index([resourceType])
+  @@index([category])
+  @@index([ageRange])
+  @@index([isPublished])
+  @@map("resources")
+}
+
+model Notification {
+  id               String    @id @default(uuid())
+  userId           String    @map("user_id")
+  userType         String    @map("user_type")
+  notificationType String    @map("notification_type")
+  title            String
+  message          String
+  actionUrl        String?   @map("action_url")
+  actionData       String?   @map("action_data")
+  priority         String    @default("normal")
+  category         String?
+  isRead           Boolean   @default(false) @map("is_read")
+  readAt           DateTime? @map("read_at")
+  sentVia          String    @default("[]") @map("sent_via")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  expiresAt        DateTime? @map("expires_at")
+
+  @@index([userId, userType])
+  @@index([isRead])
+  @@index([notificationType])
+  @@map("notifications")
+}
+
+// ============================================
+// CATEGORY K: MESSAGING (2 tables)
+// ============================================
+
+model Conversation {
+  id            String    @id @default(uuid())
+  participants  String    @default("[]")
+  personId      String?   @map("person_id")
+  subject       String?
+  lastMessageAt DateTime? @map("last_message_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  messages Message[]
+
+  @@index([personId])
+  @@map("conversations")
+}
+
+model Message {
+  id             String    @id @default(uuid())
+  conversationId String    @map("conversation_id")
+  senderId       String    @map("sender_id")
+  senderType     String    @map("sender_type")
+  senderName     String    @map("sender_name")
+  recipientId    String    @map("recipient_id")
+  recipientType  String    @map("recipient_type")
+  body           String
+  attachments    String    @default("[]")
+  isRead         Boolean   @default(false) @map("is_read")
+  readAt         DateTime? @map("read_at")
+  sentAt         DateTime  @default(now()) @map("sent_at")
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([senderId, senderType])
+  @@index([recipientId, recipientType])
+  @@index([isRead])
+  @@map("messages")
+}

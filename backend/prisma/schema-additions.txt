@@ -1,0 +1,15 @@
+Missing models to add:
+1. PlanGoal (replaces EducationGoal)
+2. PlanObjective (replaces GoalObjective)  
+3. PlanAccommodation (replaces Accommodation)
+4. PlanService (replaces Service)
+5. PlanTeamMember (replaces TeamMember)
+6. GoalProgress (replaces GoalProgressUpdate)
+7. PlanProgressReport (new)
+8. PlanSignature (new)
+9. ActivityMedia (new)
+10. ResourceFavorite (new)
+
+Current: 50 models
+Target: 59 models
+Need to add: 9 more models

@@ -11,6 +11,7 @@ interface RegisterFormData {
     password: string;
     confirmPassword: string;
     phone?: string;
+    relationshipToChild?: string;
 }
 
 export default function Register() {
@@ -57,6 +58,7 @@ export default function Register() {
                 firstName: data.firstName,
                 lastName: data.lastName,
                 phone: data.phone,
+                relationshipToChild: data.relationshipToChild,
                 preferredLanguage: 'en',
             };
 

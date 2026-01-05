@@ -8,7 +8,7 @@ import Layout from '../components/Layout';
 import childrenService from '../services/children.service';
 import type { Child } from '../services/children.service';
 import dashboardService from '../services/dashboard.service';
-import type { DashboardStats } from '../services/dashboard.service';
+import type { DashboardStats, SkillProgress, RecentActivity } from '../services/dashboard.service';
 import authService from '../services/auth.service';
 
 export default function Dashboard() {
@@ -21,6 +21,8 @@ export default function Dashboard() {
         newRecommendations: 0,
         milestoneProgress: 0,
     });
+    const [skills, setSkills] = useState<SkillProgress[]>([]);
+    const [activities, setActivities] = useState<RecentActivity[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -49,9 +51,22 @@ export default function Dashboard() {
 
     const loadChildStats = async (childId: string) => {
         try {
+            // Load stats
             const statsRes = await dashboardService.getStats(childId);
             if (statsRes.success) {
                 setStats(statsRes.data);
+            }
+
+            // Load skill progress
+            const skillsRes = await dashboardService.getSkillProgress(childId);
+            if (skillsRes.success) {
+                setSkills(skillsRes.data);
+            }
+
+            // Load recent activities
+            const activitiesRes = await dashboardService.getRecentActivities(childId);
+            if (activitiesRes.success) {
+                setActivities(activitiesRes.data);
             }
         } catch (error) {
             console.error('Failed to load stats:', error);
@@ -90,8 +105,17 @@ export default function Dashboard() {
                         </h1>
                         <p className="text-sm sm:text-base text-slate-600 mt-1">Here's what's happening with your family's growth today.</p>
                     </div>
-                    <div className="text-xs sm:text-sm font-semibold text-[#2563EB]">
-                        {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={() => selectedChild && loadChildStats(selectedChild.id)}
+                            className="px-4 py-2 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg font-semibold text-sm transition-all flex items-center gap-2"
+                        >
+                            <Activity size={16} />
+                            Refresh
+                        </button>
+                        <div className="text-xs sm:text-sm font-semibold text-[#2563EB]">
+                            {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                        </div>
                     </div>
                 </div>
 
@@ -115,9 +139,17 @@ export default function Dashboard() {
                                             {/* Child Header */}
                                             <div className="flex items-start justify-between mb-4">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                                                        <span className="text-lg font-bold text-[#2563EB]">{child.firstName[0]}</span>
-                                                    </div>
+                                                    {child.profilePictureUrl ? (
+                                                        <img
+                                                            src={child.profilePictureUrl}
+                                                            alt={`${child.firstName}'s profile`}
+                                                            className="w-12 h-12 rounded-full object-cover border border-slate-200"
+                                                        />
+                                                    ) : (
+                                                        <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                                                            <span className="text-lg font-bold text-[#2563EB]">{child.firstName[0]}</span>
+                                                        </div>
+                                                    )}
                                                     <div>
                                                         <h3 className="text-lg font-bold text-slate-900">{child.firstName} {child.lastName}</h3>
                                                         <p className="text-sm text-slate-600">{calculateAge(child.dateOfBirth)}</p>
@@ -158,7 +190,10 @@ export default function Dashboard() {
                                             </div>
 
                                             {/* View Profile Link */}
-                                            <button className="w-full mt-4 text-sm font-semibold text-slate-600 hover:text-[#2563EB] transition-colors">
+                                            <button
+                                                onClick={() => navigate(`/children/${child.id}`)}
+                                                className="w-full mt-4 text-sm font-semibold text-slate-600 hover:text-[#2563EB] transition-colors"
+                                            >
                                                 View Profile
                                             </button>
                                         </div>
@@ -200,55 +235,62 @@ export default function Dashboard() {
 
                             {/* Skill Progress Bars */}
                             <div className="space-y-4 mb-6">
-                                <div>
-                                    <div className="flex items-center justify-between mb-2">
-                                        <span className="text-sm font-semibold text-slate-700">Communication Skills</span>
-                                        <span className="text-sm font-bold text-[#2563EB]">85%</span>
-                                    </div>
-                                    <div className="w-full bg-slate-100 rounded-full h-2">
-                                        <div className="bg-[#2563EB] h-2 rounded-full" style={{ width: '85%' }}></div>
-                                    </div>
-                                </div>
+                                {skills.length > 0 ? (
+                                    skills.map((skill) => {
+                                        const getColor = (progress: number) => {
+                                            if (progress >= 70) return { bg: 'bg-[#2563EB]', text: 'text-[#2563EB]' };
+                                            if (progress >= 40) return { bg: 'bg-orange-500', text: 'text-orange-500' };
+                                            return { bg: 'bg-red-500', text: 'text-red-500' };
+                                        };
+                                        const color = getColor(skill.progress);
+                                        const domainName = skill.domain.charAt(0).toUpperCase() + skill.domain.slice(1);
 
-                                <div>
-                                    <div className="flex items-center justify-between mb-2">
-                                        <span className="text-sm font-semibold text-slate-700">Gross Motor Skills</span>
-                                        <span className="text-sm font-bold text-orange-500">40%</span>
+                                        return (
+                                            <div key={skill.domain}>
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <span className="text-sm font-semibold text-slate-700">{domainName}</span>
+                                                    <span className={`text-sm font-bold ${color.text}`}>{skill.progress}%</span>
+                                                </div>
+                                                <div className="w-full bg-slate-100 rounded-full h-2">
+                                                    <div className={`${color.bg} h-2 rounded-full`} style={{ width: `${skill.progress}%` }}></div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })
+                                ) : (
+                                    <div className="text-center py-4">
+                                        <p className="text-sm text-slate-600">No skill progress data available yet.</p>
+                                        <p className="text-xs text-slate-500 mt-1">Start adding goals to track progress!</p>
                                     </div>
-                                    <div className="w-full bg-slate-100 rounded-full h-2">
-                                        <div className="bg-orange-500 h-2 rounded-full" style={{ width: '40%' }}></div>
-                                    </div>
-                                    <p className="text-xs text-slate-600 mt-1">Suggested activity: "Jump and Hop" game scheduled for today.</p>
-                                </div>
-
-                                <div>
-                                    <div className="flex items-center justify-between mb-2">
-                                        <span className="text-sm font-semibold text-slate-700">Problem Solving</span>
-                                        <span className="text-sm font-bold text-[#2563EB]">60%</span>
-                                    </div>
-                                    <div className="w-full bg-slate-100 rounded-full h-2">
-                                        <div className="bg-[#2563EB] h-2 rounded-full" style={{ width: '60%' }}></div>
-                                    </div>
-                                </div>
+                                )}
                             </div>
 
-                            {/* Activity Suggestions */}
+                            {/* Recent Activities */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <Activity className="text-[#2563EB]" size={16} />
-                                        <h4 className="text-sm font-bold text-slate-900">Daily Exercise</h4>
+                                {activities.length > 0 ? (
+                                    activities.slice(0, 2).map((activity) => (
+                                        <div key={activity.id} className="bg-blue-50 rounded-lg p-4 border border-blue-100">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <Activity className="text-[#2563EB]" size={16} />
+                                                <h4 className="text-sm font-bold text-slate-900">{activity.activityName}</h4>
+                                            </div>
+                                            <p className="text-xs text-slate-600 line-clamp-2">{activity.description}</p>
+                                            {activity.completionCount > 0 && (
+                                                <p className="text-xs text-green-600 mt-1">Completed {activity.completionCount} times</p>
+                                            )}
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="col-span-2 text-center py-4">
+                                        <p className="text-sm text-slate-600">No recent activities yet.</p>
+                                        <button
+                                            onClick={() => navigate('/pep')}
+                                            className="text-xs text-[#2563EB] hover:underline mt-1"
+                                        >
+                                            Manage Education Plan & Activities
+                                        </button>
                                     </div>
-                                    <p className="text-xs text-slate-600">15 mins • Equipment needed: Ball</p>
-                                </div>
-
-                                <div className="bg-purple-50 rounded-lg p-4 border border-purple-100">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <FileText className="text-purple-600" size={16} />
-                                        <h4 className="text-sm font-bold text-slate-900">Story Time</h4>
-                                    </div>
-                                    <p className="text-xs text-slate-600">10 mins • "The Busy Bee"</p>
-                                </div>
+                                )}
                             </div>
                         </div>
                     </div>

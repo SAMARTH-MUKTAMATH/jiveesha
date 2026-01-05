@@ -64,10 +64,10 @@ class ApiClient {
             'Content-Type': 'application/json',
         };
 
-        const token = localStorage.getItem('access_token');
-        if (token) {
-            headers['Authorization'] = `Bearer ${token}`;
-        }
+        const token = localStorage.getItem('access_token') || 'dev-token';
+        headers['Authorization'] = `Bearer ${token}`;
+        // Add default user ID for development
+        headers['X-User-ID'] = 'default-user-id';
 
         return headers;
     }
@@ -300,6 +300,13 @@ class ApiClient {
 
     async getCredentials(): Promise<ApiResponse<any[]>> {
         return this.request('/credentials');
+    }
+
+    async validateConsentToken(token: string): Promise<ApiResponse<any>> {
+        return this.request('/clinician/access-grants/validate', {
+            method: 'POST',
+            body: JSON.stringify({ token })
+        });
     }
 
     async uploadCredential(formData: FormData): Promise<ApiResponse<any>> {

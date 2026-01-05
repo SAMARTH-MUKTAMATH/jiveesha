@@ -11,6 +11,7 @@ import { apiClient, getCurrentUser } from '../services/api';
 
 interface SettingsProfileProps {
    onBack: () => void;
+   onSave?: () => void;
 }
 
 interface UserProfile {
@@ -22,14 +23,40 @@ interface UserProfile {
       last_name: string;
       professional_title: string;
       phone?: string;
+      bio?: string;
+      clinic_name?: string;
+      address?: string;
+      years_of_practice?: string | number;
+      specializations?: string[] | string;
+      gender?: string;
+      photo_url?: string | null;
    } | null;
 }
 
-const SettingsProfile: React.FC<SettingsProfileProps> = ({ onBack }) => {
+const SettingsProfile: React.FC<SettingsProfileProps> = ({ onBack, onSave }) => {
    const [activeTab, setActiveTab] = useState('Profile');
    const [isEditing, setIsEditing] = useState(false);
    const [user, setUser] = useState<UserProfile | null>(null);
    const [loading, setLoading] = useState(true);
+   const [isSaving, setIsSaving] = useState(false);
+
+   // Form state
+   const [formData, setFormData] = useState({
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: '',
+      professional_title: '',
+      bio: '',
+      clinic_name: '',
+      address: '',
+      years_of_practice: '',
+      specializations: [] as string[],
+      gender: 'male',
+      photo_url: ''
+   });
+
+   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
    useEffect(() => {
       const fetchUserProfile = async () => {
@@ -38,12 +65,14 @@ const SettingsProfile: React.FC<SettingsProfileProps> = ({ onBack }) => {
             const cachedUser = getCurrentUser();
             if (cachedUser) {
                setUser(cachedUser);
+               initializeFormData(cachedUser);
             }
 
             // Then fetch fresh data from API
             const response = await apiClient.getMe();
             if (response.success && response.data) {
                setUser(response.data as any);
+               initializeFormData(response.data as any);
             }
          } catch (error) {
             console.error('Failed to fetch user profile:', error);
@@ -53,6 +82,215 @@ const SettingsProfile: React.FC<SettingsProfileProps> = ({ onBack }) => {
       };
       fetchUserProfile();
    }, []);
+
+   const initializeFormData = (userData: UserProfile) => {
+      // Check localStorage for stored photo, then fall back to profile photo_url
+      const storedPhoto = localStorage.getItem('clinician_photo') || '';
+      const apiPhoto = userData?.profile?.photo_url || '';
+      // Prioritize API photo if it exists and is not just a placeholder
+      const photoUrl = (apiPhoto && apiPhoto !== 'photo_exists') ? apiPhoto : storedPhoto || '';
+
+      // Ensure specializations is always an array
+      let specializations = [];
+      if (userData?.profile?.specializations) {
+         if (Array.isArray(userData.profile.specializations)) {
+            specializations = userData.profile.specializations;
+         } else if (typeof userData.profile.specializations === 'string') {
+            try {
+               specializations = JSON.parse(userData.profile.specializations);
+            } catch {
+               specializations = [];
+            }
+         }
+      }
+
+      setPhotoPreview(photoUrl);
+      setFormData({
+         firstName: userData?.profile?.first_name || userData?.profile?.firstName || '',
+         lastName: userData?.profile?.last_name || userData?.profile?.lastName || '',
+         email: userData?.email || '',
+         phone: userData?.profile?.phone || '',
+         professional_title: userData?.profile?.professional_title || userData?.profile?.professionalTitle || '',
+         bio: userData?.profile?.bio || '',
+         clinic_name: userData?.profile?.clinic_name || userData?.profile?.clinicName || '',
+         address: userData?.profile?.address || '',
+         years_of_practice: userData?.profile?.years_of_practice || userData?.profile?.yearsOfPractice || '',
+         specializations: specializations,
+         gender: userData?.profile?.gender || 'male',
+         photo_url: photoUrl
+      });
+   };
+
+   const handleInputChange = (field: string, value: string | string[]) => {
+      setFormData(prev => ({
+         ...prev,
+         [field]: value
+      }));
+
+      // If gender changes and no custom photo is set, update the avatar preview
+      if (field === 'gender' && !formData.photo_url) {
+         // Avatar will auto-update because getDefaultAvatar() uses formData.gender
+         setPhotoPreview(null); // Clear preview to force re-render with new gender
+      }
+   };
+
+   // Handle photo upload
+   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) {
+         // Validate file size (5MB max)
+         if (file.size > 5 * 1024 * 1024) {
+            alert('File size must be less than 5MB');
+            return;
+         }
+
+         // Validate file type
+         if (!['image/jpeg', 'image/png', 'image/jpg'].includes(file.type)) {
+            alert('Only JPG and PNG files are allowed');
+            return;
+         }
+
+         // Convert to base64
+         const reader = new FileReader();
+         reader.onloadend = () => {
+            const base64String = reader.result as string;
+            setPhotoPreview(base64String);
+            setFormData(prev => ({
+               ...prev,
+               photo_url: base64String
+            }));
+         };
+         reader.readAsDataURL(file);
+      }
+   };
+
+   // Generate default avatar based on gender - STATIC images that don't change with name
+   const getDefaultAvatar = () => {
+      if (formData.gender === 'female') {
+         return '/female-avatar.png';
+      } else if (formData.gender === 'other') {
+         return '/neutral-avatar.png';
+      }
+      return '/male-avatar.png'; // Default male
+   };
+
+   // Remove photo
+   const handleRemovePhoto = () => {
+      setPhotoPreview(null);
+      setFormData(prev => ({
+         ...prev,
+         photo_url: ''
+      }));
+   };
+
+   // Calculate profile completion percentage
+   const calculateCompletion = () => {
+      const fields = [
+         { value: formData.firstName, weight: 1 },
+         { value: formData.lastName, weight: 1 },
+         { value: formData.email, weight: 1 },
+         { value: formData.phone, weight: 1 },
+         { value: formData.professional_title, weight: 1 },
+         { value: formData.bio, weight: 1 },
+         { value: formData.photo_url, weight: 0.5 },
+         { value: formData.clinic_name, weight: 0.5 },
+         { value: formData.address, weight: 0.5 },
+         { value: formData.years_of_practice, weight: 0.5 },
+         { value: formData.specializations?.length > 0 ? 'yes' : '', weight: 0.5 }
+      ];
+
+      const totalWeight = fields.reduce((sum, f) => sum + f.weight, 0);
+      const filledWeight = fields.reduce((sum, f) => (f.value ? sum + f.weight : sum), 0);
+
+      return Math.round((filledWeight / totalWeight) * 100);
+   };
+
+   // Check which sections are complete
+   const isBasicInfoComplete = formData.firstName && formData.lastName && formData.email;
+   const isProfessionalInfoComplete = formData.phone && formData.professional_title;
+   const isBioComplete = formData.bio && formData.bio.length > 20;
+   const isPracticeDetailsComplete = formData.clinic_name && formData.address && formData.years_of_practice;
+   const isPhotoComplete = formData.photo_url;
+
+   const handleSaveChanges = async () => {
+      try {
+         setIsSaving(true);
+
+         // For base64 photos, save to localStorage and send a placeholder to API
+         // For regular URLs, send directly to API
+         let photoForApi = formData.photo_url;
+         if (formData.photo_url && formData.photo_url.startsWith('data:')) {
+            // Save photo to localStorage
+            localStorage.setItem('clinician_photo', formData.photo_url);
+            photoForApi = 'photo_exists';
+         } else if (formData.photo_url === '') {
+            // Remove photo from localStorage if cleared
+            localStorage.removeItem('clinician_photo');
+            photoForApi = '';
+         }
+
+         const updateData = {
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+            email: formData.email,
+            phone: formData.phone,
+            professional_title: formData.professional_title,
+            bio: formData.bio,
+            clinic_name: formData.clinic_name,
+            address: formData.address,
+            years_of_practice: formData.years_of_practice,
+            specializations: formData.specializations,
+            gender: formData.gender,
+            photo_url: photoForApi
+         };
+
+         const response = await apiClient.updateProfile(updateData);
+         if (response.success) {
+            // Update localStorage and component state
+            const updatedUser = {
+               ...user,
+               email: formData.email,
+               profile: {
+                  ...user?.profile,
+                  first_name: formData.firstName,
+                  last_name: formData.lastName,
+                  phone: formData.phone,
+                  professional_title: formData.professional_title,
+                  bio: formData.bio,
+                  clinic_name: formData.clinic_name,
+                  address: formData.address,
+                  years_of_practice: formData.years_of_practice,
+                  specializations: formData.specializations,
+                  gender: formData.gender,
+                  photo_url: formData.photo_url // Keep the actual photo URL in local state
+               }
+            };
+            setUser(updatedUser as UserProfile);
+
+            // Store in localStorage so Dashboard can use the updated data
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+            localStorage.setItem('updatedAt', new Date().toISOString());
+
+            // Trigger a custom event to notify other components
+            window.dispatchEvent(new CustomEvent('profileUpdated', { detail: updatedUser }));
+
+            // Show success message
+            alert('Profile updated successfully!');
+
+            // Call the onSave callback to refresh dashboard after a short delay
+            setTimeout(() => {
+               if (onSave) {
+                  onSave();
+               }
+            }, 500);
+         }
+      } catch (error) {
+         console.error('Failed to save profile:', error);
+         alert('Failed to save profile changes. Please try again.');
+      } finally {
+         setIsSaving(false);
+      }
+   };
 
    const userName = user?.profile ? `${user.profile.first_name} ${user.profile.last_name}` : 'Dr. User';
    const userEmail = user?.email || 'user@clinic.com';
@@ -115,16 +353,27 @@ const SettingsProfile: React.FC<SettingsProfileProps> = ({ onBack }) => {
                         <div className="bg-white rounded-[2rem] border border-slate-200 p-8 shadow-sm flex flex-col sm:flex-row items-center gap-8">
                            <div className="relative group cursor-pointer">
                               <div className="w-32 h-32 rounded-full border-4 border-slate-50 shadow-xl overflow-hidden">
-                                 <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.profile?.first_name || 'User'}`} alt="Profile" className="w-full h-full object-cover" />
+                                 <img
+                                    src={photoPreview || getDefaultAvatar()}
+                                    alt="Profile"
+                                    className="w-full h-full object-cover"
+                                 />
                               </div>
-                              <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                              <label htmlFor="photo-upload" className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
                                  <Camera className="text-white" size={24} />
-                              </div>
+                              </label>
+                              <input
+                                 id="photo-upload"
+                                 type="file"
+                                 accept="image/jpeg,image/png,image/jpg"
+                                 onChange={handlePhotoUpload}
+                                 className="hidden"
+                              />
                            </div>
                            <div className="text-center sm:text-left space-y-3">
                               <div className="flex gap-3 justify-center sm:justify-start">
-                                 <button className="px-4 py-2 border-2 border-slate-100 rounded-xl text-xs font-black text-slate-600 uppercase tracking-widest hover:bg-slate-50 transition-all">Change Photo</button>
-                                 <button className="px-4 py-2 text-xs font-black text-red-400 uppercase tracking-widest hover:text-red-600 transition-colors">Remove</button>
+                                 <label htmlFor="photo-upload" className="px-4 py-2 border-2 border-slate-100 rounded-xl text-xs font-black text-slate-600 uppercase tracking-widest hover:bg-slate-50 transition-all cursor-pointer">Change Photo</label>
+                                 <button onClick={handleRemovePhoto} className="px-4 py-2 text-xs font-black text-red-400 uppercase tracking-widest hover:text-red-600 transition-colors">Remove</button>
                               </div>
                               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">JPG, PNG up to 5MB</p>
                            </div>
@@ -137,17 +386,21 @@ const SettingsProfile: React.FC<SettingsProfileProps> = ({ onBack }) => {
                            </h3>
                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                               <div className="space-y-2">
-                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Full Name</label>
-                                 <input type="text" defaultValue={userName} className="w-full h-12 px-4 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500 transition-all" />
+                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">First Name</label>
+                                 <input type="text" value={formData.firstName} onChange={(e) => handleInputChange('firstName', e.target.value)} className="w-full h-12 px-4 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500 transition-all" />
+                              </div>
+                              <div className="space-y-2">
+                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Last Name</label>
+                                 <input type="text" value={formData.lastName} onChange={(e) => handleInputChange('lastName', e.target.value)} className="w-full h-12 px-4 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500 transition-all" />
                               </div>
                               <div className="space-y-2">
                                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Professional Title</label>
-                                 <input type="text" defaultValue={userTitle} className="w-full h-12 px-4 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500 transition-all" />
+                                 <input type="text" value={formData.professional_title} onChange={(e) => handleInputChange('professional_title', e.target.value)} className="w-full h-12 px-4 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500 transition-all" />
                               </div>
                               <div className="space-y-2">
                                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Email Address</label>
                                  <div className="relative">
-                                    <input type="email" defaultValue={userEmail} className="w-full h-12 px-4 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500 transition-all" />
+                                    <input type="email" value={formData.email} onChange={(e) => handleInputChange('email', e.target.value)} className="w-full h-12 px-4 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500 transition-all" />
                                     <span className="absolute right-3 top-3.5 flex items-center gap-1 text-[10px] font-black text-green-600 uppercase tracking-widest bg-green-50 px-2 py-0.5 rounded">
                                        <CheckCircle2 size={12} /> Verified
                                     </span>
@@ -156,11 +409,19 @@ const SettingsProfile: React.FC<SettingsProfileProps> = ({ onBack }) => {
                               <div className="space-y-2">
                                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Phone Number</label>
                                  <div className="relative">
-                                    <input type="tel" defaultValue={userPhone} className="w-full h-12 px-4 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500 transition-all" />
+                                    <input type="tel" value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} className="w-full h-12 px-4 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500 transition-all" />
                                     <span className="absolute right-3 top-3.5 flex items-center gap-1 text-[10px] font-black text-green-600 uppercase tracking-widest bg-green-50 px-2 py-0.5 rounded">
                                        <CheckCircle2 size={12} /> Verified
                                     </span>
                                  </div>
+                              </div>
+                              <div className="space-y-2">
+                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Gender</label>
+                                 <select value={formData.gender} onChange={(e) => handleInputChange('gender', e.target.value)} className="w-full h-12 px-4 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500 transition-all cursor-pointer">
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                    <option value="other">Other</option>
+                                 </select>
                               </div>
                            </div>
                         </div>
@@ -173,28 +434,41 @@ const SettingsProfile: React.FC<SettingsProfileProps> = ({ onBack }) => {
                            <div className="grid grid-cols-1 gap-6">
                               <div className="space-y-2">
                                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Practice/Clinic Name</label>
-                                 <input type="text" defaultValue="Rivera Child Development Center" className="w-full h-12 px-4 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500 transition-all" />
+                                 <input type="text" value={formData.clinic_name} onChange={(e) => handleInputChange('clinic_name', e.target.value)} className="w-full h-12 px-4 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500 transition-all" />
                               </div>
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                  <div className="space-y-2">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Address</label>
-                                    <input type="text" defaultValue="123 MG Road, Mumbai, MH" className="w-full h-12 px-4 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500 transition-all" />
+                                    <input type="text" value={formData.address} onChange={(e) => handleInputChange('address', e.target.value)} className="w-full h-12 px-4 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500 transition-all" />
                                  </div>
                                  <div className="space-y-2">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Years of Practice</label>
-                                    <select className="w-full h-12 px-4 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500 transition-all">
-                                       <option>8 years</option><option>10+ years</option>
+                                    <select value={formData.years_of_practice} onChange={(e) => handleInputChange('years_of_practice', e.target.value)} className="w-full h-12 px-4 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500 transition-all">
+                                       <option value="">Select years</option>
+                                       <option value="0-2">0-2 years</option>
+                                       <option value="2-5">2-5 years</option>
+                                       <option value="5-10">5-10 years</option>
+                                       <option value="10+">10+ years</option>
                                     </select>
                                  </div>
                               </div>
                               <div className="space-y-2">
                                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Specializations</label>
                                  <div className="flex flex-wrap gap-2 p-2 bg-slate-50 border-2 border-slate-100 rounded-xl min-h-[3rem]">
-                                    {['ASD', 'ADHD', 'Speech Delays', 'Learning Disabilities'].map(tag => (
-                                       <span key={tag} className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-600 flex items-center gap-2">
-                                          {tag} <button className="hover:text-red-500"><Trash2 size={12} /></button>
-                                       </span>
-                                    ))}
+                                    {formData.specializations && formData.specializations.length > 0 ? (
+                                       formData.specializations.map(tag => (
+                                          <span key={tag} className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-600 flex items-center gap-2">
+                                             {tag}
+                                             <button
+                                                onClick={() => handleInputChange('specializations', formData.specializations.filter(s => s !== tag))}
+                                                className="hover:text-red-500">
+                                                <Trash2 size={12} />
+                                             </button>
+                                          </span>
+                                       ))
+                                    ) : (
+                                       <span className="text-xs text-slate-400">No specializations added yet</span>
+                                    )}
                                     <button className="px-3 py-1.5 border-2 border-dashed border-slate-300 rounded-lg text-xs font-bold text-slate-400 hover:text-[#2563EB] hover:border-[#2563EB] transition-colors">+ Add</button>
                                  </div>
                               </div>
@@ -208,20 +482,25 @@ const SettingsProfile: React.FC<SettingsProfileProps> = ({ onBack }) => {
                            </h3>
                            <div className="space-y-2">
                               <textarea
+                                 value={formData.bio}
+                                 onChange={(e) => handleInputChange('bio', e.target.value)}
                                  className="w-full h-32 p-4 bg-slate-50 border-2 border-slate-100 rounded-xl font-medium text-slate-700 outline-none focus:border-blue-500 transition-all resize-none leading-relaxed"
-                                 defaultValue="Dr. Jane Rivera is a licensed clinical psychologist specializing in autism spectrum disorders and developmental delays in children. With 8 years of experience, she is passionate about early intervention and family-centered care."
+                                 placeholder="Add your professional bio..."
                               />
                               <div className="flex justify-between text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                                  <span>Visible on public profile</span>
-                                 <span>234 / 500</span>
+                                 <span>{formData.bio?.length || 0} / 500</span>
                               </div>
                            </div>
                         </div>
 
                         {/* Action Bar */}
                         <div className="flex justify-end gap-4 pt-4 border-t border-slate-200">
-                           <button className="px-6 py-3 border-2 border-slate-200 rounded-xl text-xs font-black text-slate-500 uppercase tracking-widest hover:bg-slate-50 transition-all">Cancel</button>
-                           <button className="px-8 py-3 bg-[#2563EB] text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all">Save Changes</button>
+                           <button onClick={onBack} className="px-6 py-3 border-2 border-slate-200 rounded-xl text-xs font-black text-slate-500 uppercase tracking-widest hover:bg-slate-50 transition-all">Cancel</button>
+                           <button onClick={handleSaveChanges} disabled={isSaving} className="px-8 py-3 bg-[#2563EB] text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                              {isSaving && <Loader2 size={14} className="animate-spin" />}
+                              {isSaving ? 'Saving...' : 'Save Changes'}
+                           </button>
                         </div>
                      </div>
                   )}
@@ -530,18 +809,45 @@ const SettingsProfile: React.FC<SettingsProfileProps> = ({ onBack }) => {
                      <div className="flex items-center justify-center mb-6 relative">
                         <svg className="w-24 h-24 transform -rotate-90">
                            <circle cx="48" cy="48" r="42" fill="transparent" stroke="currentColor" strokeWidth="6" className="text-slate-100" />
-                           <circle cx="48" cy="48" r="42" fill="transparent" stroke="currentColor" strokeWidth="6" strokeDasharray="263.8" strokeDashoffset={263.8 * 0.15} className="text-blue-500" />
+                           <circle cx="48" cy="48" r="42" fill="transparent" stroke="currentColor" strokeWidth="6" strokeDasharray="263.8" strokeDashoffset={263.8 * (1 - calculateCompletion() / 100)} className="text-blue-500" />
                         </svg>
-                        <span className="absolute text-xl font-black text-slate-900">85%</span>
+                        <span className="absolute text-xl font-black text-slate-900">{calculateCompletion()}%</span>
                      </div>
                      <div className="space-y-3">
-                        {['Basic Info', 'Credentials', 'Photo'].map(i => (
-                           <div key={i} className="flex items-center gap-2 text-xs font-bold text-slate-600">
-                              <CheckCircle2 size={14} className="text-green-500" /> {i}
-                           </div>
-                        ))}
-                        <div className="flex items-center gap-2 text-xs font-bold text-slate-400">
-                           <div className="w-3.5 h-3.5 rounded-full border-2 border-slate-200" /> Bio incomplete
+                        <div className="flex items-center gap-2 text-xs font-bold transition-all">
+                           {isBasicInfoComplete ? (
+                              <><CheckCircle2 size={14} className="text-green-500" /> <span className="text-slate-600">Basic Info</span></>
+                           ) : (
+                              <><div className="w-3.5 h-3.5 rounded-full border-2 border-slate-200" /> <span className="text-slate-400">Basic Info</span></>
+                           )}
+                        </div>
+                        <div className="flex items-center gap-2 text-xs font-bold transition-all">
+                           {isProfessionalInfoComplete ? (
+                              <><CheckCircle2 size={14} className="text-green-500" /> <span className="text-slate-600">Professional Info</span></>
+                           ) : (
+                              <><div className="w-3.5 h-3.5 rounded-full border-2 border-slate-200" /> <span className="text-slate-400">Professional Info</span></>
+                           )}
+                        </div>
+                        <div className="flex items-center gap-2 text-xs font-bold transition-all">
+                           {isBioComplete ? (
+                              <><CheckCircle2 size={14} className="text-green-500" /> <span className="text-slate-600">Bio</span></>
+                           ) : (
+                              <><div className="w-3.5 h-3.5 rounded-full border-2 border-slate-200" /> <span className="text-slate-400">Bio (20+ chars)</span></>
+                           )}
+                        </div>
+                        <div className="flex items-center gap-2 text-xs font-bold transition-all">
+                           {isPracticeDetailsComplete ? (
+                              <><CheckCircle2 size={14} className="text-green-500" /> <span className="text-slate-600">Practice Details</span></>
+                           ) : (
+                              <><div className="w-3.5 h-3.5 rounded-full border-2 border-slate-200" /> <span className="text-slate-400">Practice Details</span></>
+                           )}
+                        </div>
+                        <div className="flex items-center gap-2 text-xs font-bold transition-all">
+                           {isPhotoComplete ? (
+                              <><CheckCircle2 size={14} className="text-green-500" /> <span className="text-slate-600">Profile Photo</span></>
+                           ) : (
+                              <><div className="w-3.5 h-3.5 rounded-full border-2 border-slate-200" /> <span className="text-slate-400">Profile Photo</span></>
+                           )}
                         </div>
                      </div>
                   </div>

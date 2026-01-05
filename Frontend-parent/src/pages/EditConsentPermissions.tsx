@@ -6,7 +6,7 @@ import {
     History, ToggleLeft, ToggleRight
 } from 'lucide-react';
 import Layout from '../components/Layout';
-import consentService from '../services/consent.service';
+import { consentService } from '../services/consent.service';
 import type { Consent } from '../services/consent.service';
 
 export default function EditConsentPermissions() {
@@ -339,8 +339,8 @@ export default function EditConsentPermissions() {
                                 <div
                                     key={item.key}
                                     className={`border-2 rounded-xl p-5 transition-all ${isEnabled
-                                            ? 'border-[#2563EB] bg-blue-50'
-                                            : 'border-slate-200 bg-white hover:border-slate-300'
+                                        ? 'border-[#2563EB] bg-blue-50'
+                                        : 'border-slate-200 bg-white hover:border-slate-300'
                                         }`}
                                 >
                                     <div className="flex items-start gap-4">
@@ -371,8 +371,8 @@ export default function EditConsentPermissions() {
                                             <button
                                                 onClick={() => togglePermission(item.key as keyof typeof editedPermissions)}
                                                 className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-all ${isEnabled
-                                                        ? 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-                                                        : 'bg-[#2563EB] hover:bg-blue-700 text-white'
+                                                    ? 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                                                    : 'bg-[#2563EB] hover:bg-blue-700 text-white'
                                                     }`}
                                             >
                                                 <ToggleIcon size={18} />

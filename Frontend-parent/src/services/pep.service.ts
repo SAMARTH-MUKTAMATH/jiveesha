@@ -98,227 +98,82 @@ export interface PEPProgressData {
     completionsByDate: { date: string; count: number }[];
 }
 
-// Mock data for development
-const mockPEPs: PEP[] = [
-    {
-        id: 'pep_1',
-        childId: 'child_1',
-        childName: 'Emma Johnson',
-        status: 'active',
-        goalsCount: 5,
-        activitiesCount: 12,
-        progress: 65,
-        createdAt: '2024-11-15T10:00:00Z',
-        updatedAt: '2024-12-28T14:30:00Z',
-    },
-    {
-        id: 'pep_2',
-        childId: 'child_2',
-        childName: 'Liam Smith',
-        status: 'draft',
-        goalsCount: 3,
-        activitiesCount: 6,
-        progress: 20,
-        createdAt: '2024-12-01T09:00:00Z',
-        updatedAt: '2024-12-20T11:00:00Z',
-    },
-    {
-        id: 'pep_3',
-        childId: 'child_1',
-        childName: 'Emma Johnson',
-        status: 'archived',
-        goalsCount: 4,
-        activitiesCount: 10,
-        progress: 100,
-        createdAt: '2024-06-01T10:00:00Z',
-        updatedAt: '2024-09-15T16:00:00Z',
-        archivedAt: '2024-10-01T10:00:00Z',
-    },
-];
-
-const mockActivities: PEPActivity[] = [
-    {
-        id: 'activity_1',
-        pepId: 'pep_1',
-        title: 'Balance Beam Walking',
-        description: 'Walk along a low balance beam or line on the floor to improve balance and coordination.',
-        category: 'sports',
-        domain: 'motor',
-        completed: true,
-        completedAt: '2024-12-20T10:00:00Z',
-        createdAt: '2024-11-15T10:00:00Z',
-        updatedAt: '2024-12-20T10:00:00Z',
-    },
-    {
-        id: 'activity_2',
-        pepId: 'pep_1',
-        title: 'Rhythm Clapping',
-        description: 'Clap along to simple rhythms and songs to develop auditory processing and coordination.',
-        category: 'music',
-        domain: 'cognitive',
-        completed: false,
-        createdAt: '2024-11-16T09:00:00Z',
-        updatedAt: '2024-11-16T09:00:00Z',
-    },
-    {
-        id: 'activity_3',
-        pepId: 'pep_1',
-        title: 'Finger Painting',
-        description: 'Create art using fingers and hands to explore textures and colors while developing fine motor skills.',
-        category: 'arts',
-        domain: 'motor',
-        completed: true,
-        completedAt: '2024-12-18T14:00:00Z',
-        createdAt: '2024-11-17T11:00:00Z',
-        updatedAt: '2024-12-18T14:00:00Z',
-    },
-    {
-        id: 'activity_4',
-        pepId: 'pep_1',
-        title: 'Simon Says',
-        description: 'Play Simon Says to practice following instructions and improve listening skills.',
-        category: 'games',
-        domain: 'communication',
-        completed: false,
-        createdAt: '2024-11-18T10:00:00Z',
-        updatedAt: '2024-11-18T10:00:00Z',
-    },
-    {
-        id: 'activity_5',
-        pepId: 'pep_1',
-        title: 'Nature Walk Exploration',
-        description: 'Take a walk in nature to observe plants, animals, and develop sensory awareness.',
-        category: 'recreation',
-        domain: 'cognitive',
-        completed: false,
-        createdAt: '2024-11-19T08:00:00Z',
-        updatedAt: '2024-11-19T08:00:00Z',
-    },
-];
 
 class PEPService {
-    private mockData: PEP[] = [...mockPEPs];
-    private mockActivitiesData: PEPActivity[] = [...mockActivities];
-
     async getPEPs(childId?: string): Promise<{ success: boolean; data: PEP[] }> {
         try {
             const params = childId ? { childId } : {};
-            const response = await api.get('/parent/peps', { params });
+            const response = await api.get('/parent/pep', { params });
             return response.data;
         } catch (error) {
-            // Return mock data for development
-            let data = this.mockData;
-            if (childId) {
-                data = data.filter(p => p.childId === childId);
-            }
-            return { success: true, data };
+            console.error('Failed to fetch PEPs:', error);
+            return { success: false, data: [] };
         }
     }
 
     async getPEP(id: string): Promise<{ success: boolean; data: PEP }> {
         try {
-            const response = await api.get(`/parent/peps/${id}`);
+            const response = await api.get(`/parent/pep/${id}`);
             return response.data;
         } catch (error) {
-            const pep = this.mockData.find(p => p.id === id);
-            if (pep) {
-                return { success: true, data: pep };
-            }
-            throw new Error('PEP not found');
+            console.error('Failed to fetch PEP:', error);
+            throw error;
         }
     }
 
     async createPEP(data: CreatePEPData): Promise<{ success: boolean; data: PEP }> {
         try {
-            const response = await api.post('/parent/peps', data);
+            const response = await api.post('/parent/pep', data);
             return response.data;
         } catch (error) {
-            // Create mock PEP
-            const newPEP: PEP = {
-                id: `pep_${Date.now()}`,
-                childId: data.childId,
-                childName: 'New Child',
-                status: 'draft',
-                goalsCount: 0,
-                activitiesCount: 0,
-                progress: 0,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-            };
-            this.mockData.push(newPEP);
-            return { success: true, data: newPEP };
+            console.error('Failed to create PEP:', error);
+            throw error;
         }
     }
 
     async updatePEPStatus(id: string, status: PEP['status']): Promise<{ success: boolean; data: PEP }> {
         try {
-            const response = await api.put(`/parent/peps/${id}/status`, { status });
+            const response = await api.put(`/parent/pep/${id}/status`, { status });
             return response.data;
         } catch (error) {
-            const pepIndex = this.mockData.findIndex(p => p.id === id);
-            if (pepIndex !== -1) {
-                this.mockData[pepIndex] = { ...this.mockData[pepIndex], status, updatedAt: new Date().toISOString() };
-                return { success: true, data: this.mockData[pepIndex] };
-            }
-            throw new Error('PEP not found');
+            console.error('Failed to update PEP status:', error);
+            throw error;
         }
     }
 
     async archivePEP(id: string): Promise<{ success: boolean }> {
         try {
-            const response = await api.post(`/parent/peps/${id}/archive`);
+            const response = await api.post(`/parent/pep/${id}/archive`);
             return response.data;
         } catch (error) {
-            const pepIndex = this.mockData.findIndex(p => p.id === id);
-            if (pepIndex !== -1) {
-                this.mockData[pepIndex] = {
-                    ...this.mockData[pepIndex],
-                    status: 'archived',
-                    archivedAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString(),
-                };
-                return { success: true };
-            }
-            throw new Error('PEP not found');
+            console.error('Failed to archive PEP:', error);
+            throw error;
         }
     }
 
     async unarchivePEP(id: string): Promise<{ success: boolean }> {
         try {
-            const response = await api.post(`/parent/peps/${id}/unarchive`);
+            const response = await api.post(`/parent/pep/${id}/unarchive`);
             return response.data;
         } catch (error) {
-            const pepIndex = this.mockData.findIndex(p => p.id === id);
-            if (pepIndex !== -1) {
-                this.mockData[pepIndex] = {
-                    ...this.mockData[pepIndex],
-                    status: 'active',
-                    archivedAt: undefined,
-                    updatedAt: new Date().toISOString(),
-                };
-                return { success: true };
-            }
-            throw new Error('PEP not found');
+            console.error('Failed to unarchive PEP:', error);
+            throw error;
         }
     }
 
     async deletePEP(id: string): Promise<{ success: boolean }> {
         try {
-            const response = await api.delete(`/parent/peps/${id}`);
+            const response = await api.delete(`/parent/pep/${id}`);
             return response.data;
         } catch (error) {
-            const pepIndex = this.mockData.findIndex(p => p.id === id);
-            if (pepIndex !== -1) {
-                this.mockData.splice(pepIndex, 1);
-                return { success: true };
-            }
-            throw new Error('PEP not found');
+            console.error('Failed to delete PEP:', error);
+            throw error;
         }
     }
 
     async getGoals(pepId: string): Promise<{ success: boolean; data: PEPGoal[] }> {
         try {
-            const response = await api.get(`/parent/peps/${pepId}/goals`);
+            const response = await api.get(`/parent/pep/${pepId}/goals`);
             return response.data;
         } catch (error) {
             // Return empty goals for now
@@ -329,85 +184,61 @@ class PEPService {
     // Activity Management Methods
     async getActivities(pepId: string): Promise<{ success: boolean; data: PEPActivity[] }> {
         try {
-            const response = await api.get(`/parent/peps/${pepId}/activities`);
-            return response.data;
-        } catch (error) {
-            const activities = this.mockActivitiesData.filter(a => a.pepId === pepId);
+            const response = await api.get(`/parent/pep/${pepId}/activities`);
+
+            // Transform backend data to match frontend interface
+            const activities = response.data.data.map((activity: any) => ({
+                ...activity,
+                title: activity.activityName || activity.title,
+                category: activity.category || 'sports', // Default category if not provided
+                completed: activity.completionCount > 0 || activity.completed || false,
+                completedAt: activity.lastCompletedAt || activity.completedAt
+            }));
+
             return { success: true, data: activities };
+        } catch (error) {
+            console.error('Failed to fetch activities:', error);
+            return { success: false, data: [] };
         }
     }
 
     async createActivity(pepId: string, data: CreateActivityData): Promise<{ success: boolean; data: PEPActivity }> {
         try {
-            const response = await api.post(`/parent/peps/${pepId}/activities`, data);
+            const response = await api.post(`/parent/pep/${pepId}/activities`, data);
             return response.data;
         } catch (error) {
-            const newActivity: PEPActivity = {
-                id: `activity_${Date.now()}`,
-                pepId,
-                title: data.title,
-                description: data.description,
-                category: data.category,
-                domain: data.domain,
-                completed: false,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-            };
-            this.mockActivitiesData.push(newActivity);
-            return { success: true, data: newActivity };
+            console.error('Failed to create activity:', error);
+            throw error;
         }
     }
 
     async updateActivity(pepId: string, activityId: string, data: Partial<CreateActivityData>): Promise<{ success: boolean; data: PEPActivity }> {
         try {
-            const response = await api.put(`/parent/peps/${pepId}/activities/${activityId}`, data);
+            const response = await api.put(`/parent/pep/${pepId}/activities/${activityId}`, data);
             return response.data;
         } catch (error) {
-            const activityIndex = this.mockActivitiesData.findIndex(a => a.id === activityId);
-            if (activityIndex !== -1) {
-                this.mockActivitiesData[activityIndex] = {
-                    ...this.mockActivitiesData[activityIndex],
-                    ...data,
-                    updatedAt: new Date().toISOString(),
-                };
-                return { success: true, data: this.mockActivitiesData[activityIndex] };
-            }
-            throw new Error('Activity not found');
+            console.error('Failed to update activity:', error);
+            throw error;
         }
     }
 
     async deleteActivity(pepId: string, activityId: string): Promise<{ success: boolean }> {
         try {
-            const response = await api.delete(`/parent/peps/${pepId}/activities/${activityId}`);
+            const response = await api.delete(`/parent/pep/${pepId}/activities/${activityId}`);
             return response.data;
         } catch (error) {
-            const activityIndex = this.mockActivitiesData.findIndex(a => a.id === activityId);
-            if (activityIndex !== -1) {
-                this.mockActivitiesData.splice(activityIndex, 1);
-                return { success: true };
-            }
-            throw new Error('Activity not found');
+            console.error('Failed to delete activity:', error);
+            throw error;
         }
     }
 
     async toggleActivityCompletion(pepId: string, activityId: string): Promise<{ success: boolean; data: PEPActivity }> {
         try {
-            const response = await api.post(`/parent/peps/${pepId}/activities/${activityId}/toggle-completion`);
+            const response = await api.post(`/parent/pep/${pepId}/activities/${activityId}/toggle-completion`);
             return response.data;
         } catch (error) {
-            const activityIndex = this.mockActivitiesData.findIndex(a => a.id === activityId);
-            if (activityIndex !== -1) {
-                const activity = this.mockActivitiesData[activityIndex];
-                const nowCompleted = !activity.completed;
-                this.mockActivitiesData[activityIndex] = {
-                    ...activity,
-                    completed: nowCompleted,
-                    completedAt: nowCompleted ? new Date().toISOString() : undefined,
-                    updatedAt: new Date().toISOString(),
-                };
-                return { success: true, data: this.mockActivitiesData[activityIndex] };
-            }
-            throw new Error('Activity not found');
+            console.error('Failed to toggle activity completion:', error);
+            throw error;
         }
     }
 
@@ -471,104 +302,63 @@ class PEPService {
         };
     }> {
         try {
-            const response = await api.get(`/parent/peps/${pepId}/activities/${activityId}/details`);
+            const response = await api.get(`/parent/pep/${pepId}/activities/${activityId}/details`);
             return response.data;
         } catch (error) {
-            const activity = this.mockActivitiesData.find(a => a.id === activityId);
-            if (activity) {
-                return {
-                    success: true,
-                    data: {
-                        activity,
-                        notes: this.mockNotes.filter(n => n.activityId === activityId),
-                        media: this.mockMedia.filter(m => m.activityId === activityId),
-                        completions: this.mockCompletions.filter(c => c.activityId === activityId),
-                    },
-                };
-            }
-            throw new Error('Activity not found');
+            console.error('Failed to fetch activity details:', error);
+            throw error;
         }
     }
 
     async addActivityNote(pepId: string, activityId: string, note: string): Promise<{ success: boolean; data: ActivityNote }> {
         try {
-            const response = await api.post(`/parent/peps/${pepId}/activities/${activityId}/notes`, { note });
+            const response = await api.post(`/parent/pep/${pepId}/activities/${activityId}/notes`, { note });
             return response.data;
         } catch (error) {
-            const newNote: ActivityNote = {
-                id: `note_${Date.now()}`,
-                activityId,
-                note,
-                createdAt: new Date().toISOString(),
-            };
-            this.mockNotes.unshift(newNote);
-            return { success: true, data: newNote };
+            console.error('Failed to add note:', error);
+            throw error;
         }
     }
 
     async deleteActivityNote(pepId: string, activityId: string, noteId: string): Promise<{ success: boolean }> {
         try {
-            const response = await api.delete(`/parent/peps/${pepId}/activities/${activityId}/notes/${noteId}`);
+            const response = await api.delete(`/parent/pep/${pepId}/activities/${activityId}/notes/${noteId}`);
             return response.data;
         } catch (error) {
-            const noteIndex = this.mockNotes.findIndex(n => n.id === noteId);
-            if (noteIndex !== -1) {
-                this.mockNotes.splice(noteIndex, 1);
-                return { success: true };
-            }
-            throw new Error('Note not found');
+            console.error('Failed to delete note:', error);
+            throw error;
         }
     }
 
     async uploadActivityMedia(pepId: string, activityId: string, formData: FormData): Promise<{ success: boolean; data: ActivityMedia }> {
         try {
-            const response = await api.post(`/parent/peps/${pepId}/activities/${activityId}/media`, formData, {
+            const response = await api.post(`/parent/pep/${pepId}/activities/${activityId}/media`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
             return response.data;
         } catch (error) {
-            // Mock upload
-            const newMedia: ActivityMedia = {
-                id: `media_${Date.now()}`,
-                activityId,
-                type: 'photo',
-                url: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=400',
-                caption: formData.get('caption') as string || undefined,
-                uploadedAt: new Date().toISOString(),
-            };
-            this.mockMedia.push(newMedia);
-            return { success: true, data: newMedia };
+            console.error('Failed to upload media:', error);
+            throw error;
         }
     }
 
     async deleteActivityMedia(pepId: string, activityId: string, mediaId: string): Promise<{ success: boolean }> {
         try {
-            const response = await api.delete(`/parent/peps/${pepId}/activities/${activityId}/media/${mediaId}`);
+            const response = await api.delete(`/parent/pep/${pepId}/activities/${activityId}/media/${mediaId}`);
             return response.data;
         } catch (error) {
-            const mediaIndex = this.mockMedia.findIndex(m => m.id === mediaId);
-            if (mediaIndex !== -1) {
-                this.mockMedia.splice(mediaIndex, 1);
-                return { success: true };
-            }
-            throw new Error('Media not found');
+            console.error('Failed to delete media:', error);
+            throw error;
         }
     }
 
     async recordCompletion(pepId: string, activityId: string, data: { duration?: number; notes?: string }): Promise<{ success: boolean; data: ActivityCompletion }> {
         try {
-            const response = await api.post(`/parent/peps/${pepId}/activities/${activityId}/completions`, data);
+            const response = await api.post(`/parent/pep/${pepId}/activities/${activityId}/completions`, data);
             return response.data;
         } catch (error) {
-            const newCompletion: ActivityCompletion = {
-                id: `completion_${Date.now()}`,
-                activityId,
-                completedAt: new Date().toISOString(),
-                duration: data.duration,
-                notes: data.notes,
-            };
-            this.mockCompletions.unshift(newCompletion);
-            return { success: true, data: newCompletion };
+            console.error('Failed to record completion:', error);
+            throw error;
         }
     }
 
@@ -577,48 +367,17 @@ class PEPService {
         try {
             const params: any = {};
             if (startDate) params.startDate = startDate;
-            const response = await api.get(`/parent/peps/${pepId}/progress`, { params });
+            const response = await api.get(`/parent/pep/${pepId}/progress`, { params });
             return response.data;
         } catch (error) {
-            // Return mock progress data
-            return {
-                success: true,
-                data: {
-                    overallProgress: 65,
-                    totalActivities: 8,
-                    completedActivities: 5,
-                    totalCompletions: 15,
-                    domainProgress: {
-                        motor: 85,
-                        social: 45,
-                        cognitive: 70,
-                        communication: 55,
-                        adaptive: 60,
-                    },
-                    categoryProgress: {
-                        sports: 80,
-                        music: 50,
-                        recreation: 70,
-                        arts: 40,
-                        games: 65,
-                    },
-                    recentCompletions: this.mockCompletions.slice(0, 10),
-                    completionsByDate: [
-                        { date: '2024-12-20', count: 3 },
-                        { date: '2024-12-18', count: 2 },
-                        { date: '2024-12-15', count: 4 },
-                        { date: '2024-12-12', count: 1 },
-                        { date: '2024-12-10', count: 2 },
-                        { date: '2024-12-08', count: 3 },
-                    ],
-                },
-            };
+            console.error('Failed to fetch PEP progress:', error);
+            throw error;
         }
     }
 
     async exportPEPReport(pepId: string, format: 'pdf' | 'csv'): Promise<{ success: boolean; url: string }> {
         try {
-            const response = await api.post(`/parent/peps/${pepId}/export`, { format });
+            const response = await api.post(`/parent/pep/${pepId}/export`, { format });
             return response.data;
         } catch (error) {
             // Mock export - show placeholder
@@ -629,7 +388,7 @@ class PEPService {
 
     async shareProgressWithClinician(pepId: string, clinicianId: string): Promise<{ success: boolean }> {
         try {
-            const response = await api.post(`/parent/peps/${pepId}/share-progress`, { clinicianId });
+            const response = await api.post(`/parent/pep/${pepId}/share-progress`, { clinicianId });
             return response.data;
         } catch (error) {
             alert('Share with clinician feature coming soon!');

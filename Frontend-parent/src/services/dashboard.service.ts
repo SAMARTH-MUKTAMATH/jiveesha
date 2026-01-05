@@ -1,10 +1,23 @@
-import api from './api';
-
 export interface DashboardStats {
     activeScreenings: number;
     pepsDue: number;
     newRecommendations: number;
     milestoneProgress: number;
+}
+
+export interface SkillProgress {
+    domain: string;
+    progress: number;
+    goalsCount: number;
+}
+
+export interface RecentActivity {
+    id: string;
+    activityName: string;
+    domain: string;
+    description: string;
+    completionCount: number;
+    lastCompletedAt: string | null;
 }
 
 export interface NextAction {
@@ -44,6 +57,24 @@ class DashboardService {
                     milestoneProgress: 0,
                 },
             };
+        }
+    }
+
+    async getSkillProgress(childId: string): Promise<{ success: boolean; data: SkillProgress[] }> {
+        try {
+            const response = await api.get('/parent/dashboard/skills', { params: { childId } });
+            return response.data;
+        } catch (error) {
+            return { success: true, data: [] };
+        }
+    }
+
+    async getRecentActivities(childId: string): Promise<{ success: boolean; data: RecentActivity[] }> {
+        try {
+            const response = await api.get('/parent/dashboard/activities', { params: { childId } });
+            return response.data;
+        } catch (error) {
+            return { success: true, data: [] };
         }
     }
 

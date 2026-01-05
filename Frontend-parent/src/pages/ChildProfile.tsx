@@ -27,6 +27,8 @@ export default function ChildProfile() {
 
     const loadChild = async (childId: string) => {
         try {
+            setLoading(true);
+            setChild(null); // Reset to ensure fresh data
             const response = await childrenService.getChild(childId);
             if (response.success) {
                 setChild(response.data);

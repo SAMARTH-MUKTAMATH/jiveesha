@@ -35,7 +35,7 @@ export async function generateUniqueConsentToken(prisma: any): Promise<string> {
 
     // Ensure token is unique
     while (attempts < maxAttempts) {
-        const existing = await prisma.consentGrant.findUnique({
+        const existing = await prisma.accessGrant.findUnique({
             where: { token }
         });
 

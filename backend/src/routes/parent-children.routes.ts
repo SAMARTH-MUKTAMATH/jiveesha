@@ -3,10 +3,8 @@ import {
     addChild,
     getChildren,
     getChild,
-    updateRelationship,
-    removeChild,
-    verifyAccess,
-    getChildActivity
+    updateChild,
+    deleteChild
 } from '../controllers/parent-children.controller';
 import { authenticate } from '../middleware/auth';
 
@@ -15,12 +13,11 @@ const router = express.Router();
 // All routes require authentication
 router.use(authenticate);
 
+// Parent-child relationship management
 router.post('/', addChild);
 router.get('/', getChildren);
-router.get('/:patientId', getChild);
-router.put('/:patientId', updateRelationship);
-router.delete('/:patientId', removeChild);
-router.get('/:patientId/verify-access', verifyAccess);
-router.get('/:patientId/activity', getChildActivity);
+router.get('/:personId', getChild);
+router.put('/:id', updateChild);
+router.delete('/:id', deleteChild);
 
 export default router;

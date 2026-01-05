@@ -5,14 +5,14 @@ import { generateUniqueConsentToken } from '../utils/token-generator';
 const prisma = new PrismaClient();
 
 /**
- * Grant consent (parent creates access token)
+ * Grant access (parent creates access token for clinician)
  * POST /api/v1/consent/grant
  */
 export const grantConsent = async (req: Request, res: Response) => {
     try {
         const userId = (req as any).userId;
         const {
-            patientId,
+            personId,
             clinicianEmail,
             permissions,
             accessLevel,
@@ -21,12 +21,12 @@ export const grantConsent = async (req: Request, res: Response) => {
         } = req.body;
 
         // Validate required fields
-        if (!patientId) {
+        if (!personId) {
             return res.status(400).json({
                 success: false,
                 error: {
                     code: 'VALIDATION_ERROR',
-                    message: 'patientId is required'
+                    message: 'personId is required'
                 }
             });
         }
@@ -35,8 +35,7 @@ export const grantConsent = async (req: Request, res: Response) => {
         const user = await prisma.user.findUnique({
             where: { id: userId },
             include: {
-                parent: true,
-                profile: true
+                parent: true
             }
         });
 
@@ -50,13 +49,11 @@ export const grantConsent = async (req: Request, res: Response) => {
             });
         }
 
-        // Verify parent has access to this child
-        const relationship = await prisma.parentChild.findUnique({
+        // Verify parent has access to this person
+        const relationship = await prisma.parentChildView.findFirst({
             where: {
-                parentId_patientId: {
-                    parentId: user.parent.id,
-                    patientId
-                }
+                parentId: user.parent.id,
+                personId
             }
         });
 
@@ -70,34 +67,32 @@ export const grantConsent = async (req: Request, res: Response) => {
             });
         }
 
-        // Check if parent can provide consent
-        if (!relationship.canConsent) {
-            return res.status(403).json({
-                success: false,
-                error: {
-                    code: 'CANNOT_CONSENT',
-                    message: 'You do not have permission to grant consent for this child'
-                }
-            });
-        }
-
         // Generate unique token
         const token = await generateUniqueConsentToken(prisma);
 
         // Calculate expiration
-        const expiresAt = expiresInDays
+        const tokenExpiresAt = expiresInDays
             ? new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000)
             : new Date(Date.now() + 90 * 24 * 60 * 60 * 1000); // Default 90 days
 
-        // Create consent grant
-        const consent = await prisma.consentGrant.create({
+        const expiresAt = expiresInDays
+            ? new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000)
+            : null;
+
+        // Get user's clinician profile for name
+        const clinicianProfile = await prisma.clinicianProfile.findUnique({
+            where: { userId }
+        });
+
+        // Create access grant
+        const grant = await prisma.accessGrant.create({
             data: {
                 token,
-                parentId: user.parent.id,
-                patientId,
-                clinicianEmail,
-                grantedByName: `${user.profile?.firstName} ${user.profile?.lastName}`,
-                grantedByEmail: user.email,
+                grantorType: 'parent',
+                grantorId: user.parent.id,
+                granteeType: 'clinician',
+                granteeId: clinicianEmail || '',
+                personId,
                 permissions: JSON.stringify(permissions || {
                     view: true,
                     edit: false,
@@ -107,19 +102,15 @@ export const grantConsent = async (req: Request, res: Response) => {
                 }),
                 accessLevel: accessLevel || 'view',
                 status: 'pending',
+                tokenExpiresAt,
                 expiresAt,
-                notes,
-                auditLog: JSON.stringify([
-                    {
-                        action: 'created',
-                        timestamp: new Date(),
-                        userId: user.id,
-                        notes: 'Consent grant created'
-                    }
-                ])
+                grantedByName: user.email || 'Parent',
+                grantedByEmail: user.email,
+                granteeEmail: clinicianEmail || null,
+                notes: notes || null
             },
             include: {
-                patient: {
+                person: {
                     select: {
                         id: true,
                         firstName: true,
@@ -131,8 +122,8 @@ export const grantConsent = async (req: Request, res: Response) => {
 
         res.status(201).json({
             success: true,
-            data: consent,
-            message: 'Consent granted successfully'
+            data: grant,
+            message: 'Access granted successfully'
         });
     } catch (error) {
         console.error('Grant consent error:', error);
@@ -147,7 +138,7 @@ export const grantConsent = async (req: Request, res: Response) => {
 };
 
 /**
- * Claim consent (clinician activates token)
+ * Claim access (clinician activates token)
  * POST /api/v1/consent/claim
  */
 export const claimConsent = async (req: Request, res: Response) => {
@@ -165,15 +156,15 @@ export const claimConsent = async (req: Request, res: Response) => {
             });
         }
 
-        // Find consent grant
-        const consent = await prisma.consentGrant.findUnique({
+        // Find access grant
+        const grant = await prisma.accessGrant.findUnique({
             where: { token },
             include: {
-                patient: true
+                person: true
             }
         });
 
-        if (!consent) {
+        if (!grant) {
             return res.status(404).json({
                 success: false,
                 error: {
@@ -184,7 +175,7 @@ export const claimConsent = async (req: Request, res: Response) => {
         }
 
         // Check status
-        if (consent.status !== 'pending') {
+        if (grant.status !== 'pending') {
             return res.status(400).json({
                 success: false,
                 error: {
@@ -195,9 +186,9 @@ export const claimConsent = async (req: Request, res: Response) => {
         }
 
         // Check expiration
-        if (consent.expiresAt && new Date() > consent.expiresAt) {
-            await prisma.consentGrant.update({
-                where: { id: consent.id },
+        if (grant.tokenExpiresAt && new Date() > grant.tokenExpiresAt) {
+            await prisma.accessGrant.update({
+                where: { id: grant.id },
                 data: { status: 'expired' }
             });
 
@@ -210,51 +201,23 @@ export const claimConsent = async (req: Request, res: Response) => {
             });
         }
 
-        // Get clinician info
-        const user = await prisma.user.findUnique({
-            where: { id: userId },
-            include: { profile: true }
-        });
-
-        // Activate consent
-        const auditLog = consent.auditLog ? JSON.parse(consent.auditLog as string) : [];
-        auditLog.push({
-            action: 'activated',
-            timestamp: new Date(),
-            userId: user?.id,
-            clinicianName: user?.profile ? `${user.profile.firstName} ${user.profile.lastName}` : 'Unknown',
-            notes: 'Consent activated by clinician'
-        });
-
-        const updated = await prisma.consentGrant.update({
-            where: { id: consent.id },
+        // Activate access grant
+        const updated = await prisma.accessGrant.update({
+            where: { id: grant.id },
             data: {
-                clinicianId: userId,
+                granteeId: userId,
                 status: 'active',
-                activatedAt: new Date(),
-                auditLog: JSON.stringify(auditLog)
+                activatedAt: new Date()
             },
             include: {
-                patient: true,
-                parent: true
-            }
-        });
-
-        // Log activity
-        await prisma.patientActivityLog.create({
-            data: {
-                patientId: consent.patientId,
-                activityType: 'consent_granted',
-                description: `Consent granted to ${user?.profile?.firstName} ${user?.profile?.lastName}`,
-                metadata: JSON.stringify({ consentId: consent.id }),
-                createdBy: userId
+                person: true
             }
         });
 
         res.json({
             success: true,
             data: updated,
-            message: 'Consent claimed successfully'
+            message: 'Access claimed successfully'
         });
     } catch (error) {
         console.error('Claim consent error:', error);
@@ -269,7 +232,7 @@ export const claimConsent = async (req: Request, res: Response) => {
 };
 
 /**
- * Revoke consent (parent removes access)
+ * Revoke access (parent removes access)
  * POST /api/v1/consent/:id/revoke
  */
 export const revokeConsent = async (req: Request, res: Response) => {
@@ -294,68 +257,45 @@ export const revokeConsent = async (req: Request, res: Response) => {
             });
         }
 
-        // Find consent
-        const consent = await prisma.consentGrant.findUnique({
+        // Find access grant
+        const grant = await prisma.accessGrant.findUnique({
             where: { id }
         });
 
-        if (!consent) {
+        if (!grant) {
             return res.status(404).json({
                 success: false,
                 error: {
-                    code: 'CONSENT_NOT_FOUND',
-                    message: 'Consent not found'
+                    code: 'GRANT_NOT_FOUND',
+                    message: 'Access grant not found'
                 }
             });
         }
 
         // Verify ownership
-        if (consent.parentId !== user.parent.id) {
+        if (grant.grantorId !== user.parent.id) {
             return res.status(403).json({
                 success: false,
                 error: {
                     code: 'ACCESS_DENIED',
-                    message: 'You do not have permission to revoke this consent'
+                    message: 'You do not have permission to revoke this access'
                 }
             });
         }
 
-        // Revoke consent
-        const auditLog = consent.auditLog ? JSON.parse(consent.auditLog as string) : [];
-        auditLog.push({
-            action: 'revoked',
-            timestamp: new Date(),
-            userId: user.id,
-            reason,
-            notes: 'Consent revoked by parent'
-        });
-
-        const updated = await prisma.consentGrant.update({
+        // Revoke access
+        const updated = await prisma.accessGrant.update({
             where: { id },
             data: {
                 status: 'revoked',
-                revokedAt: new Date(),
-                auditLog: JSON.stringify(auditLog)
+                revokedAt: new Date()
             }
         });
-
-        // Log activity
-        if (consent.patientId) {
-            await prisma.patientActivityLog.create({
-                data: {
-                    patientId: consent.patientId,
-                    activityType: 'consent_revoked',
-                    description: 'Parent revoked clinician access',
-                    metadata: JSON.stringify({ consentId: consent.id }),
-                    createdBy: userId
-                }
-            });
-        }
 
         res.json({
             success: true,
             data: updated,
-            message: 'Consent revoked successfully'
+            message: 'Access revoked successfully'
         });
     } catch (error) {
         console.error('Revoke consent error:', error);
@@ -370,7 +310,7 @@ export const revokeConsent = async (req: Request, res: Response) => {
 };
 
 /**
- * Get consents granted by parent
+ * Get access grants granted by parent
  * GET /api/v1/consent/granted
  */
 export const getGrantedConsents = async (req: Request, res: Response) => {
@@ -393,38 +333,29 @@ export const getGrantedConsents = async (req: Request, res: Response) => {
             });
         }
 
-        const where: any = { parentId: user.parent.id };
+        const where: any = {
+            grantorType: 'parent',
+            grantorId: user.parent.id
+        };
         if (status) where.status = status as string;
 
-        const consents = await prisma.consentGrant.findMany({
+        const grants = await prisma.accessGrant.findMany({
             where,
             include: {
-                patient: {
+                person: {
                     select: {
                         id: true,
                         firstName: true,
                         lastName: true
                     }
-                },
-                clinician: {
-                    select: {
-                        id: true,
-                        profile: {
-                            select: {
-                                firstName: true,
-                                lastName: true,
-                                professionalTitle: true
-                            }
-                        }
-                    }
                 }
             },
-            orderBy: { createdAt: 'desc' }
+            orderBy: { grantedAt: 'desc' }
         });
 
         res.json({
             success: true,
-            data: consents
+            data: grants
         });
     } catch (error) {
         console.error('Get granted consents error:', error);
@@ -439,7 +370,7 @@ export const getGrantedConsents = async (req: Request, res: Response) => {
 };
 
 /**
- * Get consents received by clinician
+ * Get access grants received by clinician
  * GET /api/v1/consent/received
  */
 export const getReceivedConsents = async (req: Request, res: Response) => {
@@ -447,33 +378,21 @@ export const getReceivedConsents = async (req: Request, res: Response) => {
         const userId = (req as any).userId;
         const { status } = req.query;
 
-        const where: any = { clinicianId: userId };
+        const where: any = {
+            granteeType: 'clinician',
+            granteeId: userId
+        };
         if (status) where.status = status as string;
 
-        const consents = await prisma.consentGrant.findMany({
+        const grants = await prisma.accessGrant.findMany({
             where,
             include: {
-                patient: {
+                person: {
                     select: {
                         id: true,
                         firstName: true,
                         lastName: true,
                         dateOfBirth: true
-                    }
-                },
-                parent: {
-                    include: {
-                        user: {
-                            select: {
-                                email: true,
-                                profile: {
-                                    select: {
-                                        firstName: true,
-                                        lastName: true
-                                    }
-                                }
-                            }
-                        }
                     }
                 }
             },
@@ -482,7 +401,7 @@ export const getReceivedConsents = async (req: Request, res: Response) => {
 
         res.json({
             success: true,
-            data: consents
+            data: grants
         });
     } catch (error) {
         console.error('Get received consents error:', error);
@@ -497,7 +416,7 @@ export const getReceivedConsents = async (req: Request, res: Response) => {
 };
 
 /**
- * Update consent permissions
+ * Update access permissions
  * PUT /api/v1/consent/:id/permissions
  */
 export const updatePermissions = async (req: Request, res: Response) => {
@@ -521,36 +440,25 @@ export const updatePermissions = async (req: Request, res: Response) => {
             });
         }
 
-        const consent = await prisma.consentGrant.findUnique({
+        const grant = await prisma.accessGrant.findUnique({
             where: { id }
         });
 
-        if (!consent || consent.parentId !== user.parent.id) {
+        if (!grant || grant.grantorId !== user.parent.id) {
             return res.status(403).json({
                 success: false,
                 error: {
                     code: 'ACCESS_DENIED',
-                    message: 'You do not have permission to update this consent'
+                    message: 'You do not have permission to update this access'
                 }
             });
         }
 
-        const auditLog = consent.auditLog ? JSON.parse(consent.auditLog as string) : [];
-        auditLog.push({
-            action: 'permissions_updated',
-            timestamp: new Date(),
-            userId: user.id,
-            oldPermissions: consent.permissions,
-            newPermissions: permissions,
-            notes: 'Permissions updated by parent'
-        });
-
-        const updated = await prisma.consentGrant.update({
+        const updated = await prisma.accessGrant.update({
             where: { id },
             data: {
-                permissions: permissions ? JSON.stringify(permissions) : consent.permissions,
-                accessLevel: accessLevel || consent.accessLevel,
-                auditLog: JSON.stringify(auditLog)
+                permissions: permissions ? JSON.stringify(permissions) : grant.permissions,
+                accessLevel: accessLevel || grant.accessLevel
             }
         });
 
@@ -572,25 +480,26 @@ export const updatePermissions = async (req: Request, res: Response) => {
 };
 
 /**
- * Check consent status
- * GET /api/v1/consent/check/:patientId/:clinicianId
+ * Check access status
+ * GET /api/v1/consent/check/:personId/:clinicianId
  */
 export const checkConsentStatus = async (req: Request, res: Response) => {
     try {
-        const { patientId, clinicianId } = req.params;
+        const { personId, clinicianId } = req.params;
 
-        const consent = await prisma.consentGrant.findFirst({
+        const grant = await prisma.accessGrant.findFirst({
             where: {
-                patientId,
-                clinicianId,
+                personId,
+                granteeType: 'clinician',
+                granteeId: clinicianId,
                 status: 'active'
             }
         });
 
         res.json({
             success: true,
-            hasConsent: !!consent,
-            consent: consent || null
+            hasConsent: !!grant,
+            consent: grant || null
         });
     } catch (error) {
         console.error('Check consent error:', error);
@@ -605,51 +514,39 @@ export const checkConsentStatus = async (req: Request, res: Response) => {
 };
 
 /**
- * Resend consent invitation
+ * Resend access invitation
  * POST /api/v1/consent/:id/resend
  */
 export const resendInvitation = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
 
-        const consent = await prisma.consentGrant.findUnique({
+        const grant = await prisma.accessGrant.findUnique({
             where: { id }
         });
 
-        if (!consent) {
+        if (!grant) {
             return res.status(404).json({
                 success: false,
                 error: {
-                    code: 'CONSENT_NOT_FOUND',
-                    message: 'Consent not found'
+                    code: 'GRANT_NOT_FOUND',
+                    message: 'Access grant not found'
                 }
             });
         }
 
-        if (consent.status !== 'pending') {
+        if (grant.status !== 'pending') {
             return res.status(400).json({
                 success: false,
                 error: {
-                    code: 'CONSENT_NOT_PENDING',
-                    message: 'Can only resend invitations for pending consents'
+                    code: 'GRANT_NOT_PENDING',
+                    message: 'Can only resend invitations for pending grants'
                 }
             });
         }
 
         // TODO: Send email in production
-        // await sendConsentEmail(consent.clinicianEmail, consent.token, consent);
-
-        const auditLog = consent.auditLog ? JSON.parse(consent.auditLog as string) : [];
-        auditLog.push({
-            action: 'invitation_resent',
-            timestamp: new Date(),
-            notes: 'Invitation email resent'
-        });
-
-        await prisma.consentGrant.update({
-            where: { id },
-            data: { auditLog: JSON.stringify(auditLog) }
-        });
+        // await sendConsentEmail(grant.granteeId, grant.token, grant);
 
         res.json({
             success: true,

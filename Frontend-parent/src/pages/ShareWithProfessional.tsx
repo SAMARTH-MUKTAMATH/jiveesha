@@ -8,7 +8,7 @@ import {
 import Layout from '../components/Layout';
 import Stepper from '../components/Stepper';
 import childrenService from '../services/children.service';
-import consentService from '../services/consent.service';
+import { consentService } from '../services/consent.service';
 import type { Child } from '../services/children.service';
 import type { GrantConsentData } from '../services/consent.service';
 
@@ -290,8 +290,8 @@ export default function ShareWithProfessional() {
                                         key={child.id}
                                         onClick={() => setFormData(prev => ({ ...prev, childId: child.id }))}
                                         className={`flex items-center gap-4 p-4 rounded-lg border-2 transition-all text-left ${formData.childId === child.id
-                                                ? 'border-[#2563EB] bg-blue-50'
-                                                : 'border-slate-200 hover:border-slate-300'
+                                            ? 'border-[#2563EB] bg-blue-50'
+                                            : 'border-slate-200 hover:border-slate-300'
                                             }`}
                                     >
                                         <div className="size-12 rounded-full bg-blue-100 text-[#2563EB] flex items-center justify-center font-bold text-lg">
@@ -383,8 +383,8 @@ export default function ShareWithProfessional() {
                                         <label
                                             key={item.key}
                                             className={`flex items-start gap-4 p-4 rounded-lg border-2 cursor-pointer transition-all ${formData.permissions[item.key as keyof typeof formData.permissions]
-                                                    ? 'border-[#2563EB] bg-blue-50'
-                                                    : 'border-slate-200 hover:border-slate-300'
+                                                ? 'border-[#2563EB] bg-blue-50'
+                                                : 'border-slate-200 hover:border-slate-300'
                                                 }`}
                                         >
                                             <input

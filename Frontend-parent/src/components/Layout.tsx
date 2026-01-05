@@ -20,6 +20,7 @@ export default function Layout({ children }: LayoutProps) {
         { label: 'Results', path: '/screening/history', active: window.location.pathname.includes('/screening/history') || window.location.pathname.includes('/results') },
         { label: 'PEP Builder', path: '/pep', active: window.location.pathname.startsWith('/pep') },
         { label: 'Resources', path: '/resources', active: window.location.pathname.startsWith('/resources') },
+        { label: 'Access & Consent', path: '/consent', active: window.location.pathname.startsWith('/consent') },
     ];
 
     return (

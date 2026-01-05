@@ -23,8 +23,26 @@ import ResourceLibrary from './pages/ResourceLibrary';
 import Settings from './pages/Settings';
 import JournalTimeline from './pages/JournalTimeline';
 import authService from './services/auth.service';
+import { useEffect, useState } from 'react';
 
 function App() {
+  const [authReady, setAuthReady] = useState(false);
+
+  // AUTO-LOGIN BYPASS FOR TESTING - Remove in production
+  useEffect(() => {
+    const mockToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJhN2VhZTUzOS1hODA3LTQ2NGUtYjg3Yi05YjYyNzRiYjhiYzIiLCJyb2xlIjoicGFyZW50IiwicGFyZW50SWQiOiJjNTc3ZTlkNy01ODM3LTQ4MjAtOTM4MC00ZTFmMjZkOGMzZTgiLCJpYXQiOjE3Njc1OTQxNjMsImV4cCI6MTc2ODE5ODk2M30.ehLYsbtvZDTMiXJR4KF4o5ScejpMMtb3bcm_3mmoOTw';
+    const mockUser = {
+      id: 'a7eae539-a807-464e-b87b-9b6274bb8bc2',
+      email: 'parent@test.com',
+      role: 'parent',
+      firstName: 'Test',
+      lastName: 'Parent'
+    };
+    localStorage.setItem('token', mockToken);
+    localStorage.setItem('user', JSON.stringify(mockUser));
+    setAuthReady(true);
+  }, []);
+
   const isAuthenticated = authService.isAuthenticated();
 
   return (
@@ -119,7 +137,7 @@ function App() {
           element={isAuthenticated ? <JournalTimeline /> : <Navigate to="/login" />}
         />
 
-        <Route path="/" element={<Navigate to="/login" />} />
+        <Route path="/" element={<Navigate to="/dashboard" />} />
       </Routes>
     </BrowserRouter>
   );

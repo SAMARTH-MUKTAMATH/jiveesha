@@ -174,24 +174,6 @@ export default function ChildrenList() {
 
                                 {/* Card Body */}
                                 <div className="p-5 space-y-4">
-                                    {/* Quick Stats */}
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <div className="bg-blue-50 rounded-lg p-3">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <Activity className="text-[#2563EB]" size={16} />
-                                                <p className="text-xs font-semibold text-slate-600">Screenings</p>
-                                            </div>
-                                            <p className="text-lg font-bold text-slate-900">3</p>
-                                        </div>
-                                        <div className="bg-green-50 rounded-lg p-3">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <TrendingUp className="text-green-600" size={16} />
-                                                <p className="text-xs font-semibold text-slate-600">Progress</p>
-                                            </div>
-                                            <p className="text-lg font-bold text-slate-900">85%</p>
-                                        </div>
-                                    </div>
-
                                     {/* Info */}
                                     {child.medicalHistory && (
                                         <div className="bg-slate-50 rounded-lg p-3">
@@ -210,7 +192,10 @@ export default function ChildrenList() {
                                     {/* Action Buttons */}
                                     <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-200">
                                         <button
-                                            onClick={() => navigate(`/children/${child.id}`)}
+                                            onClick={() => {
+                                                console.log('Navigating to child:', child.id, child.firstName, child.lastName);
+                                                navigate(`/children/${child.id}`);
+                                            }}
                                             className="flex flex-col items-center justify-center gap-1 p-2 rounded-lg hover:bg-blue-50 transition-colors text-[#2563EB]"
                                             title="View Profile"
                                         >

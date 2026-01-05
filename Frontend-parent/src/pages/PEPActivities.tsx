@@ -58,6 +58,21 @@ export default function PEPActivities() {
             }
             if (activitiesRes.success) {
                 setActivities(activitiesRes.data);
+
+                // Calculate progress based on completed activities
+                const totalActivities = activitiesRes.data.length;
+                const completedActivities = activitiesRes.data.filter((a: any) => a.completed).length;
+                const calculatedProgress = totalActivities > 0
+                    ? Math.round((completedActivities / totalActivities) * 100)
+                    : 0;
+
+                // Update PEP with calculated progress
+                if (pepRes.success) {
+                    setPEP({
+                        ...pepRes.data,
+                        progress: calculatedProgress
+                    });
+                }
             }
 
             setLoading(false);
@@ -193,7 +208,7 @@ export default function PEPActivities() {
             arts: { bg: 'bg-pink-100', text: 'text-pink-700', border: 'border-pink-200' },
             games: { bg: 'bg-orange-100', text: 'text-orange-700', border: 'border-orange-200' },
         };
-        return colors[category];
+        return colors[category] || { bg: 'bg-slate-100', text: 'text-slate-700', border: 'border-slate-200' };
     };
 
     const getDomainIcon = (domain: PEPActivity['domain']) => {
