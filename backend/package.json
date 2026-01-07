@@ -14,7 +14,8 @@
     "migrate:deploy": "prisma migrate deploy",
     "generate": "prisma generate",
     "db:reset": "npx prisma migrate reset --force",
-    "db:fresh": "npm run db:reset && npm run seed"
+    "db:fresh": "npm run db:reset && npm run seed",
+    "db:resolve": "npx prisma migrate resolve --rolled-back 20260108000000_init_postgres"
   },
   "dependencies": {
     "@daira/shared": "file:../shared",
