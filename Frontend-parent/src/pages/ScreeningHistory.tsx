@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, Activity, Calendar, Eye, Download, Share2,
     CheckCircle2, Clock, AlertCircle, Filter, Search
 } from 'lucide-react';
-import Layout from '../components/Layout';
+
 import screeningService from '../services/screening.service';
 import childrenService from '../services/children.service';
 import type { Screening } from '../services/screening.service';
@@ -97,19 +97,19 @@ export default function ScreeningHistory() {
 
     if (loading) {
         return (
-            <Layout>
+            <>
                 <div className="flex items-center justify-center min-h-[60vh]">
                     <div className="text-center">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2563EB] mx-auto"></div>
                         <p className="mt-4 text-slate-600">Loading screening history...</p>
                     </div>
                 </div>
-            </Layout>
+            </>
         );
     }
 
     return (
-        <Layout>
+        <>
             <div className="w-full max-w-[1200px] mx-auto px-4 md:px-6 lg:px-8 py-6 space-y-8">
                 {/* Back Button */}
                 <button
@@ -297,6 +297,6 @@ export default function ScreeningHistory() {
                     </div>
                 )}
             </div>
-        </Layout>
+        </>
     );
 }

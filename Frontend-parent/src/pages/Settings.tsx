@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, User, Lock, Bell, Shield, Globe, HelpCircle,
     Settings as SettingsIcon, Camera, Mail, Phone, Save, X,
     Download, Trash2, AlertCircle, CheckCircle2, Eye, EyeOff,
-    Loader2, LogOut
+    Loader2
 } from 'lucide-react';
-import Layout from '../components/Layout';
+
 import settingsService from '../services/settings.service';
 import type {
     UserProfile,
@@ -219,19 +219,17 @@ export default function Settings() {
 
     if (loading) {
         return (
-            <Layout>
-                <div className="flex items-center justify-center min-h-[60vh]">
-                    <div className="text-center">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2563EB] mx-auto"></div>
-                        <p className="mt-4 text-slate-600">Loading settings...</p>
-                    </div>
+            <div className="flex items-center justify-center min-h-[60vh]">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2563EB] mx-auto"></div>
+                    <p className="mt-4 text-slate-600">Loading settings...</p>
                 </div>
-            </Layout>
+            </div>
         );
     }
 
     return (
-        <Layout>
+        <>
             <div className="w-full max-w-[1200px] mx-auto px-4 md:px-6 lg:px-8 py-6 space-y-6">
                 {/* Back Button */}
                 <button
@@ -892,6 +890,6 @@ export default function Settings() {
                     </div>
                 </div>
             </div>
-        </Layout>
+        </>
     );
 }

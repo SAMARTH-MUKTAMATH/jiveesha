@@ -69,6 +69,18 @@ export const consentService = {
     // Revoke access grant
     revoke: async (id: string): Promise<void> => {
         await apiClient.delete(`/parent/access-grants/${id}`);
+    },
+
+    // Validate consent token for importing/claiming a child
+    validateToken: async (token: string): Promise<any> => {
+        const response = await apiClient.post('/parent/access-grants/validate', { token });
+        return response.data;
+    },
+
+    // Claim access for a child using a token
+    claimToken: async (token: string): Promise<any> => {
+        const response = await apiClient.post('/parent/access-grants/claim', { token });
+        return response.data;
     }
 };
 

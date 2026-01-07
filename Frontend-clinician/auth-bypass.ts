@@ -13,7 +13,7 @@ export const initAuthBypass = () => {
     const existingUser = localStorage.getItem('user');
     if (!existingUser) {
         const mockUser = {
-            id: 'clinician-test-123',
+            id: 'a4c5f583-92f1-4e78-97a1-973f982a8c2e', // Real clinician ID from database
             email: 'dr.jane@daira.com',
             role: 'clinician',
             status: 'active',

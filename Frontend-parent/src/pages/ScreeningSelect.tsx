@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
     ArrowLeft, Activity, Clock, Users, Baby, PlayCircle,
     CheckCircle2, AlertCircle, Calendar
 } from 'lucide-react';
-import Layout from '../components/Layout';
+
 import screeningService from '../services/screening.service';
 import childrenService from '../services/children.service';
 import type { ScreeningType } from '../services/screening.service';
@@ -100,19 +100,19 @@ export default function ScreeningSelect() {
 
     if (loading) {
         return (
-            <Layout>
+            <>
                 <div className="flex items-center justify-center min-h-[60vh]">
                     <div className="text-center">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2563EB] mx-auto"></div>
                         <p className="mt-4 text-slate-600">Loading screenings...</p>
                     </div>
                 </div>
-            </Layout>
+            </>
         );
     }
 
     return (
-        <Layout>
+        <>
             <div className="w-full max-w-[1200px] mx-auto px-4 md:px-6 lg:px-8 py-6 space-y-8">
                 {/* Back Button */}
                 <button
@@ -146,8 +146,8 @@ export default function ScreeningSelect() {
                                     key={child.id}
                                     onClick={() => setSelectedChild(child)}
                                     className={`flex items-center gap-3 p-4 rounded-lg border-2 transition-all ${selectedChild?.id === child.id
-                                            ? 'border-[#2563EB] bg-blue-50'
-                                            : 'border-slate-200 hover:border-slate-300'
+                                        ? 'border-[#2563EB] bg-blue-50'
+                                        : 'border-slate-200 hover:border-slate-300'
                                         }`}
                                 >
                                     <div className="size-12 rounded-full bg-blue-100 text-[#2563EB] flex items-center justify-center font-bold text-lg">
@@ -258,6 +258,6 @@ export default function ScreeningSelect() {
                     </div>
                 )}
             </div>
-        </Layout>
+        </>
     );
 }

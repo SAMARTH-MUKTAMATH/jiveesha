@@ -33,6 +33,7 @@ export default function AddChild() {
     const formData = watch();
 
     const nextStep = async () => {
+        console.log('nextStep called. Current step:', currentStep);
         // Clear any previous errors first
         setError('');
 
@@ -59,7 +60,10 @@ export default function AddChild() {
 
         // If validation passes, move to next step
         if (currentStep < steps.length - 1) {
+            console.log('Moving to step:', currentStep + 1);
             setCurrentStep(currentStep + 1);
+            // Small delay to ensure UI updates before button type changes
+            await new Promise(resolve => setTimeout(resolve, 50));
         }
     };
 
@@ -70,7 +74,18 @@ export default function AddChild() {
         }
     };
 
-    const onSubmit = async (data: FormData) => {
+    const onSubmit = async (data: FormData, e?: React.BaseSyntheticEvent) => {
+        console.log('AddChild onSubmit触发. currentStep:', currentStep);
+        e?.preventDefault();
+
+        // Prevent accidental submission via Enter key from earlier steps
+        if (currentStep !== steps.length - 1) {
+            console.log('Blocking submission, moving to next step instead.');
+            setCurrentStep(step => step + 1);
+            return;
+        }
+
+        console.log('Submitting data:', data);
         try {
             setLoading(true);
             setError('');
@@ -117,7 +132,16 @@ export default function AddChild() {
                         </div>
                     )}
 
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                    <form
+                        onSubmit={handleSubmit(onSubmit)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' && currentStep !== steps.length - 1) {
+                                console.log('Enter key blocked on step', currentStep);
+                                e.preventDefault();
+                            }
+                        }}
+                        className="space-y-6"
+                    >
                         {/* Step 1: Basic Info */}
                         {currentStep === 0 && (
                             <div className="space-y-6 animate-in fade-in duration-300">
@@ -343,7 +367,10 @@ export default function AddChild() {
                             {currentStep < steps.length - 1 ? (
                                 <button
                                     type="button"
-                                    onClick={nextStep}
+                                    onClick={(e) => {
+                                        e.currentTarget.blur();
+                                        nextStep();
+                                    }}
                                     className="flex items-center gap-2 px-6 py-3 bg-[#2563EB] text-white font-semibold rounded-lg hover:bg-blue-700 transition-all"
                                 >
                                     Next
@@ -351,8 +378,12 @@ export default function AddChild() {
                                 </button>
                             ) : (
                                 <button
-                                    type="submit"
+                                    type="button"
                                     disabled={loading}
+                                    onClick={() => {
+                                        console.log('Submit button clicked!');
+                                        handleSubmit(onSubmit)();
+                                    }}
                                     className="flex items-center gap-2 px-6 py-3 bg-[#2563EB] text-white font-semibold rounded-lg hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {loading ? (

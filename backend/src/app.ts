@@ -28,12 +28,15 @@ import parentDashboardRoutes from './routes/parent-dashboard.routes';
 import pepRoutes from './routes/pep.routes';
 import resourceRoutes from './routes/resources.routes';
 import testTransformRoutes from './routes/test-transform.routes';
+import teacherRoutes from './routes/teacher.routes';
+import schoolRoutes from './routes/school.routes';
 import { responseTransformer } from './middleware/response-transformer';
 import { errorHandler } from './middleware/errorHandler';
 import { notFound } from './middleware/notFound';
 
 dotenv.config();
 
+// Trigger restart for .env update
 const app: Application = express();
 
 // Security middleware
@@ -41,9 +44,10 @@ app.use(helmet());
 
 // CORS configuration
 app.use(cors({
-    origin: process.env.FRONTEND_URL
+    origin: (process.env.FRONTEND_URL
         ? process.env.FRONTEND_URL.split(',').map(url => url.trim())
-        : ['http://localhost:3000', 'http://localhost:5173'],
+        : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:5176']
+    ).concat(['http://localhost:5177']),
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-User-ID']
@@ -98,12 +102,14 @@ app.use(`${API_PREFIX}/parent/screening`, parentScreeningRoutes);
 app.use(`${API_PREFIX}/parent/pep`, pepRoutes);
 app.use(`${API_PREFIX}/parent/resources`, resourceRoutes);
 app.use(`${API_PREFIX}/test`, testTransformRoutes);
+app.use(`${API_PREFIX}/teacher`, teacherRoutes);
+app.use(`${API_PREFIX}/school`, schoolRoutes);
 
 // Error handlers
 app.use(notFound);
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 5000;
 
 if (process.env.NODE_ENV !== 'test') {
     app.listen(PORT, () => {

@@ -132,7 +132,36 @@ export const getPatients = async (req: AuthRequest, res: Response, next: NextFun
             take: limitNum,
             orderBy: { [sort_by as string]: sort_order },
             include: {
-                person: true
+                person: {
+                    include: {
+                        contacts: true,
+                        tags: {
+                            include: {
+                                // Just basic tag info
+                            }
+                        },
+                        parentViews: {
+                            include: {
+                                parent: {
+                                    include: {
+                                        user: {
+                                            include: {
+                                                clinicianProfile: true
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        _count: {
+                            select: {
+                                appointments: true,
+                                sessions: true,
+                                assessments: true
+                            }
+                        }
+                    }
+                }
             }
         });
 
@@ -173,6 +202,19 @@ export const getPatient = async (req: AuthRequest, res: Response, next: NextFunc
                     include: {
                         contacts: true,
                         tags: true,
+                        parentViews: {
+                            include: {
+                                parent: {
+                                    include: {
+                                        user: {
+                                            include: {
+                                                clinicianProfile: true
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
                         activities: {
                             orderBy: { createdAt: 'desc' },
                             take: 10

@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, ArrowRight, Mail, User, Building2, Clock,
     Shield, FileText, Activity, TrendingUp, Copy, Check,
     Send, Calendar, AlertCircle, CheckCircle2
 } from 'lucide-react';
-import Layout from '../components/Layout';
+
 import Stepper from '../components/Stepper';
 import childrenService from '../services/children.service';
 import { consentService } from '../services/consent.service';
@@ -205,20 +205,20 @@ export default function ShareWithProfessional() {
 
     if (loading) {
         return (
-            <Layout>
+            <>
                 <div className="flex items-center justify-center min-h-[60vh]">
                     <div className="text-center">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2563EB] mx-auto"></div>
                         <p className="mt-4 text-slate-600">Loading...</p>
                     </div>
                 </div>
-            </Layout>
+            </>
         );
     }
 
     if (children.length === 0) {
         return (
-            <Layout>
+            <>
                 <div className="flex items-center justify-center min-h-[60vh]">
                     <div className="text-center max-w-md">
                         <AlertCircle className="mx-auto text-amber-500 mb-4" size={64} />
@@ -234,12 +234,12 @@ export default function ShareWithProfessional() {
                         </button>
                     </div>
                 </div>
-            </Layout>
+            </>
         );
     }
 
     return (
-        <Layout>
+        <>
             <div className="w-full max-w-[900px] mx-auto px-4 md:px-6 lg:px-8 py-6 space-y-6">
                 {/* Back Button */}
                 <button
@@ -628,6 +628,6 @@ export default function ShareWithProfessional() {
                     )}
                 </div>
             </div>
-        </Layout>
+        </>
     );
 }

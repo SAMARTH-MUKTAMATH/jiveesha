@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-    Heart, Plus, Search, Calendar, Eye, Edit, Trash2,
-    Activity, TrendingUp, Users, Baby
+    Plus, Search, Eye, Edit, Trash2, Baby, Key
 } from 'lucide-react';
-import Layout from '../components/Layout';
+
+import ClaimChildModal from '../components/consent/ClaimChildModal';
 import childrenService from '../services/children.service';
 import type { Child } from '../services/children.service';
 
@@ -14,6 +14,7 @@ export default function ChildrenList() {
     const [filteredChildren, setFilteredChildren] = useState<Child[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(true);
+    const [showClaimModal, setShowClaimModal] = useState(false);
 
     useEffect(() => {
         loadChildren();
@@ -64,19 +65,17 @@ export default function ChildrenList() {
 
     if (loading) {
         return (
-            <Layout>
-                <div className="flex items-center justify-center min-h-[60vh]">
-                    <div className="text-center">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2563EB] mx-auto"></div>
-                        <p className="mt-4 text-slate-600">Loading children...</p>
-                    </div>
+            <div className="flex items-center justify-center min-h-[60vh]">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2563EB] mx-auto"></div>
+                    <p className="mt-4 text-slate-600">Loading children...</p>
                 </div>
-            </Layout>
+            </div>
         );
     }
 
     return (
-        <Layout>
+        <>
             <div className="w-full max-w-[1200px] mx-auto px-4 md:px-6 lg:px-8 py-6 space-y-8">
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -92,13 +91,22 @@ export default function ChildrenList() {
                         </p>
                     </div>
 
-                    <button
-                        onClick={() => navigate('/onboarding/add-child')}
-                        className="flex items-center justify-center gap-2 bg-[#2563EB] hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all shadow-lg hover:shadow-xl"
-                    >
-                        <Plus size={20} />
-                        <span>Add Child</span>
-                    </button>
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={() => setShowClaimModal(true)}
+                            className="flex items-center justify-center gap-2 bg-white border-2 border-slate-200 hover:border-purple-200 text-slate-600 hover:text-purple-600 font-bold py-3 px-6 rounded-lg transition-all shadow-sm hover:shadow-md"
+                        >
+                            <Key size={20} />
+                            <span>Import via Token</span>
+                        </button>
+                        <button
+                            onClick={() => navigate('/onboarding/add-child')}
+                            className="flex items-center justify-center gap-2 bg-[#2563EB] hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all shadow-lg hover:shadow-xl"
+                        >
+                            <Plus size={20} />
+                            <span>Add Child</span>
+                        </button>
+                    </div>
                 </div>
 
                 {/* Search Bar (Only show if there are children) */}
@@ -131,13 +139,22 @@ export default function ChildrenList() {
                                 Add your first child to start tracking developmental progress, complete screenings,
                                 and create personalized education plans.
                             </p>
-                            <button
-                                onClick={() => navigate('/onboarding/add-child')}
-                                className="flex items-center justify-center gap-2 bg-[#2563EB] hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition-all shadow-lg hover:shadow-xl mx-auto"
-                            >
-                                <Plus size={20} />
-                                <span>Add Your First Child</span>
-                            </button>
+                            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                                <button
+                                    onClick={() => setShowClaimModal(true)}
+                                    className="flex items-center justify-center gap-2 bg-white border-2 border-slate-200 hover:border-purple-200 text-slate-600 hover:text-purple-600 font-bold py-3 px-8 rounded-lg transition-all shadow-sm hover:shadow-md"
+                                >
+                                    <Key size={20} />
+                                    <span>Import via Token</span>
+                                </button>
+                                <button
+                                    onClick={() => navigate('/onboarding/add-child')}
+                                    className="flex items-center justify-center gap-2 bg-[#2563EB] hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition-all shadow-lg hover:shadow-xl"
+                                >
+                                    <Plus size={20} />
+                                    <span>Add Your First Child</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 )}
@@ -247,6 +264,16 @@ export default function ChildrenList() {
                     </div>
                 )}
             </div>
-        </Layout>
+
+            {showClaimModal && (
+                <ClaimChildModal
+                    onClose={() => setShowClaimModal(false)}
+                    onSuccess={() => {
+                        loadChildren();
+                        // Optional: Show success toast/alert
+                    }}
+                />
+            )}
+        </>
     );
 }

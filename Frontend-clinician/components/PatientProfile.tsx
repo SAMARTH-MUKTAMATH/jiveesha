@@ -13,6 +13,7 @@ import JournalTab from './JournalTab';
 interface PatientProfileProps {
   onBack: () => void;
   patientId: string | null;
+  initialTab?: string;
   onViewJournal?: () => void;
   onViewMessages?: () => void;
   onViewConsultations?: () => void;
@@ -21,15 +22,15 @@ interface PatientProfileProps {
 
 interface PatientData {
   id: string;
-  firstName: string;
-  lastName: string;
-  fullName: string;
-  dateOfBirth: string;
+  first_name: string;
+  last_name: string;
+  full_name: string;
+  date_of_birth: string;
   age: number;
   gender: string;
   status: string;
-  primaryConcerns: string;
-  existingDiagnosis: string;
+  primary_concerns: string;
+  existing_diagnosis: string;
   tags: string[];
   contacts: any[];
   stats: { appointments: number; sessions: number; assessments: number };
@@ -43,13 +44,14 @@ interface PatientData {
 const PatientProfile: React.FC<PatientProfileProps> = ({
   onBack,
   patientId,
+  initialTab,
   onViewJournal,
   onViewMessages,
   onViewConsultations,
   onDischarge
 }) => {
   const [patient, setPatient] = useState<PatientData | null>(null);
-  const [activeTab, setActiveTab] = useState('Overview');
+  const [activeTab, setActiveTab] = useState(initialTab || 'Overview');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -62,9 +64,9 @@ const PatientProfile: React.FC<PatientProfileProps> = ({
 
         console.log('[FRONTEND DEBUG] API Response:', res);
         console.log('[FRONTEND DEBUG] Patient data:', res.data);
-        console.log('[FRONTEND DEBUG] Full name:', res.data?.fullName);
-        console.log('[FRONTEND DEBUG] Age:', res.data?.age);
-        console.log('[FRONTEND DEBUG] Contacts:', res.data?.contacts);
+        console.log('[FRONTEND DEBUG] Full name:', (res.data as any)?.full_name);
+        console.log('[FRONTEND DEBUG] Age:', (res.data as any)?.age);
+        console.log('[FRONTEND DEBUG] Contacts:', (res.data as any)?.contacts);
 
         // Ensure contacts is an array if it isn't
         if (res.data) {
@@ -123,12 +125,12 @@ const PatientProfile: React.FC<PatientProfileProps> = ({
               </nav>
               <h1 className="text-3xl font-black text-slate-900 tracking-tight">Patient Profile</h1>
               <div className="flex items-center gap-3 mt-1">
-                <span className="text-lg font-bold text-slate-600">{patient.fullName}</span>
+                <span className="text-lg font-bold text-slate-600">{patient.full_name || (patient as any).fullName || `${patient.first_name || (patient as any).firstName || ''} ${patient.last_name || (patient as any).lastName || ''}`.trim() || 'No Name'}</span>
                 <span className="text-sm font-bold text-slate-300">•</span>
-                <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest ${patient.status === 'active' ? 'bg-green-100 text-green-700' :
-                  patient.status === 'pending' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'
+                <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest ${(patient.status || (patient as any).case_status || (patient as any).caseStatus || '').toLowerCase() === 'active' ? 'bg-green-100 text-green-700' :
+                  (patient.status || (patient as any).case_status || (patient as any).caseStatus || '').toLowerCase() === 'pending' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'
                   }`}>
-                  {patient.status}
+                  {patient.status || (patient as any).case_status || (patient as any).caseStatus}
                 </span>
               </div>
             </div>
@@ -155,9 +157,9 @@ const PatientProfile: React.FC<PatientProfileProps> = ({
               <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-br from-blue-500 to-blue-600" />
               <div className="relative pt-12 text-center">
                 <div className="w-24 h-24 rounded-full border-4 border-white shadow-lg mx-auto bg-white flex items-center justify-center text-3xl font-black text-blue-600 uppercase">
-                  {patient.firstName?.[0]}{patient.lastName?.[0]}
+                  {(patient.first_name || (patient as any).firstName || '?')[0]}{(patient.last_name || (patient as any).lastName || '?')[0]}
                 </div>
-                <h2 className="mt-4 text-xl font-black text-slate-900">{patient.fullName}</h2>
+                <h2 className="mt-4 text-xl font-black text-slate-900">{patient.full_name || (patient as any).fullName || `${patient.first_name || (patient as any).firstName || ''} ${patient.last_name || (patient as any).lastName || ''}`.trim()}</h2>
                 <p className="text-sm font-bold text-slate-400 mb-6">{patient.age} years • {patient.gender}</p>
 
                 <div className="grid grid-cols-3 gap-2 pt-6 border-t border-slate-100">
@@ -241,7 +243,10 @@ const PatientProfile: React.FC<PatientProfileProps> = ({
                 {['Overview', 'Assessments', 'IEP', 'Clinical Notes', 'Journal', 'Communications'].map(tab => (
                   <button
                     key={tab}
-                    onClick={() => setActiveTab(tab)}
+                    onClick={() => {
+                      setActiveTab(tab);
+                      if (tab === 'Journal' && onViewJournal) onViewJournal();
+                    }}
                     className={`px-6 py-5 text-sm font-bold relative transition-all whitespace-nowrap ${activeTab === tab ? 'text-[#2563EB]' : 'text-slate-400 hover:text-slate-600'}`}
                   >
                     {tab}
@@ -320,14 +325,14 @@ const PatientProfile: React.FC<PatientProfileProps> = ({
                     <h2 className="text-xl font-black text-slate-900 tracking-tight">Diagnosis Summary</h2>
                   </div>
                   <div className="bg-white border-2 border-slate-100 rounded-[2rem] p-8 shadow-sm">
-                    {patient.existingDiagnosis ? (
+                    {patient.existing_diagnosis ? (
                       <div className="flex flex-col md:flex-row justify-between gap-8 mb-4">
                         <div className="space-y-3">
                           <div className="flex items-center gap-3">
-                            <h3 className="text-3xl font-black text-slate-900">{patient.existingDiagnosis}</h3>
+                            <h3 className="text-3xl font-black text-slate-900">{patient.existing_diagnosis}</h3>
                           </div>
                           <div className="flex gap-6 text-[11px] font-bold text-slate-400 uppercase tracking-widest">
-                            <span>Primary Concern: <span className="text-slate-700">{patient.primaryConcerns || 'N/A'}</span></span>
+                            <span>Primary Concern: <span className="text-slate-700">{patient.primary_concerns || 'N/A'}</span></span>
                           </div>
                         </div>
                       </div>

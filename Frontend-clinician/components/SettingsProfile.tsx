@@ -20,13 +20,18 @@ interface UserProfile {
    role: string;
    profile: {
       first_name: string;
+      firstName?: string;
       last_name: string;
+      lastName?: string;
       professional_title: string;
+      professionalTitle?: string;
       phone?: string;
       bio?: string;
       clinic_name?: string;
+      clinicName?: string;
       address?: string;
       years_of_practice?: string | number;
+      yearsOfPractice?: string | number;
       specializations?: string[] | string;
       gender?: string;
       photo_url?: string | null;
@@ -292,9 +297,9 @@ const SettingsProfile: React.FC<SettingsProfileProps> = ({ onBack, onSave }) => 
       }
    };
 
-   const userName = user?.profile ? `${user.profile.first_name} ${user.profile.last_name}` : 'Dr. User';
+   const userName = user?.profile ? `${user?.profile?.firstName || user?.profile?.first_name || ''} ${user?.profile?.lastName || user?.profile?.last_name || ''}`.trim() : 'Dr. User';
    const userEmail = user?.email || 'user@clinic.com';
-   const userTitle = user?.profile?.professional_title || 'Healthcare Professional';
+   const userTitle = user?.profile?.professionalTitle || user?.profile?.professional_title || 'Healthcare Professional';
    const userPhone = user?.profile?.phone || '+91 00000 00000';
 
    const tabs = [

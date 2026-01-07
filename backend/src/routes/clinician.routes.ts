@@ -13,7 +13,7 @@ import {
     createTimeOff,
     deleteTimeOff
 } from '../controllers/clinician.controller';
-import { validateConsentToken } from '../controllers/clinician-access.controller';
+import { validateConsentToken, claimAccessGrant } from '../controllers/clinician-access.controller';
 import { authenticate } from '../middleware/auth';
 import multer from 'multer';
 import path from 'path';
@@ -53,6 +53,7 @@ router.use(authenticate);
 
 // Access Grants
 router.post('/access-grants/validate', validateConsentToken);
+router.post('/access-grants/claim', claimAccessGrant);
 
 // Profile
 router.get('/profile', getProfile);

@@ -105,7 +105,25 @@ export function transformToPatient(
         updated_at: view.updatedAt.toISOString(),
 
         // Expanded fields
-        contacts: (view.person as any).contacts || [],
+        contacts: (view.person as any).contacts?.length > 0
+            ? (view.person as any).contacts
+            : ((view.person as any).parentViews?.map((pv: any) => ({
+                id: pv.parent.id,
+                first_name: pv.parent.user?.clinicianProfile?.firstName || 'Parent',
+                last_name: pv.parent.user?.clinicianProfile?.lastName || '',
+                phone: pv.parent.phone,
+                email: pv.parent.user?.email,
+                address: [
+                    view.person.addressLine1,
+                    view.person.addressLine2,
+                    view.person.city,
+                    view.person.state,
+                    view.person.pinCode
+                ].filter(Boolean).join(', ') || 'No address',
+                relationship: pv.relationshipType,
+                is_primary_contact: pv.isPrimaryCaregiver,
+                contact_type: 'Guardian'
+            })) || []),
         stats: {
             appointments: (view.person as any)._count?.appointments || 0,
             sessions: (view.person as any)._count?.sessions || 0,

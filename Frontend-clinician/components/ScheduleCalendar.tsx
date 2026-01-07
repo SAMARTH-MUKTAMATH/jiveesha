@@ -111,7 +111,7 @@ const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({ onBack, onNavigate 
                   const aptDate = new Date(apt.date);
                   const startHours = new Date(apt.date + 'T' + apt.startTime); // Approximate parsing or use provided ISO
                   // Better parsing:
-                  const [h, m] = apt.startTime.split(':').map(Number);
+                  const [h, m] = (apt.startTime || '09:00').split(':').map(Number);
 
                   // Simple logic for row calculation
                   // 96px per hour. 8 AM start.
@@ -120,7 +120,7 @@ const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({ onBack, onNavigate 
                   const rowStart = (h - 8) + (m / 60) + 1;
 
                   // Duration
-                  const [endH, endM] = apt.endTime.split(':').map(Number);
+                  const [endH, endM] = (apt.endTime || '10:00').split(':').map(Number);
                   const durationHours = (endH - h) + ((endM - m) / 60);
 
                   return {

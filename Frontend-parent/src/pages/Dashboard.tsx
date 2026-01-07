@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     AlertTriangle, ArrowRight, Plus, Edit, Eye, CheckCircle,
-    Clock, FileText, Lightbulb, School, Activity, Calendar, BookOpen
+    FileText, Lightbulb, Activity, BookOpen
 } from 'lucide-react';
-import Layout from '../components/Layout';
+
 import childrenService from '../services/children.service';
 import type { Child } from '../services/children.service';
 import dashboardService from '../services/dashboard.service';
@@ -83,19 +83,17 @@ export default function Dashboard() {
 
     if (loading) {
         return (
-            <Layout>
-                <div className="flex items-center justify-center min-h-[60vh]">
-                    <div className="text-center">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2563EB] mx-auto"></div>
-                        <p className="mt-4 text-slate-600">Loading dashboard...</p>
-                    </div>
+            <div className="flex items-center justify-center min-h-[60vh]">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2563EB] mx-auto"></div>
+                    <p className="mt-4 text-slate-600">Loading dashboard...</p>
                 </div>
-            </Layout>
+            </div>
         );
     }
 
     return (
-        <Layout>
+        <>
             <div className="w-full max-w-[1200px] mx-auto px-4 md:px-6 lg:px-8 py-4 md:py-6">
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 md:mb-8">
@@ -423,6 +421,6 @@ export default function Dashboard() {
                     </div>
                 </div>
             </div>
-        </Layout>
+        </>
     );
 }

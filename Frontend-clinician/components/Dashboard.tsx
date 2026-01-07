@@ -102,187 +102,194 @@ const Dashboard: React.FC<DashboardProps> = ({ onManageCredentials, onEditProfil
     };
   }, []);
 
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        // Set mock token for testing (since auth is bypassed)
-        if (!localStorage.getItem('access_token')) {
-          const mockToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxIiwiZW1haWwiOiJ0ZXN0QHRlc3QuY29tIiwicm9sZSI6ImNsaW5pY2lhbiJ9.test';
-          localStorage.setItem('access_token', mockToken);
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      // Set mock token for testing (since auth is bypassed)
+      if (!localStorage.getItem('access_token')) {
+        const mockToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxIiwiZW1haWwiOiJ0ZXN0QHRlc3QuY29tIiwicm9sZSI6ImNsaW5pY2lhbiJ9.test';
+        localStorage.setItem('access_token', mockToken);
+      }
+
+      // Fetch user profile
+      const userResponse = await apiClient.getMe();
+      if (userResponse.success && userResponse.data) {
+        setUser(userResponse.data);
+        // Sync to localStorage and notify other components
+        localStorage.setItem('user', JSON.stringify(userResponse.data));
+        window.dispatchEvent(new CustomEvent('profileUpdated', { detail: userResponse.data }));
+      }
+
+      // Fetch dashboard stats
+      // Fetch fresh patients list for real-time stats (more reliable than stats endpoint for now)
+      const patientsRes = await apiClient.getPatients();
+
+      let total = 0;
+      let active = 0;
+
+      if (patientsRes.success && patientsRes.data) {
+        // Handle both response structures just in case (api.ts says it returns { patients: [] })
+        const patientsList = Array.isArray(patientsRes.data) ? patientsRes.data : patientsRes.data.patients;
+
+        if (Array.isArray(patientsList)) {
+          // Log first patient to see structure
+          if (patientsList.length > 0) {
+            console.log('[Dashboard] First patient sample:', patientsList[0]);
+          }
+
+          total = patientsList.length;
+
+          const checkStatus = (p: any, statusType: string) => {
+            const val = (p.case_status || p.caseStatus || p.status || '').toLowerCase();
+            return val === statusType;
+          };
+
+          active = patientsList.filter((p: any) => checkStatus(p, 'active') || checkStatus(p, 'pending')).length;
+
+          // Calculate pending consents specifically
+          const pending = patientsList.filter((p: any) => checkStatus(p, 'pending')).length;
+
+          console.log(`[Dashboard] Real-time stats: ${total} total, ${active} active, ${pending} pending consents`);
+
+          setStats(prev => ({
+            ...prev,
+            totalPatients: total,
+            activePatients: active,
+            pendingConsents: pending
+          }));
         }
-
-        // Fetch user profile
-        const userResponse = await apiClient.getMe();
-        if (userResponse.success && userResponse.data) {
-          setUser(userResponse.data);
+      } else {
+        // Fallback to stats endpoint if patients list fails
+        const statsRes = await apiClient.getDashboardStats();
+        if (statsRes.success && statsRes.data) {
+          total = statsRes.data.total_patients || 0;
+          active = statsRes.data.active_patients || 0;
         }
+      }
 
-        // Fetch dashboard stats
-        // Fetch fresh patients list for real-time stats (more reliable than stats endpoint for now)
-        const patientsRes = await apiClient.getPatients();
+      setStats(prev => ({
+        ...prev,
+        totalPatients: total,
+        activePatients: active,
+      }));
 
-        let total = 0;
-        let active = 0;
 
-        if (patientsRes.success && patientsRes.data) {
-          // Handle both response structures just in case (api.ts says it returns { patients: [] })
-          const patientsList = Array.isArray(patientsRes.data) ? patientsRes.data : patientsRes.data.patients;
-
-          if (Array.isArray(patientsList)) {
-            // Log first patient to see structure
-            if (patientsList.length > 0) {
-              console.log('[Dashboard] First patient sample:', patientsList[0]);
-            }
-
-            total = patientsList.length;
-
-            const checkStatus = (p: any, statusType: string) => {
-              const val = (p.case_status || p.caseStatus || p.status || '').toLowerCase();
-              return val === statusType;
-            };
-
-            active = patientsList.filter((p: any) => checkStatus(p, 'active') || checkStatus(p, 'pending')).length;
-
-            // Calculate pending consents specifically
-            const pending = patientsList.filter((p: any) => checkStatus(p, 'pending')).length;
-
-            console.log(`[Dashboard] Real-time stats: ${total} total, ${active} active, ${pending} pending consents`);
-
-            setStats(prev => ({
-              ...prev,
-              totalPatients: total,
-              activePatients: active,
-              pendingConsents: pending
+      // Fetch pending tasks for worklist
+      const tasksRes = await apiClient.getPendingTasks();
+      if (tasksRes.success && tasksRes.data) {
+        // Handle flat array from backend
+        if (Array.isArray(tasksRes.data)) {
+          // Extract upcoming appointments first
+          const upcoming = tasksRes.data
+            .filter((t: any) => t.type === 'upcoming_appointment')
+            .map((t: any) => ({
+              id: t.id,
+              patientId: t.personId || t.patientId || t.person_id || t.patient_id,
+              patient: t.title?.replace(/^Appointment with /, ''),
+              type: 'Appointment',
+              date: t.date,
+              time: t.date ? new Date(t.date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : 'TBD', // Format time from date
+              format: 'In-person', // Default since tasks doesn't have format
+              active: false
             }));
-          }
-        } else {
-          // Fallback to stats endpoint if patients list fails
-          const statsRes = await apiClient.getDashboardStats();
-          if (statsRes.success && statsRes.data) {
-            total = statsRes.data.total_patients || 0;
-            active = statsRes.data.active_patients || 0;
-          }
-        }
 
+          setUpcomingSchedule(upcoming);
+
+          // Filter for worklist (excluding appointments)
+          const mappedTasks = tasksRes.data.map((task: any) => {
+            // Map based on task type
+            switch (task.type) {
+              case 'new_patient_review':
+                return {
+                  id: task.id,
+                  patientId: task.personId || task.patientId || task.person_id || task.patient_id,
+                  priority: 'HIGH',
+                  priorityColor: 'bg-red-100 text-red-600',
+                  name: task.title,
+                  task: 'NEW PATIENT',
+                  due: 'Action Required',
+                  action: 'Review',
+                  isReview: true
+                };
+              case 'credential_verification':
+                return {
+                  id: task.id,
+                  patientId: '',
+                  priority: 'HIGH',
+                  priorityColor: 'bg-red-100 text-red-600',
+                  name: task.title,
+                  task: 'CREDENTIAL',
+                  due: 'Pending',
+                  action: 'Verify'
+                };
+              case 'incomplete_assessment':
+                return {
+                  id: task.id,
+                  patientId: task.personId || task.patientId || task.person_id || task.patient_id,
+                  priority: 'MEDIUM',
+                  priorityColor: 'bg-amber-100 text-amber-600',
+                  name: task.title,
+                  task: 'ASSESSMENT',
+                  due: 'In Progress',
+                  action: 'Continue'
+                };
+              // Upcoming appointments are handled separately above
+              default:
+                return null;
+            }
+          }).filter(Boolean); // Remove nulls
+
+          setWorklist(mappedTasks);
+        } else {
+          setWorklist([]);
+        }
+      }
+
+      // Fetch today's schedule
+      const scheduleRes = await apiClient.getTodaySchedule();
+      if (scheduleRes.success && scheduleRes.data) {
+        const mappedSchedule = scheduleRes.data.map((apt: any) => ({
+          id: apt.id,
+          patientId: apt.personId || apt.person_id || apt.patientId || apt.patient_id,
+          time: apt.startTime || apt.start_time,
+          patient: apt.patientName || apt.patient_name,
+          type: apt.appointmentType || apt.appointment_type || 'Appointment',
+          format: apt.format || 'In-person',
+          location: apt.locationId || apt.location,
+          status: apt.status,
+          active: apt.status === 'in_progress'
+        }));
+        setSchedule(mappedSchedule);
+
+        // Update the KPI dashboard stat for today's appointments
         setStats(prev => ({
           ...prev,
-          totalPatients: total,
-          activePatients: active,
-          // Keep other stats as is or from stats endpoint if needed
+          todayAppointments: mappedSchedule.length
         }));
-
-
-        // Fetch pending tasks for worklist
-        const tasksRes = await apiClient.getPendingTasks();
-        if (tasksRes.success && tasksRes.data) {
-          // Handle flat array from backend
-          if (Array.isArray(tasksRes.data)) {
-            // Extract upcoming appointments first
-            const upcoming = tasksRes.data
-              .filter((t: any) => t.type === 'upcoming_appointment')
-              .map((t: any) => ({
-                id: t.id,
-                patientId: t.patient_id,
-                patient: t.title.replace(/^Appointment with /, ''),
-                type: 'Appointment',
-                date: t.date,
-                time: t.date ? new Date(t.date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : 'TBD', // Format time from date
-                format: 'In-person', // Default since tasks doesn't have format
-                active: false
-              }));
-
-            setUpcomingSchedule(upcoming);
-
-            // Filter for worklist (excluding appointments)
-            const mappedTasks = tasksRes.data.map((task: any) => {
-              // Map based on task type
-              switch (task.type) {
-                case 'new_patient_review':
-                  return {
-                    id: task.id,
-                    patientId: task.patient_id,
-                    priority: 'HIGH',
-                    priorityColor: 'bg-red-100 text-red-600',
-                    name: task.title,
-                    task: 'NEW PATIENT',
-                    due: 'Action Required',
-                    action: 'Review',
-                    isReview: true
-                  };
-                case 'credential_verification':
-                  return {
-                    id: task.id,
-                    patientId: '',
-                    priority: 'HIGH',
-                    priorityColor: 'bg-red-100 text-red-600',
-                    name: task.title,
-                    task: 'CREDENTIAL',
-                    due: 'Pending',
-                    action: 'Verify'
-                  };
-                case 'incomplete_assessment':
-                  return {
-                    id: task.id,
-                    patientId: task.patient_id,
-                    priority: 'MEDIUM',
-                    priorityColor: 'bg-amber-100 text-amber-600',
-                    name: task.title,
-                    task: 'ASSESSMENT',
-                    due: 'In Progress',
-                    action: 'Continue'
-                  };
-                // Upcoming appointments are handled separately above
-                default:
-                  return null;
-              }
-            }).filter(Boolean); // Remove nulls
-
-            setWorklist(mappedTasks);
-          } else {
-            // Fallback if data structure matches old object format (unlikely now but safe)
-            const tasks = [];
-            // ... legacy logic if needed, but assuming array is correct
-            setWorklist([]);
-          }
-        }
-
-        // Fetch today's schedule
-        const scheduleRes = await apiClient.getTodaySchedule();
-        if (scheduleRes.success && scheduleRes.data) {
-          setSchedule(scheduleRes.data.map((apt: any) => ({
-            id: apt.id,
-            patientId: apt.patient_id,
-            time: apt.start_time,
-            patient: apt.patient_name,
-            type: apt.appointment_type || 'Appointment',
-            format: apt.format || 'In-person',
-            location: apt.location,
-            status: apt.status,
-            active: apt.status === 'in_progress'
-          })));
-        }
-
-        // Fetch recent activity
-        const activityRes = await apiClient.getRecentActivity();
-        if (activityRes.success && activityRes.data) {
-          setRecentActivity(activityRes.data.map((act: any) => ({
-            id: act.resource_id || act.id,
-            color: getActivityColor(act.action),
-            title: act.details || act.description || act.action,
-            time: formatRelativeTime(new Date(act.created_at)),
-            detail: act.description,
-            action: getActivityAction(act.resource_type)
-          })));
-        }
-
-
-      } catch (error) {
-        console.error('Failed to fetch dashboard data:', error);
-      } finally {
-        setLoading(false);
       }
-    };
 
+      // Fetch recent activity
+      const activityRes = await apiClient.getRecentActivity();
+      if (activityRes.success && activityRes.data) {
+        setRecentActivity(activityRes.data.map((act: any) => ({
+          id: act.resource_id || act.id,
+          color: getActivityColor(act.action),
+          title: act.details || act.description || act.action,
+          time: formatRelativeTime(new Date(act.created_at)),
+          detail: act.description,
+          action: getActivityAction(act.resource_type)
+        })));
+      }
+
+
+    } catch (error) {
+      console.error('Failed to fetch dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchDashboardData();
   }, [refreshKey]);
 
@@ -319,8 +326,9 @@ const Dashboard: React.FC<DashboardProps> = ({ onManageCredentials, onEditProfil
 
   // Get logged-in user info with photo handling
 
-  const userName = user?.profile?.first_name || user?.profile?.firstName || 'Doctor';
-  const userTitle = user?.profile?.professional_title || user?.profile?.professionalTitle || 'Healthcare Professional';
+  const rawUserName = user?.profile?.firstName || user?.profile?.first_name || 'Doctor';
+  const userName = rawUserName.replace(/^Dr\.\s+/i, '');
+  const userTitle = user?.profile?.professionalTitle || user?.profile?.professional_title || 'Healthcare Professional';
   const userSeed = user?.profile?.first_name || user?.profile?.firstName || 'User';
 
   // Get profile photo - check localStorage first, then API, then fallback to generated avatar
@@ -371,12 +379,11 @@ const Dashboard: React.FC<DashboardProps> = ({ onManageCredentials, onEditProfil
 
       {/* KPI Section */}
       <div className="max-w-[1440px] mx-auto px-6 lg:px-12 py-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {[
             { id: 'consents', icon: <Clock size={20} />, value: String(stats.pendingConsents || 0), label: 'Pending Consents', sub: 'Awaiting approval', color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-100', urgency: stats.pendingConsents > 0 ? 'Orange' : undefined },
-            { id: 'alerts', icon: <AlertTriangle size={20} className="animate-pulse" />, value: String(stats.urgentAlerts || 0), label: 'Triage Alerts', sub: 'Urgent attention required', color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-100', urgency: stats.urgentAlerts > 0 ? 'Red' : undefined, action: onTriageClick },
             { id: 'active', icon: <FolderOpen size={20} />, value: String(stats.activePatients || stats.totalPatients || 0), label: 'Active Cases', sub: `${stats.totalPatients} total patients`, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100' },
-            { id: 'schedule', icon: <Calendar size={20} />, value: String(stats.todayAppointments || 0), label: "Today's Appointments", sub: 'View schedule', color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-100', action: onScheduleClick },
+            { id: 'schedule', icon: <Calendar size={20} />, value: String(stats.todayAppointments || 0), label: "Appointments", sub: 'View schedule', color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-100', action: onScheduleClick },
           ].map((kpi) => (
             <div
               key={kpi.id}
@@ -577,8 +584,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onManageCredentials, onEditProfil
                       <div key={`today-${i}`} className="group flex items-center justify-between p-3 rounded-xl border border-slate-100 hover:border-blue-300 hover:bg-blue-50/30 transition-all bg-white">
                         <div className="flex items-center gap-3">
                           <div className="flex flex-col items-center justify-center w-12 h-12 rounded-lg bg-blue-50 text-blue-700 border border-blue-100">
-                            <span className="text-[10px] font-bold uppercase">{item.time.split(' ')[1]}</span>
-                            <span className="text-sm font-black">{item.time.split(' ')[0]}</span>
+                            <span className="text-[10px] font-bold uppercase">{item.time?.includes(' ') ? item.time.split(' ')[1] : 'AM'}</span>
+                            <span className="text-sm font-black">{item.time?.includes(' ') ? item.time.split(' ')[0] : (item.time || '--:--')}</span>
                           </div>
                           <div>
                             <div onClick={() => onPatientClick?.(item.patientId)} className="text-sm font-bold text-slate-900 cursor-pointer hover:text-blue-600">{item.patient}</div>

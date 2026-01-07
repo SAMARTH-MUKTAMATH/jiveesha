@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, Download, Share2, TrendingUp, TrendingDown,
@@ -7,7 +7,7 @@ import {
     Dumbbell, Music, TreePine, Palette, Gamepad2, AlertCircle,
     Loader2, FileText
 } from 'lucide-react';
-import Layout from '../components/Layout';
+
 import pepService from '../services/pep.service';
 import type { PEP, PEPProgressData } from '../services/pep.service';
 
@@ -172,20 +172,20 @@ export default function PEPProgress() {
 
     if (loading) {
         return (
-            <Layout>
+            <>
                 <div className="flex items-center justify-center min-h-[60vh]">
                     <div className="text-center">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2563EB] mx-auto"></div>
                         <p className="mt-4 text-slate-600">Loading progress...</p>
                     </div>
                 </div>
-            </Layout>
+            </>
         );
     }
 
     if (!pep || !progressData) {
         return (
-            <Layout>
+            <>
                 <div className="flex items-center justify-center min-h-[60vh]">
                     <div className="text-center">
                         <AlertCircle className="mx-auto text-red-500 mb-4" size={48} />
@@ -199,12 +199,12 @@ export default function PEPProgress() {
                         </button>
                     </div>
                 </div>
-            </Layout>
+            </>
         );
     }
 
     return (
-        <Layout>
+        <>
             <div className="w-full max-w-[1200px] mx-auto px-4 md:px-6 lg:px-8 py-6 space-y-6">
                 {/* Back Button */}
                 <button
@@ -271,8 +271,8 @@ export default function PEPProgress() {
                                     key={option.value}
                                     onClick={() => setDateRange(option.value as any)}
                                     className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${dateRange === option.value
-                                            ? 'bg-[#2563EB] text-white'
-                                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                        ? 'bg-[#2563EB] text-white'
+                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                                         }`}
                                 >
                                     {option.label}
@@ -407,9 +407,9 @@ export default function PEPProgress() {
                                     <div className="w-full bg-white/50 rounded-full h-3">
                                         <div
                                             className={`h-3 rounded-full transition-all duration-500 ${progress >= 80 ? 'bg-green-600' :
-                                                    progress >= 50 ? 'bg-blue-600' :
-                                                        progress >= 30 ? 'bg-yellow-600' :
-                                                            'bg-red-600'
+                                                progress >= 50 ? 'bg-blue-600' :
+                                                    progress >= 30 ? 'bg-yellow-600' :
+                                                        'bg-red-600'
                                                 }`}
                                             style={{ width: `${progress}%` }}
                                         ></div>
@@ -522,6 +522,6 @@ export default function PEPProgress() {
                     )}
                 </div>
             </div>
-        </Layout>
+        </>
     );
 }

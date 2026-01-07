@@ -38,6 +38,7 @@ export interface JournalEntry {
     // Tags & Mood
     tags: string[];
     mood?: 'happy' | 'neutral' | 'concerned' | 'celebrating';
+    createdByType?: 'clinician' | 'parent';
 }
 
 export interface CreateGeneralEntryData {
@@ -46,8 +47,9 @@ export interface CreateGeneralEntryData {
     mediaUrls?: string[];
     tags?: string[];
     mood?: 'happy' | 'neutral' | 'concerned' | 'celebrating';
-    visibility?: 'private' | 'shared';
+    visibility?: 'private' | 'shared' | 'shared_with_team';
     title?: string;
+    entryType?: string;
 }
 
 export interface CreatePEPEntryData {
@@ -169,7 +171,7 @@ class JournalService {
             // Map to backend structure
             const payload = {
                 personId: data.childId,
-                entryType: 'observation', // Default backend type
+                entryType: data.entryType || 'observation', // Use passed entryType
                 title: data.title || 'Parent Entry', // Backend requires title
                 content: data.caption,
                 tags: data.tags,

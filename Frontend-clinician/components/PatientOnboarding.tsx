@@ -13,15 +13,17 @@ interface PatientOnboardingProps {
    onBack: () => void;
    onFinish: (id: string) => void;
    patientId?: string | null;
+   initialMethod?: 'token' | 'manual' | null;
 }
 
-const PatientOnboarding: React.FC<PatientOnboardingProps> = ({ onBack, onFinish, patientId }) => {
-   const [method, setMethod] = useState<'token' | 'manual' | null>(null);
+const PatientOnboarding: React.FC<PatientOnboardingProps> = ({ onBack, onFinish, patientId, initialMethod }) => {
+   const [method, setMethod] = useState<'token' | 'manual' | null>(initialMethod || null);
    const [step, setStep] = useState(1);
 
    // Token Flow State
    const [token, setToken] = useState(['', '', '', '', '', '', '', '']);
    const [tokenStatus, setTokenStatus] = useState<'idle' | 'validating' | 'success'>('idle');
+   const [validatedData, setValidatedData] = useState<any>(null);
    const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
    // Manual Flow State
@@ -77,9 +79,54 @@ const PatientOnboarding: React.FC<PatientOnboardingProps> = ({ onBack, onFinish,
       if (value && index < 7) inputRefs.current[index + 1]?.focus();
    };
 
-   const handleTokenSubmit = () => {
+   const handleTokenSubmit = async () => {
       setTokenStatus('validating');
-      setTimeout(() => setTokenStatus('success'), 1500);
+      try {
+         const joinedToken = token.slice(0, 4).join('') + '-' + token.slice(4).join('');
+         const response = await apiClient.validateConsentToken(joinedToken);
+         if (response.success && response.data) {
+            setValidatedData(response.data);
+            setTokenStatus('success');
+         } else {
+            alert('Invalid or expired token. Please check and try again.');
+            setTokenStatus('idle');
+         }
+      } catch (e) {
+         console.error('Validation error:', e);
+         alert('Failed to validate token. Please try again.');
+         setTokenStatus('idle');
+      }
+   };
+
+   const handleAcceptToken = async () => {
+      if (!validatedData || !validatedData.token) return;
+
+      const confirmed = window.confirm(`Are you sure you want to add ${validatedData?.patient?.firstName} ${validatedData?.patient?.lastName} to your caseload?`);
+      if (!confirmed) return;
+
+      try {
+         setTokenStatus('validating'); // Re-use validating state for the claim process
+         const response = await apiClient.claimAccessGrant(validatedData.token);
+
+         if (response.success) {
+            // Map to format confirmed by success screen expectation
+            setCreatedPatient({
+               id: validatedData.patient.id,
+               first_name: validatedData.patient.firstName,
+               last_name: validatedData.patient.lastName
+            });
+            setShowSuccess(true);
+            // Dispatch refresh event
+            window.dispatchEvent(new CustomEvent('patientAdded'));
+         } else {
+            alert('Failed to claim access: ' + (response.error?.message || 'Unknown error'));
+            setTokenStatus('success'); // Return to preview state
+         }
+      } catch (e) {
+         console.error('Claim error:', e);
+         alert('Failed to complete access claim. Please try again.');
+         setTokenStatus('success');
+      }
    };
 
    const handleManualNext = async () => {
@@ -295,21 +342,23 @@ const PatientOnboarding: React.FC<PatientOnboardingProps> = ({ onBack, onFinish,
                         <div className="bg-slate-50 rounded-3xl p-6 border border-slate-200 mb-8">
                            <div className="flex items-center gap-4 mb-6">
                               <div className="w-16 h-16 rounded-2xl bg-white border-2 border-slate-100 overflow-hidden shadow-sm">
-                                 <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Rivera" className="w-full h-full object-cover" />
+                                 <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${validatedData?.patient?.firstName || 'User'}`} className="w-full h-full object-cover" />
                               </div>
                               <div>
-                                 <h3 className="text-lg font-black text-slate-900">Aarav Kumar</h3>
-                                 <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">7 years • Male • #DAI-8291</p>
+                                 <h3 className="text-lg font-black text-slate-900">{validatedData?.patient?.fullName}</h3>
+                                 <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">
+                                    {validatedData?.patient?.gender} • #{validatedData?.patient?.id?.slice(0, 8).toUpperCase()}
+                                 </p>
                               </div>
                            </div>
                            <div className="space-y-3">
                               <div className="flex justify-between text-xs font-medium">
                                  <span className="text-slate-400 font-bold uppercase tracking-widest">Parent</span>
-                                 <span className="text-slate-800 font-bold">Mrs. Priya Kumar (Mother)</span>
+                                 <span className="text-slate-800 font-bold">{validatedData?.parent?.name} ({validatedData?.parent?.email})</span>
                               </div>
                               <div className="flex justify-between text-xs font-medium">
-                                 <span className="text-slate-400 font-bold uppercase tracking-widest">School</span>
-                                 <span className="text-slate-800 font-bold">Delhi Public School</span>
+                                 <span className="text-slate-400 font-bold uppercase tracking-widest">Access</span>
+                                 <span className="text-slate-800 font-bold capitalize">{validatedData?.accessLevel}</span>
                               </div>
                               <div className="h-px bg-slate-200 my-2" />
                               <div className="flex gap-2">
@@ -328,7 +377,20 @@ const PatientOnboarding: React.FC<PatientOnboardingProps> = ({ onBack, onFinish,
 
                         <div className="flex gap-4">
                            <button onClick={() => setTokenStatus('idle')} className="flex-1 h-12 border-2 border-slate-200 text-slate-500 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-slate-50">Back</button>
-                           <button onClick={() => setShowSuccess(true)} className="flex-[2] h-12 bg-[#2563EB] text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-blue-700 shadow-lg shadow-blue-100">Accept & Add Patient</button>
+                           <button
+                              onClick={handleAcceptToken}
+                              disabled={tokenStatus === 'validating'}
+                              className="flex-[2] h-12 bg-[#2563EB] text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-blue-700 shadow-lg shadow-blue-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                           >
+                              {tokenStatus === 'validating' ? (
+                                 <>
+                                    <Loader2 className="animate-spin" size={16} />
+                                    Processing...
+                                 </>
+                              ) : (
+                                 'Accept & Add Patient'
+                              )}
+                           </button>
                         </div>
                      </div>
                   )}

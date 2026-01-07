@@ -28,9 +28,7 @@ import ReportGenerator from './components/ReportGenerator';
 import ReportsLibrary from './components/ReportsLibrary';
 import ReportViewer from './components/ReportViewer';
 import IEPView from './components/IEPView';
-import PatientJournal from './components/PatientJournal';
 import MessagesCenter from './components/MessagesCenter';
-import CaseTriage from './components/CaseTriage';
 import ConsultationManager from './components/ConsultationManager';
 import SettingsProfile from './components/SettingsProfile';
 import HelpCenter from './components/HelpCenter';
@@ -46,7 +44,9 @@ import Footer from './components/Footer';
 
 const App: React.FC = () => {
   // views: 'welcome', 'login', 'signup', 'dashboard', 'credentials', 'registry', 'profile', 'consent', 'diagnostics', 'assessment-isaa', 'assessment-asd-deep', 'assessment-adhd', 'assessment-glad', 'assessment-results-isaa', 'iep-builder', 'iep-view', 'interventions', 'intervention-detail', 'report-generator', 'reports-library', 'report-viewer', 'patient-journal', 'messages', 'case-triage', 'consultation-manager', 'settings', 'help', 'search', 'schedule', 'patient-onboarding', 'patient-discharge', 'appointment-booking', 'appointment-reschedule', 'component-demo'
-  const [view, setView] = useState<'welcome' | 'login' | 'signup' | 'dashboard' | 'credentials' | 'registry' | 'profile' | 'consent' | 'diagnostics' | 'assessment-isaa' | 'assessment-asd-deep' | 'assessment-adhd' | 'assessment-glad' | 'assessment-results-isaa' | 'iep-builder' | 'iep-view' | 'interventions' | 'intervention-detail' | 'report-generator' | 'reports-library' | 'report-viewer' | 'patient-journal' | 'messages' | 'case-triage' | 'consultation-manager' | 'settings' | 'help' | 'search' | 'schedule' | 'patient-onboarding' | 'patient-discharge' | 'appointment-booking' | 'appointment-reschedule' | 'component-demo'>('dashboard');
+  const [view, setView] = useState<'welcome' | 'login' | 'signup' | 'dashboard' | 'credentials' | 'registry' | 'profile' | 'consent' | 'diagnostics' | 'assessment-isaa' | 'assessment-asd-deep' | 'assessment-adhd' | 'assessment-glad' | 'assessment-results-isaa' | 'iep-builder' | 'iep-view' | 'interventions' | 'intervention-detail' | 'report-generator' | 'reports-library' | 'report-viewer' | 'messages' | 'case-triage' | 'consultation-manager' | 'settings' | 'help' | 'search' | 'schedule' | 'patient-onboarding' | 'patient-discharge' | 'appointment-booking' | 'appointment-reschedule' | 'component-demo'>('dashboard');
+  const [initialProfileTab, setInitialProfileTab] = useState<string | undefined>(undefined);
+  const [onboardingMethod, setOnboardingMethod] = useState<'token' | 'manual' | null>(null);
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const [step, setStep] = useState(1);
   const [licenseType, setLicenseType] = useState<string | null>(null);
@@ -83,8 +83,9 @@ const App: React.FC = () => {
     setView('login');
   };
 
-  const navigateToProfile = (id: string) => {
+  const navigateToProfile = (id: string, tab?: string) => {
     setSelectedPatientId(id);
+    setInitialProfileTab(tab);
     setView('profile');
   };
 
@@ -118,9 +119,12 @@ const App: React.FC = () => {
           onEditProfile={() => setView('settings')}
           onPatientClick={navigateToProfile}
           onMessagesClick={() => setView('messages')}
-          onTriageClick={() => setView('case-triage')}
           onScheduleClick={() => setView('schedule')}
-          onNewPatient={() => setView('patient-onboarding')}
+          onNewPatient={() => {
+            setSelectedPatientId(null);
+            setOnboardingMethod(null);
+            setView('patient-onboarding');
+          }}
           onEditPatientConsent={(patientId) => {
             setSelectedPatientId(patientId);
             setView('patient-onboarding');
@@ -134,11 +138,22 @@ const App: React.FC = () => {
     }
 
     if (view === 'registry') {
-      return <PatientRegistry onPatientClick={navigateToProfile} onNewPatient={() => setView('patient-onboarding')} />;
+      return <PatientRegistry onPatientClick={navigateToProfile} onNewPatient={() => {
+        setSelectedPatientId(null);
+        setOnboardingMethod(null);
+        setView('patient-onboarding');
+      }} />;
     }
 
     if (view === 'patient-onboarding') {
-      return <PatientOnboarding onBack={() => setView('registry')} onFinish={(id) => navigateToProfile(id)} patientId={selectedPatientId} />;
+      return (
+        <PatientOnboarding
+          onBack={() => setView('registry')}
+          onFinish={(id) => navigateToProfile(id)}
+          patientId={selectedPatientId}
+          initialMethod={onboardingMethod}
+        />
+      );
     }
 
     if (view === 'profile') {
@@ -146,7 +161,8 @@ const App: React.FC = () => {
         <PatientProfile
           onBack={() => setView('registry')}
           patientId={selectedPatientId}
-          onViewJournal={() => setView('patient-journal')}
+          initialTab={initialProfileTab}
+          onViewJournal={() => setInitialProfileTab('Journal')}
           onViewMessages={() => setView('messages')}
           onViewConsultations={() => setView('consultation-manager')}
           onDischarge={() => setView('patient-discharge')}
@@ -159,7 +175,17 @@ const App: React.FC = () => {
     }
 
     if (view === 'consent') {
-      return <ConsentCenter onBack={() => setView('dashboard')} patientId={selectedPatientId} />;
+      return (
+        <ConsentCenter
+          onBack={() => setView('dashboard')}
+          onRequestNewConsent={() => {
+            setSelectedPatientId(null);
+            setOnboardingMethod('token');
+            setView('patient-onboarding');
+          }}
+          patientId={selectedPatientId}
+        />
+      );
     }
 
     if (view === 'diagnostics') {
@@ -240,16 +266,9 @@ const App: React.FC = () => {
       return <ReportViewer onBack={() => setView('reports-library')} onNavigateToPatient={navigateToProfile} />;
     }
 
-    if (view === 'patient-journal') {
-      return <PatientJournal onBack={() => setView('profile')} />;
-    }
 
     if (view === 'messages') {
       return <MessagesCenter onBack={() => setView('dashboard')} onNavigate={handleGlobalNavigate} />;
-    }
-
-    if (view === 'case-triage') {
-      return <CaseTriage onBack={() => setView('dashboard')} />;
     }
 
     if (view === 'consultation-manager') {
@@ -305,16 +324,16 @@ const App: React.FC = () => {
 
   const visualStep = step === 1 ? 1 : (step < 3 ? 2 : 3);
   const isApproved = view === 'signup' && step === 4;
-  const isDashboardView = ['dashboard', 'credentials', 'registry', 'profile', 'consent', 'diagnostics', 'assessment-isaa', 'assessment-asd-deep', 'assessment-adhd', 'assessment-glad', 'assessment-results-isaa', 'iep-builder', 'iep-view', 'interventions', 'intervention-detail', 'report-generator', 'reports-library', 'report-viewer', 'patient-journal', 'messages', 'case-triage', 'consultation-manager', 'settings', 'help', 'search', 'schedule', 'patient-onboarding', 'patient-discharge', 'appointment-booking', 'appointment-reschedule', 'component-demo'].includes(view);
+  const isDashboardView = ['dashboard', 'credentials', 'registry', 'profile', 'consent', 'diagnostics', 'assessment-isaa', 'assessment-asd-deep', 'assessment-adhd', 'assessment-glad', 'assessment-results-isaa', 'iep-builder', 'iep-view', 'interventions', 'intervention-detail', 'report-generator', 'reports-library', 'report-viewer', 'messages', 'consultation-manager', 'settings', 'help', 'search', 'schedule', 'patient-onboarding', 'patient-discharge', 'appointment-booking', 'appointment-reschedule', 'component-demo'].includes(view);
   const isAssessmentMode = ['assessment-isaa', 'assessment-asd-deep', 'assessment-adhd', 'assessment-glad'].includes(view);
   const isDemoView = view === 'component-demo';
 
   const getActiveTab = () => {
-    if (view === 'registry' || view === 'profile' || view === 'report-generator' || view === 'patient-journal' || view === 'consultation-manager' || view === 'patient-onboarding' || view === 'patient-discharge' || view === 'appointment-booking' || view === 'appointment-reschedule') return 'Patients';
+    if (view === 'registry' || view === 'profile' || view === 'report-generator' || view === 'consultation-manager' || view === 'patient-onboarding' || view === 'patient-discharge' || view === 'appointment-booking' || view === 'appointment-reschedule') return 'Patients';
     if (view === 'consent') return 'Consent';
     if (view === 'diagnostics' || view === 'assessment-results-isaa' || isAssessmentMode) return 'Diagnostics';
     if (view === 'interventions' || view === 'iep-builder' || view === 'iep-view' || view === 'intervention-detail' || view === 'reports-library' || view === 'report-viewer') return 'Interventions';
-    if (view === 'dashboard' || view === 'credentials' || view === 'schedule' || view === 'case-triage') return 'Dashboard';
+    if (view === 'dashboard' || view === 'credentials' || view === 'schedule') return 'Dashboard';
     if (view === 'messages') return 'Messages';
     return '';
   };

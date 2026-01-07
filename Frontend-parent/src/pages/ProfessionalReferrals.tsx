@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, Search, Filter, User, Building2, Mail, Clock,
     Eye, MessageSquare, Trash2, CheckCircle2, AlertTriangle,
     XCircle, Calendar, Shield, FileText, Activity, TrendingUp, Edit
 } from 'lucide-react';
-import Layout from '../components/Layout';
+
 import { consentService } from '../services/consent.service';
 import type { Consent } from '../services/consent.service';
 
@@ -156,19 +156,19 @@ export default function ProfessionalReferrals() {
 
     if (loading) {
         return (
-            <Layout>
+            <>
                 <div className="flex items-center justify-center min-h-[60vh]">
                     <div className="text-center">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2563EB] mx-auto"></div>
                         <p className="mt-4 text-slate-600">Loading professionals...</p>
                     </div>
                 </div>
-            </Layout>
+            </>
         );
     }
 
     return (
-        <Layout>
+        <>
             <div className="w-full max-w-[1200px] mx-auto px-4 md:px-6 lg:px-8 py-6 space-y-8">
                 {/* Back Button */}
                 <button
@@ -581,6 +581,6 @@ export default function ProfessionalReferrals() {
                     </div>
                 </div>
             )}
-        </Layout>
+        </>
     );
 }

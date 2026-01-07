@@ -45,14 +45,42 @@ export const createJournalEntry = async (req: Request, res: Response) => {
         });
 
         let createdByName = 'Unknown';
-        let type = 'clinician';
+        let type = user?.role || 'clinician';
 
         if (user?.clinicianProfile) {
             createdByName = `${user.clinicianProfile.firstName} ${user.clinicianProfile.lastName}`;
-            type = 'clinician';
         } else if (user?.parent) {
-            createdByName = `${user.parent.firstName} ${user.parent.lastName}`;
-            type = 'parent';
+            // Fallback for safety, though registration creates clinicianProfile
+            createdByName = 'Parent';
+        }
+
+        // Verify access to personId
+        if (type === 'parent') {
+            const access = await prisma.parentChildView.findFirst({
+                where: {
+                    parentId: user?.parent?.id,
+                    personId
+                }
+            });
+            if (!access) {
+                return res.status(403).json({
+                    success: false,
+                    error: { code: 'ACCESS_DENIED', message: 'You do not have access to this child' }
+                });
+            }
+        } else if (type === 'clinician') {
+            const access = await prisma.clinicianPatientView.findFirst({
+                where: {
+                    clinicianId: userId,
+                    personId
+                }
+            });
+            if (!access) {
+                return res.status(403).json({
+                    success: false,
+                    error: { code: 'ACCESS_DENIED', message: 'You do not have access to this patient' }
+                });
+            }
         }
 
         // Create entry with attachments
@@ -109,6 +137,34 @@ export const createJournalEntry = async (req: Request, res: Response) => {
 export const getPatientJournalEntries = async (req: Request, res: Response) => {
     try {
         const { personId } = req.params;
+        const userId = (req as any).userId;
+        const role = (req as any).userRole; // Assuming role is in token
+
+        // Verify access
+        if (role === 'parent') {
+            const parent = await prisma.parent.findUnique({ where: { userId } });
+            const access = await prisma.parentChildView.findFirst({
+                where: { parentId: parent?.id, personId }
+            });
+            if (!access) {
+                return res.status(403).json({
+                    success: false,
+                    error: { code: 'ACCESS_DENIED', message: 'Access denied to this child' }
+                });
+            }
+        } else {
+            // Clinician check
+            const access = await prisma.clinicianPatientView.findFirst({
+                where: { clinicianId: userId, personId }
+            });
+            if (!access) {
+                return res.status(403).json({
+                    success: false,
+                    error: { code: 'ACCESS_DENIED', message: 'Access denied to this patient' }
+                });
+            }
+        }
+
         const {
             entryType,
             startDate,
@@ -446,6 +502,40 @@ export const getParentTimeline = async (req: Request, res: Response) => {
     try {
         const { personId } = req.params;
         const { limit = 50 } = req.query;
+        const userId = (req as any).userId;
+
+        // Verify parent has access to this child
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            include: { parent: true }
+        });
+
+        if (!user || !user.parent) {
+            return res.status(401).json({
+                success: false,
+                error: {
+                    code: 'UNAUTHORIZED',
+                    message: 'Parent profile required'
+                }
+            });
+        }
+
+        const access = await prisma.parentChildView.findFirst({
+            where: {
+                parentId: user.parent.id,
+                personId
+            }
+        });
+
+        if (!access) {
+            return res.status(403).json({
+                success: false,
+                error: {
+                    code: 'ACCESS_DENIED',
+                    message: 'You do not have access to this child\'s timeline'
+                }
+            });
+        }
 
         // 1. Get Journal Entries
         const journalEntries = await prisma.journalEntry.findMany({

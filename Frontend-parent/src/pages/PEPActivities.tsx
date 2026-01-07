@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, Plus, Search, Filter, CheckCircle2, Circle,
@@ -6,7 +6,7 @@ import {
     TreePine, Activity, Brain, Users, MessageCircle, Hand,
     Sparkles, AlertCircle, Loader2, Eye, BarChart3
 } from 'lucide-react';
-import Layout from '../components/Layout';
+
 import pepService from '../services/pep.service';
 import type { PEP, PEPActivity, CreateActivityData } from '../services/pep.service';
 
@@ -296,20 +296,20 @@ export default function PEPActivities() {
 
     if (loading) {
         return (
-            <Layout>
+            <>
                 <div className="flex items-center justify-center min-h-[60vh]">
                     <div className="text-center">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2563EB] mx-auto"></div>
                         <p className="mt-4 text-slate-600">Loading activities...</p>
                     </div>
                 </div>
-            </Layout>
+            </>
         );
     }
 
     if (!pep) {
         return (
-            <Layout>
+            <>
                 <div className="flex items-center justify-center min-h-[60vh]">
                     <div className="text-center">
                         <AlertCircle className="mx-auto text-red-500 mb-4" size={48} />
@@ -323,12 +323,12 @@ export default function PEPActivities() {
                         </button>
                     </div>
                 </div>
-            </Layout>
+            </>
         );
     }
 
     return (
-        <Layout>
+        <>
             <div className="w-full max-w-[1200px] mx-auto px-4 md:px-6 lg:px-8 py-6 space-y-6">
                 {/* Back Button */}
                 <button
@@ -911,6 +911,6 @@ export default function PEPActivities() {
                     </div>
                 )
             }
-        </Layout >
+        </>
     );
 }

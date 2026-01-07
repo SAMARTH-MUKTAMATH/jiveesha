@@ -30,18 +30,33 @@ export const authenticate = async (
         }
 
         // DEVELOPMENT MODE BYPASS - Allow dev-token for testing
-        if (process.env.NODE_ENV !== 'production' && token === 'dev-token') {
-            // Find or use the first clinician user
-            const clinician = await prisma.user.findFirst({
-                where: { role: 'clinician' },
-                select: { id: true, email: true, role: true }
-            });
+        if (process.env.NODE_ENV !== 'production') {
+            if (token === 'dev-token') {
+                // Find or use the first clinician user
+                const clinician = await prisma.user.findFirst({
+                    where: { role: 'clinician' },
+                    select: { id: true, email: true, role: true }
+                });
 
-            if (clinician) {
-                req.userId = clinician.id;
-                req.userEmail = clinician.email;
-                req.userRole = clinician.role;
-                return next();
+                if (clinician) {
+                    req.userId = clinician.id;
+                    req.userEmail = clinician.email;
+                    req.userRole = clinician.role;
+                    return next();
+                }
+            } else if (token === 'dev-token-parent') {
+                // Find or use the first parent user
+                const parent = await prisma.user.findFirst({
+                    where: { role: 'parent' },
+                    select: { id: true, email: true, role: true }
+                });
+
+                if (parent) {
+                    req.userId = parent.id;
+                    req.userEmail = parent.email;
+                    req.userRole = parent.role;
+                    return next();
+                }
             }
         }
 

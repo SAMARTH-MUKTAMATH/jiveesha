@@ -1,17 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-    ArrowLeft, Plus, Search, Filter, BookOpen, Calendar,
-    Image as ImageIcon, Video, FileText, Tag, Smile, Meh,
-    Frown, PartyPopper, Share2, Edit, Trash2, Eye, Sparkles,
-    CheckCircle2, Clock, Activity, TrendingUp, X, Upload,
+    ArrowLeft, Plus, Search, Filter, BookOpen, FileText, Trash2, Clock, TrendingUp,
     Star, AlertCircle, User
 } from 'lucide-react';
-import Layout from '../components/Layout';
+
 import journalService from '../services/journal.service';
 import childrenService from '../services/children.service';
-import type { JournalEntry, JournalFilters } from '../services/journal.service';
+import type { JournalEntry } from '../services/journal.service';
 import type { Child } from '../services/children.service';
+import AddJournalModal from '../components/AddJournalModal';
 
 type EntryTypeFilter = 'all' | 'general' | 'pep';
 
@@ -27,8 +25,6 @@ export default function JournalTimeline() {
 
     // Create Modal State
     const [showCreateModal, setShowCreateModal] = useState(false);
-    const [newEntryCaption, setNewEntryCaption] = useState('');
-    const [creating, setCreating] = useState(false);
 
     // Initial Load
     useEffect(() => {
@@ -101,32 +97,6 @@ export default function JournalTimeline() {
         setFilteredEntries(filtered);
     };
 
-    const handleCreateEntry = async () => {
-        if (!newEntryCaption.trim() || childFilter === 'all') return;
-
-        try {
-            setCreating(true);
-            await journalService.createGeneralEntry({
-                childId: childFilter,
-                caption: newEntryCaption,
-                mood: 'neutral',
-                tags: [], // Could add tag selector
-                visibility: 'shared'
-            });
-
-            // Reload
-            await loadJournal(childFilter);
-
-            setShowCreateModal(false);
-            setNewEntryCaption('');
-        } catch (error) {
-            console.error('Failed to create entry:', error);
-            alert('Failed to create entry');
-        } finally {
-            setCreating(false);
-        }
-    };
-
     const handleDeleteEntry = async (id: string) => {
         if (!confirm('Delete this journal entry?')) return;
 
@@ -136,6 +106,12 @@ export default function JournalTimeline() {
         } catch (error) {
             console.error('Failed to delete entry:', error);
             alert('Failed to delete entry. Please try again.');
+        }
+    };
+
+    const handleCreateSuccess = () => {
+        if (childFilter !== 'all') {
+            loadJournal(childFilter);
         }
     };
 
@@ -172,19 +148,19 @@ export default function JournalTimeline() {
 
     if (loading && children.length === 0) { // Only full page load on initial
         return (
-            <Layout>
+            <>
                 <div className="flex items-center justify-center min-h-[60vh]">
                     <div className="text-center">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2563EB] mx-auto"></div>
                         <p className="mt-4 text-slate-600">Loading journal...</p>
                     </div>
                 </div>
-            </Layout>
+            </>
         );
     }
 
     return (
-        <Layout>
+        <>
             <div className="w-full max-w-[900px] mx-auto px-4 md:px-6 lg:px-8 py-6 space-y-6">
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -350,41 +326,14 @@ export default function JournalTimeline() {
                 )}
             </div>
 
-            {/* Create Modal */}
             {showCreateModal && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in-95 duration-200">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-xl font-bold text-slate-900">New Journal Entry</h3>
-                            <button onClick={() => setShowCreateModal(false)} className="text-slate-400 hover:text-slate-600">
-                                <X size={24} />
-                            </button>
-                        </div>
-
-                        <div className="space-y-4">
-                            <div>
-                                <label className="text-sm font-semibold text-slate-700 mb-1.5 block">Observation / Note</label>
-                                <textarea
-                                    value={newEntryCaption}
-                                    onChange={(e) => setNewEntryCaption(e.target.value)}
-                                    rows={4}
-                                    className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 outline-none transition-all resize-none"
-                                    placeholder="What did you observe today?"
-                                />
-                            </div>
-
-                            <button
-                                onClick={handleCreateEntry}
-                                disabled={creating || !newEntryCaption.trim()}
-                                className="w-full mt-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                            >
-                                {creating ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div> : <CheckCircle2 size={18} />}
-                                <span>Save Entry</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <AddJournalModal
+                    children={children}
+                    initialChildId={childFilter === 'all' ? undefined : childFilter}
+                    onClose={() => setShowCreateModal(false)}
+                    onSuccess={handleCreateSuccess}
+                />
             )}
-        </Layout>
+        </>
     );
 }

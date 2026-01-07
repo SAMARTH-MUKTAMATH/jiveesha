@@ -23,6 +23,8 @@ const AppointmentBooking: React.FC<AppointmentBookingProps> = ({ onBack, onNavig
    const [format, setFormat] = useState<string>('In-Person');
    const [showSuccess, setShowSuccess] = useState(false);
    const [isSubmitting, setIsSubmitting] = useState(false);
+   const [searchQuery, setSearchQuery] = useState('');
+   const [isSearching, setIsSearching] = useState(false);
 
    // Fetch data
    useEffect(() => {
@@ -36,11 +38,12 @@ const AppointmentBooking: React.FC<AppointmentBookingProps> = ({ onBack, onNavig
             if (preSelectedPatientId) {
                const patientRes = await apiClient.getPatient(preSelectedPatientId);
                if (patientRes.success && patientRes.data) {
+                  const p = patientRes.data as any;
                   setPatient({
-                     name: patientRes.data.full_name,
-                     id: patientRes.data.id,
-                     age: `${patientRes.data.age} years`,
-                     avatar: patientRes.data.first_name // Seed for avatar
+                     name: p.full_name || p.fullName || `${p.first_name || p.firstName} ${p.last_name || p.lastName}`.trim() || 'Unknown Patient',
+                     id: p.id,
+                     age: `${p.age || 'N/A'} years`,
+                     avatar: p.first_name || p.firstName || 'User'
                   });
                }
             }
@@ -50,6 +53,23 @@ const AppointmentBooking: React.FC<AppointmentBookingProps> = ({ onBack, onNavig
       };
       loadData();
    }, [preSelectedPatientId]);
+
+   const handleSearch = async (query: string) => {
+      setSearchQuery(query);
+      if (query.length < 2) return;
+
+      setIsSearching(true);
+      try {
+         const res = await apiClient.getPatients({ search: query, limit: 10 });
+         if (res.success && res.data?.patients) {
+            setRecentPatients(res.data.patients);
+         }
+      } catch (e) {
+         console.error("Search failed", e);
+      } finally {
+         setIsSearching(false);
+      }
+   };
 
    // Mock Data
    const timeSlots = [
@@ -93,7 +113,7 @@ const AppointmentBooking: React.FC<AppointmentBookingProps> = ({ onBack, onNavig
 
          // 4. Payload
          const payload = {
-            patient_id: patient.id,
+            person_id: patient.id,
             date: dateObj.toISOString(),
             start_time: startTime24,
             end_time: endTime24,
@@ -217,27 +237,51 @@ const AppointmentBooking: React.FC<AppointmentBookingProps> = ({ onBack, onNavig
                      <div className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm space-y-4">
                         <div className="relative">
                            <Search className="absolute left-4 top-3.5 text-slate-400" size={20} />
-                           <input type="text" placeholder="Search patient by name or ID..." className="w-full h-12 pl-12 pr-4 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500 transition-all" />
+                           <input
+                              type="text"
+                              placeholder="Search patient by name or ID..."
+                              value={searchQuery}
+                              onChange={(e) => handleSearch(e.target.value)}
+                              className="w-full h-12 pl-12 pr-4 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500 transition-all"
+                           />
+                           {isSearching && (
+                              <div className="absolute right-4 top-3.5">
+                                 <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                              </div>
+                           )}
                         </div>
                         <div>
                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Recent Patients</p>
                            {recentPatients.length > 0 ? (
                               <div className="flex gap-4 overflow-x-auto pb-2">
-                                 {recentPatients.map((p, i) => (
-                                    <button
-                                       key={p.id}
-                                       onClick={() => setPatient({ name: p.full_name, id: p.id, age: `${p.age} years`, avatar: p.first_name })}
-                                       className="flex items-center gap-3 p-3 rounded-xl border border-slate-100 hover:border-blue-300 hover:bg-blue-50 transition-all min-w-[180px]"
-                                    >
-                                       <div className="w-10 h-10 rounded-lg bg-slate-100 overflow-hidden">
-                                          <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${p.first_name}`} className="w-full h-full object-cover" />
-                                       </div>
-                                       <div className="text-left">
-                                          <p className="text-xs font-bold text-slate-800 truncate max-w-[100px]">{p.full_name}</p>
-                                          <p className="text-[9px] font-bold text-slate-400">ID: {p.id.substring(0, 8)}...</p>
-                                       </div>
-                                    </button>
-                                 ))}
+                                 {recentPatients.map((p: any) => {
+                                    const firstName = p.first_name || p.firstName || '';
+                                    const lastName = p.last_name || p.lastName || '';
+                                    const fullName = p.full_name || p.fullName || `${firstName} ${lastName}`.trim() || 'Unknown Patient';
+                                    return (
+                                       <button
+                                          key={p.id}
+                                          onClick={() => {
+                                             setPatient({
+                                                name: fullName,
+                                                id: p.id,
+                                                age: `${p.age || 'N/A'} years`,
+                                                avatar: firstName
+                                             });
+                                             setSearchQuery('');
+                                          }}
+                                          className="flex items-center gap-3 p-3 rounded-xl border border-slate-100 hover:border-blue-300 hover:bg-blue-50 transition-all min-w-[180px]"
+                                       >
+                                          <div className="w-10 h-10 rounded-lg bg-slate-100 overflow-hidden">
+                                             <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${firstName}`} className="w-full h-full object-cover" />
+                                          </div>
+                                          <div className="text-left">
+                                             <p className="text-xs font-bold text-slate-800 truncate max-w-[100px]">{fullName}</p>
+                                             <p className="text-[9px] font-bold text-slate-400">ID: {p.id ? p.id.substring(0, 8) : '...'}...</p>
+                                          </div>
+                                       </button>
+                                    );
+                                 })}
                               </div>
                            ) : (
                               <div className="text-slate-400 text-xs italic py-2">No recent patients found.</div>

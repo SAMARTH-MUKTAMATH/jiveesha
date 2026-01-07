@@ -187,13 +187,27 @@ class PEPService {
             const response = await api.get(`/parent/pep/${pepId}/activities`);
 
             // Transform backend data to match frontend interface
-            const activities = response.data.data.map((activity: any) => ({
-                ...activity,
-                title: activity.activityName || activity.title,
-                category: activity.category || 'sports', // Default category if not provided
-                completed: activity.completionCount > 0 || activity.completed || false,
-                completedAt: activity.lastCompletedAt || activity.completedAt
-            }));
+            const isToday = (dateString?: string) => {
+                if (!dateString) return false;
+                const date = new Date(dateString);
+                const today = new Date();
+                return date.getDate() === today.getDate() &&
+                    date.getMonth() === today.getMonth() &&
+                    date.getFullYear() === today.getFullYear();
+            };
+
+            const activities = response.data.data.map((activity: any) => {
+                const completedAt = activity.lastCompletedAt || activity.completedAt;
+                const completedToday = isToday(completedAt);
+
+                return {
+                    ...activity,
+                    title: activity.activityName || activity.title,
+                    category: activity.category || 'sports',
+                    completed: (activity.completionCount > 0 || activity.completed) && completedToday,
+                    completedAt: completedAt
+                };
+            });
 
             return { success: true, data: activities };
         } catch (error) {

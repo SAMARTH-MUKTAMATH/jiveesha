@@ -10,52 +10,12 @@ import { apiClient } from '../services/api';
 
 interface ConsentCenterProps {
    onBack: () => void;
+   onRequestNewConsent: () => void;
    patientId?: string | null;
 }
 
-const ConsentCenter: React.FC<ConsentCenterProps> = ({ onBack, patientId }) => {
-   const [token, setToken] = useState(['', '', '', '', '', '', '', '']);
-   const [tokenStatus, setTokenStatus] = useState<'idle' | 'success' | 'error'>('idle');
+const ConsentCenter: React.FC<ConsentCenterProps> = ({ onBack, onRequestNewConsent, patientId }) => {
    const [expandedAccordion, setExpandedAccordion] = useState<number | null>(0);
-   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-
-   const handleTokenChange = (index: number, value: string) => {
-      if (value.length > 1) value = value.slice(-1);
-      const newToken = [...token];
-      newToken[index] = value.toUpperCase();
-      setToken(newToken);
-
-      if (value && index < 7) {
-         inputRefs.current[index + 1]?.focus();
-      }
-   };
-
-   const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
-      if (e.key === 'Backspace' && !token[index] && index > 0) {
-         inputRefs.current[index - 1]?.focus();
-      }
-   };
-
-   const [validatedData, setValidatedData] = useState<any>(null);
-
-   const validateToken = async () => {
-      // Format token as XXXX-XXXX (backend expects hyphen)
-      const fullToken = token.slice(0, 4).join('') + '-' + token.slice(4).join('');
-      if (token.join('').length !== 8) return;
-
-      try {
-         const response = await apiClient.validateConsentToken(fullToken);
-         if (response.success && response.data) {
-            setValidatedData(response.data);
-            setTokenStatus('success');
-         } else {
-            setTokenStatus('error');
-         }
-      } catch (error) {
-         console.error('Token validation failed:', error);
-         setTokenStatus('error');
-      }
-   };
 
    return (
       <div className="w-full animate-in fade-in duration-500 pb-20">
@@ -78,7 +38,10 @@ const ConsentCenter: React.FC<ConsentCenterProps> = ({ onBack, patientId }) => {
                         All consent management in Daira is HIPAA compliant. Data access is granular, auditable, and can be revoked at any time.
                      </div>
                   </div>
-                  <button className="flex items-center gap-2 px-6 py-3 bg-[#2563EB] text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-100">
+                  <button
+                     onClick={onRequestNewConsent}
+                     className="flex items-center gap-2 px-6 py-3 bg-[#2563EB] text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-100"
+                  >
                      <Plus size={20} /> Request New Consent
                   </button>
                </div>
@@ -135,115 +98,7 @@ const ConsentCenter: React.FC<ConsentCenterProps> = ({ onBack, patientId }) => {
 
                {/* Center Column (40%) - Validation & Pending */}
                <div className="flex-1 space-y-8">
-                  {/* Token Validation */}
-                  <div className="bg-white rounded-3xl border-2 border-slate-200 shadow-sm p-8">
-                     <h2 className="text-xl font-black text-slate-900 mb-2">Validate Consent Token</h2>
-                     <p className="text-sm text-slate-400 font-medium mb-8">Enter the 8-character token provided by the parent/guardian</p>
-
-                     <div className="flex items-center justify-center gap-2 mb-8">
-                        {token.map((char, i) => (
-                           <React.Fragment key={i}>
-                              <input
-                                 ref={el => inputRefs.current[i] = el}
-                                 type="text"
-                                 maxLength={1}
-                                 value={char}
-                                 onChange={(e) => handleTokenChange(i, e.target.value)}
-                                 onKeyDown={(e) => handleKeyDown(i, e)}
-                                 className="w-10 h-12 sm:w-12 sm:h-14 bg-slate-50 border-2 border-slate-200 rounded-xl text-center text-xl font-black text-[#2563EB] focus:border-[#2563EB] focus:ring-0 outline-none transition-all"
-                              />
-                              {i === 3 && <div className="w-4 h-0.5 bg-slate-300 rounded-full" />}
-                           </React.Fragment>
-                        ))}
-                     </div>
-
-                     {tokenStatus === 'idle' && (
-                        <button
-                           onClick={validateToken}
-                           className="w-full h-14 bg-[#2563EB] text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-blue-100 hover:bg-blue-700 transition-all"
-                        >
-                           Validate Token
-                        </button>
-                     )}
-
-                     {tokenStatus === 'success' && (
-                        <div className="space-y-6 animate-in zoom-in-95 duration-300">
-                           <div className="bg-green-50 border border-green-200 p-6 rounded-2xl flex flex-col items-center text-center gap-3">
-                              <div className="w-12 h-12 bg-green-500 text-white rounded-full flex items-center justify-center shadow-lg">
-                                 <CheckCircle2 size={24} />
-                              </div>
-                              <div>
-                                 <h4 className="text-lg font-black text-green-900">Token Validated Successfully</h4>
-                                 <p className="text-xs text-green-700 font-bold uppercase tracking-widest mt-1">Ready to grant access</p>
-                              </div>
-                           </div>
-                           <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5 space-y-4">
-                              <div className="grid grid-cols-2 gap-4 text-center sm:text-left">
-                                 <div>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Patient</p>
-                                    <p className="text-sm font-black text-slate-800">{validatedData?.childName || 'Unknown'}</p>
-                                 </div>
-                                 <div>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Parent</p>
-                                    <p className="text-sm font-black text-slate-800">{validatedData?.parentName || 'Unknown'}</p>
-                                 </div>
-                                 <div>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Access Level</p>
-                                    <p className="text-sm font-black text-blue-600 capitalize">{validatedData?.accessLevel || 'View'}</p>
-                                 </div>
-                                 <div>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Valid Until</p>
-                                    <p className="text-sm font-black text-slate-800">
-                                       {validatedData?.expiresAt ? new Date(validatedData.expiresAt).toLocaleDateString() : 'No Expiry'}
-                                    </p>
-                                 </div>
-                              </div>
-                           </div>
-                           <div className="flex gap-4">
-                              <button
-                                 onClick={async () => {
-                                    if (patientId) {
-                                       try {
-                                          await apiClient.updatePatient(patientId, { status: 'active' });
-                                          onBack(); // Navigate back to dashboard
-                                       } catch (error) {
-                                          console.error('Failed to update patient status:', error);
-                                       }
-                                    }
-                                 }}
-                                 className="flex-1 h-12 bg-green-600 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-green-700 transition-all shadow-lg shadow-green-100"
-                              >
-                                 Accept & Grant Access
-                              </button>
-                              <button onClick={() => setTokenStatus('idle')} className="px-6 h-12 border-2 border-slate-100 rounded-xl text-xs font-black text-slate-400 hover:text-slate-600 uppercase tracking-widest">Decline</button>
-                           </div>
-                        </div>
-                     )}
-
-                     {tokenStatus === 'error' && (
-                        <div className="animate-in shake duration-300">
-                           <div className="bg-red-50 border border-red-200 p-6 rounded-2xl flex flex-col items-center text-center gap-3">
-                              <div className="w-12 h-12 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg">
-                                 <XCircle size={24} />
-                              </div>
-                              <div>
-                                 <h4 className="text-lg font-black text-red-900">Invalid Token</h4>
-                                 <p className="text-sm text-red-600 font-medium leading-relaxed mt-1">This token is invalid, expired, or has already been used. Please ask the parent to generate a new token.</p>
-                              </div>
-                              <div className="flex gap-4 mt-4 w-full">
-                                 <button onClick={() => setTokenStatus('idle')} className="flex-1 py-3 bg-white border border-red-100 text-red-600 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-red-50">Try Another</button>
-                                 <button className="flex-1 py-3 bg-red-600 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-red-700">Contact Support</button>
-                              </div>
-                           </div>
-                        </div>
-                     )}
-
-                     <div className="mt-8 pt-8 border-t border-slate-50 flex items-center justify-center">
-                        <button className="flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-[#2563EB] transition-colors">
-                           <HelpCircle size={16} /> How to get a consent token?
-                        </button>
-                     </div>
-                  </div>
+                  {/* Token Validation Removed - Redirected to Onboarding */}
 
                   {/* Pending Consent Requests */}
                   <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">

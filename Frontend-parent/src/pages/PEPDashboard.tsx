@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, Plus, Search, Filter, TrendingUp, Target,
     Activity, Calendar, Archive, Trash2, CheckCircle2,
-    Clock, AlertCircle, Eye, Edit, ArchiveRestore
+    Clock, Eye, ArchiveRestore
 } from 'lucide-react';
-import Layout from '../components/Layout';
+
 import pepService from '../services/pep.service';
 import childrenService from '../services/children.service';
 import type { PEP } from '../services/pep.service';
@@ -172,19 +172,17 @@ export default function PEPDashboard() {
 
     if (loading) {
         return (
-            <Layout>
-                <div className="flex items-center justify-center min-h-[60vh]">
-                    <div className="text-center">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2563EB] mx-auto"></div>
-                        <p className="mt-4 text-slate-600">Loading PEPs...</p>
-                    </div>
+            <div className="flex items-center justify-center min-h-[60vh]">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2563EB] mx-auto"></div>
+                    <p className="mt-4 text-slate-600">Loading PEPs...</p>
                 </div>
-            </Layout>
+            </div>
         );
     }
 
     return (
-        <Layout>
+        <>
             <div className="w-full max-w-[1200px] mx-auto px-4 md:px-6 lg:px-8 py-6 space-y-8">
                 {/* Back Button */}
                 <button
@@ -410,7 +408,7 @@ export default function PEPDashboard() {
                                 onClick={() => setShowCreateModal(true)}
                                 className="px-6 py-3 bg-[#2563EB] text-white rounded-lg font-semibold hover:bg-blue-700 transition-all"
                             >
-                                Create First PEP
+                                create First PEP
                             </button>
                         )}
                     </div>
@@ -589,6 +587,6 @@ export default function PEPDashboard() {
                     </div>
                 </div>
             )}
-        </Layout>
+        </>
     );
 }
