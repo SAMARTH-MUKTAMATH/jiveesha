@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-    ArrowLeft, Download, Share2, Calendar, User, Activity,
+    ArrowLeft, Download, Share2, Calendar, User,
     CheckCircle2, AlertCircle, TrendingUp, FileText
 } from 'lucide-react';
 

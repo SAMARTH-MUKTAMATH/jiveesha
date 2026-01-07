@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, Edit, Trash2, Share2, Calendar, User, Activity,
-    FileText, TrendingUp, Heart, AlertCircle, CheckCircle2,
-    Clock, Download, Mail
+    FileText, TrendingUp, Heart, AlertCircle, CheckCircle2
 } from 'lucide-react';
 
 import childrenService from '../services/children.service';

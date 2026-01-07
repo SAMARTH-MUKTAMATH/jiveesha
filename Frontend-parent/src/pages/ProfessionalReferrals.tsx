@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, Search, Filter, User, Building2, Mail, Clock,
     Eye, MessageSquare, Trash2, CheckCircle2, AlertTriangle,
-    XCircle, Calendar, Shield, FileText, Activity, TrendingUp, Edit
+    XCircle, Calendar, Edit
 } from 'lucide-react';
 
 import { consentService } from '../services/consent.service';

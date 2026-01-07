@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, CheckCircle2, Calendar, Clock, StickyNote,
-    Image as ImageIcon, Video, Upload, Trash2, Plus,
-    TrendingUp, BarChart3, Sparkles, Edit, AlertCircle,
-    Loader2, X, Camera, FileText
+    Video, Upload, Trash2, Plus,
+    TrendingUp, Sparkles, Edit, AlertCircle,
+    Loader2, Camera, FileText
 } from 'lucide-react';
 
 import pepService from '../services/pep.service';

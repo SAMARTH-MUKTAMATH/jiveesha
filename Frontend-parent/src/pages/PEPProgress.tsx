@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-    ArrowLeft, Download, Share2, TrendingUp, TrendingDown,
+    ArrowLeft, Download, TrendingUp,
     Activity, Users, Brain, MessageCircle, Hand, Sparkles,
     Calendar, CheckCircle2, BarChart3, PieChart, Clock,
     Dumbbell, Music, TreePine, Palette, Gamepad2, AlertCircle,

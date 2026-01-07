@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
     ArrowLeft, Activity, Clock, Users, Baby, PlayCircle,
-    CheckCircle2, AlertCircle, Calendar
+    AlertCircle
 } from 'lucide-react';
 
 import screeningService from '../services/screening.service';

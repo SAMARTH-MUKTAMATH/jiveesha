@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { useNavigate } from 'react-router-dom';
 import { Heart, Users, FileText, Activity, ArrowRight, ChevronRight } from 'lucide-react';
 

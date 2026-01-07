@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, Save, X, Shield, Activity, TrendingUp, FileText,
-    CheckCircle2, Calendar, Clock, AlertCircle, Loader2, Edit,
+    CheckCircle2, Calendar, Clock, AlertCircle, Loader2,
     History, ToggleLeft, ToggleRight
 } from 'lucide-react';
 

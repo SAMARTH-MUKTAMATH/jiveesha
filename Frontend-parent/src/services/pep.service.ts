@@ -257,54 +257,9 @@ class PEPService {
     }
 
     // Activity Tracking Methods
-    private mockNotes: ActivityNote[] = [
-        {
-            id: 'note_1',
-            activityId: 'activity_1',
-            note: 'Emma showed great improvement today! She walked the whole beam without help.',
-            createdAt: '2024-12-20T10:30:00Z',
-        },
-        {
-            id: 'note_2',
-            activityId: 'activity_1',
-            note: 'Started with wider beam, moved to narrow beam after 5 minutes.',
-            createdAt: '2024-12-18T14:15:00Z',
-        },
-    ];
 
-    private mockMedia: ActivityMedia[] = [
-        {
-            id: 'media_1',
-            activityId: 'activity_1',
-            type: 'photo',
-            url: 'https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=400',
-            caption: 'First successful walk!',
-            uploadedAt: '2024-12-20T10:35:00Z',
-        },
-    ];
 
-    private mockCompletions: ActivityCompletion[] = [
-        {
-            id: 'completion_1',
-            activityId: 'activity_1',
-            completedAt: '2024-12-20T10:30:00Z',
-            duration: 15,
-            notes: 'Excellent session! No assistance needed.',
-        },
-        {
-            id: 'completion_2',
-            activityId: 'activity_1',
-            completedAt: '2024-12-18T14:00:00Z',
-            duration: 20,
-            notes: 'Needed some help at first but improved.',
-        },
-        {
-            id: 'completion_3',
-            activityId: 'activity_1',
-            completedAt: '2024-12-15T11:00:00Z',
-            duration: 10,
-        },
-    ];
+
 
     async getActivityDetails(pepId: string, activityId: string): Promise<{
         success: boolean;

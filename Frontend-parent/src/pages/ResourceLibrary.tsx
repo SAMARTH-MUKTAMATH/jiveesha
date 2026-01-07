@@ -2,12 +2,12 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, Search, Filter, FileText, Video, Download,
-    Link as LinkIcon, Wrench, Heart, ExternalLink, Eye,
-    Calendar, User, Clock, HardDrive, Star, Share2, BookOpen
+    Link as LinkIcon, Wrench, Heart, ExternalLink, Eye, BookOpen,
+    Calendar, User, HardDrive
 } from 'lucide-react';
 
 import resourceService from '../services/resource.service';
-import type { Resource, ResourceFilters } from '../services/resource.service';
+import type { Resource } from '../services/resource.service';
 
 type CategoryFilter = 'all' | 'article' | 'video' | 'document' | 'tool' | 'link';
 

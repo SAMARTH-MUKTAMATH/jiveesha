@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { CheckCircle, Copy, Mail, X } from 'lucide-react';
+import { useState } from 'react';
+import { CheckCircle, Copy, X } from 'lucide-react';
 
 interface Props {
     token: string;

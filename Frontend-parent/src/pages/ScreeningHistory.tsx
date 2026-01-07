@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, Activity, Calendar, Eye, Download, Share2,
-    CheckCircle2, Clock, AlertCircle, Filter, Search
+    CheckCircle2, Clock, AlertCircle, Filter
 } from 'lucide-react';
 
 import screeningService from '../services/screening.service';

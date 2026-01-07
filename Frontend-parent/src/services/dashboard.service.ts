@@ -1,3 +1,5 @@
+import api from './api';
+
 export interface DashboardStats {
     activeScreenings: number;
     pepsDue: number;

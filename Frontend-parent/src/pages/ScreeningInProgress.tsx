@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-    ArrowLeft, Save, X, CheckCircle2, AlertCircle, Loader2
+    Save, X, CheckCircle2, AlertCircle, Loader2
 } from 'lucide-react';
 
 import screeningService from '../services/screening.service';

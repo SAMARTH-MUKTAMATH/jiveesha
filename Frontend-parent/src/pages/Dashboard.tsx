@@ -8,19 +8,14 @@ import {
 import childrenService from '../services/children.service';
 import type { Child } from '../services/children.service';
 import dashboardService from '../services/dashboard.service';
-import type { DashboardStats, SkillProgress, RecentActivity } from '../services/dashboard.service';
+import type { SkillProgress, RecentActivity } from '../services/dashboard.service';
 import authService from '../services/auth.service';
 
 export default function Dashboard() {
     const navigate = useNavigate();
     const [children, setChildren] = useState<Child[]>([]);
     const [selectedChild, setSelectedChild] = useState<Child | null>(null);
-    const [stats, setStats] = useState<DashboardStats>({
-        activeScreenings: 0,
-        pepsDue: 0,
-        newRecommendations: 0,
-        milestoneProgress: 0,
-    });
+
     const [skills, setSkills] = useState<SkillProgress[]>([]);
     const [activities, setActivities] = useState<RecentActivity[]>([]);
     const [loading, setLoading] = useState(true);
@@ -51,11 +46,7 @@ export default function Dashboard() {
 
     const loadChildStats = async (childId: string) => {
         try {
-            // Load stats
-            const statsRes = await dashboardService.getStats(childId);
-            if (statsRes.success) {
-                setStats(statsRes.data);
-            }
+
 
             // Load skill progress
             const skillsRes = await dashboardService.getSkillProgress(childId);

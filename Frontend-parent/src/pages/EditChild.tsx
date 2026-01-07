@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import {
     ArrowLeft, Save, X, User, Calendar, Users as GenderIcon,
-    FileText, Loader2, AlertCircle, Trash2, Camera
+    FileText, Loader2, AlertCircle, Trash2
 } from 'lucide-react';
 
 import childrenService from '../services/children.service';
