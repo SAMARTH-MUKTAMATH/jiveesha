@@ -43,11 +43,23 @@ const app: Application = express();
 app.use(helmet());
 
 // CORS configuration
+const allowedOrigins = [
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'http://localhost:5175',
+    'http://localhost:5176',
+    'http://localhost:5177',
+    'https://jiveesha.vercel.app'  // Production frontend
+];
+
+// Add custom origins from environment variable
+if (process.env.FRONTEND_URL) {
+    allowedOrigins.push(...process.env.FRONTEND_URL.split(',').map(url => url.trim()));
+}
+
 app.use(cors({
-    origin: (process.env.FRONTEND_URL
-        ? process.env.FRONTEND_URL.split(',').map(url => url.trim())
-        : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:5176']
-    ).concat(['http://localhost:5177']),
+    origin: allowedOrigins,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-User-ID']
