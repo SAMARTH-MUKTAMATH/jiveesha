@@ -54,7 +54,7 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
             data: {
                 email,
                 passwordHash,
-                profile: {
+                clinicianProfile: {
                     create: {
                         firstName,
                         lastName,
@@ -64,7 +64,7 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
                 }
             },
             include: {
-                profile: true
+                clinicianProfile: true
             }
         });
 
@@ -114,7 +114,7 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
         const user = await prisma.user.findUnique({
             where: { email },
             include: {
-                profile: true,
+                clinicianProfile: true,
                 credentials: {
                     where: { verificationStatus: 'verified' }
                 }
@@ -181,12 +181,12 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
                     email: user.email,
                     role: user.role,
                     status: user.status,
-                    profile: user.profile ? {
-                        first_name: user.profile.firstName,
-                        last_name: user.profile.lastName,
-                        professional_title: user.profile.professionalTitle,
-                        verification_status: user.profile.verificationStatus,
-                        photo_url: user.profile.photoUrl
+                    profile: user.clinicianProfile ? {
+                        first_name: user.clinicianProfile.firstName,
+                        last_name: user.clinicianProfile.lastName,
+                        professional_title: user.clinicianProfile.professionalTitle,
+                        verification_status: user.clinicianProfile.verificationStatus,
+                        photo_url: user.clinicianProfile.photoUrl
                     } : null
                 }
             }
@@ -307,7 +307,7 @@ export const getMe = async (req: AuthRequest, res: Response, next: NextFunction)
         const user = await prisma.user.findUnique({
             where: { id: req.userId },
             include: {
-                profile: true,
+                clinicianProfile: true,
                 credentials: {
                     select: {
                         id: true,
@@ -332,20 +332,20 @@ export const getMe = async (req: AuthRequest, res: Response, next: NextFunction)
                 role: user.role,
                 status: user.status,
                 email_verified: user.emailVerified,
-                profile: user.profile ? {
-                    first_name: user.profile.firstName,
-                    middle_name: user.profile.middleName,
-                    last_name: user.profile.lastName,
-                    professional_title: user.profile.professionalTitle,
-                    designation: user.profile.designation,
-                    specializations: user.profile.specializations,
-                    languages: user.profile.languages,
-                    phone: user.profile.phone,
-                    years_of_practice: user.profile.yearsOfPractice,
-                    bio: user.profile.bio,
-                    photo_url: user.profile.photoUrl,
-                    verification_status: user.profile.verificationStatus,
-                    verified_at: user.profile.verifiedAt
+                profile: user.clinicianProfile ? {
+                    first_name: user.clinicianProfile.firstName,
+                    middle_name: user.clinicianProfile.middleName,
+                    last_name: user.clinicianProfile.lastName,
+                    professional_title: user.clinicianProfile.professionalTitle,
+                    designation: user.clinicianProfile.designation,
+                    specializations: JSON.parse(user.clinicianProfile.specializations || '[]'),
+                    languages: JSON.parse(user.clinicianProfile.languages || '[]'),
+                    phone: user.clinicianProfile.phone,
+                    years_of_practice: user.clinicianProfile.yearsOfPractice,
+                    bio: user.clinicianProfile.bio,
+                    photo_url: user.clinicianProfile.photoUrl,
+                    verification_status: user.clinicianProfile.verificationStatus,
+                    verified_at: user.clinicianProfile.verifiedAt
                 } : null,
                 credentials: user.credentials.map(c => ({
                     id: c.id,
@@ -387,8 +387,8 @@ export const updateProfile = async (req: AuthRequest, res: Response, next: NextF
                 lastName: last_name,
                 professionalTitle: professional_title,
                 designation,
-                specializations: specializations || [],
-                languages: languages || [],
+                specializations: JSON.stringify(specializations || []),
+                languages: JSON.stringify(languages || []),
                 phone,
                 alternatePhone: alternate_phone,
                 dateOfBirth: date_of_birth ? new Date(date_of_birth) : null,
@@ -402,8 +402,8 @@ export const updateProfile = async (req: AuthRequest, res: Response, next: NextF
                 middleName: middle_name,
                 professionalTitle: professional_title,
                 designation,
-                specializations: specializations || [],
-                languages: languages || [],
+                specializations: JSON.stringify(specializations || []),
+                languages: JSON.stringify(languages || []),
                 phone,
                 alternatePhone: alternate_phone,
                 dateOfBirth: date_of_birth ? new Date(date_of_birth) : null,
@@ -432,8 +432,8 @@ export const updateProfile = async (req: AuthRequest, res: Response, next: NextF
                 last_name: profile.lastName,
                 professional_title: profile.professionalTitle,
                 designation: profile.designation,
-                specializations: profile.specializations,
-                languages: profile.languages,
+                specializations: JSON.parse(profile.specializations || '[]'),
+                languages: JSON.parse(profile.languages || '[]'),
                 phone: profile.phone,
                 alternate_phone: profile.alternatePhone,
                 date_of_birth: profile.dateOfBirth,

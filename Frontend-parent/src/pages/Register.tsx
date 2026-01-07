@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { Heart, User, Mail, Phone, Lock, Eye, EyeOff, Loader2, XCircle } from 'lucide-react';
@@ -11,6 +11,7 @@ interface RegisterFormData {
     password: string;
     confirmPassword: string;
     phone?: string;
+    relationshipToChild?: string;
 }
 
 export default function Register() {
@@ -57,6 +58,7 @@ export default function Register() {
                 firstName: data.firstName,
                 lastName: data.lastName,
                 phone: data.phone,
+                relationshipToChild: data.relationshipToChild,
                 preferredLanguage: 'en',
             };
 

@@ -21,6 +21,9 @@
     "paths": {
       "@/*": [
         "./*"
+      ],
+      "@common/*": [
+        "../common/*"
       ]
     },
     "allowImportingTsExtensions": true,

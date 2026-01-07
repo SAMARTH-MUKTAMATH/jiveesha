@@ -2,53 +2,35 @@ import { Response, NextFunction } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { AuthRequest } from '../middleware/auth';
 import { AppError } from '../middleware/errorHandler';
+import { toSnakeCase } from '../utils/case-transformer';
 
 const prisma = new PrismaClient();
 
 // Create appointment
 export const createAppointment = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
-        const {
-            patient_id,
-            date,
-            start_time,
-            end_time,
-            appointment_type,
-            format,
-            location_id,
-            notes
-        } = req.body;
+        const data = toSnakeCase(req.body);
 
-        if (!patient_id || !date || !start_time || !end_time || !appointment_type) {
+        if (!data.person_id || !data.date || !data.start_time || !data.end_time || !data.appointment_type) {
             throw new AppError('Missing required fields', 400, 'VALIDATION_ERROR');
         }
 
         const appointment = await prisma.appointment.create({
             data: {
-                patientId: patient_id,
+                personId: data.person_id,
                 clinicianId: req.userId!,
-                date: new Date(date),
-                startTime: start_time,
-                endTime: end_time,
-                appointmentType: appointment_type,
-                format: format || 'In-Person',
-                locationId: location_id,
-                notes,
+                date: new Date(data.date),
+                startTime: data.start_time,
+                endTime: data.end_time,
+                appointmentType: data.appointment_type,
+                format: data.format || 'In-Person',
+                locationId: data.location_id,
+                notes: data.notes,
                 status: 'scheduled'
             },
             include: {
-                patient: { select: { firstName: true, lastName: true } },
+                person: { select: { firstName: true, lastName: true } },
                 location: { select: { name: true } }
-            }
-        });
-
-        // Log activity
-        await prisma.patientActivityLog.create({
-            data: {
-                patientId: patient_id,
-                activityType: 'APPOINTMENT_SCHEDULED',
-                description: `${appointment_type} appointment scheduled for ${date}`,
-                createdBy: req.userId!
             }
         });
 
@@ -56,8 +38,8 @@ export const createAppointment = async (req: AuthRequest, res: Response, next: N
             success: true,
             data: {
                 id: appointment.id,
-                patient_id: appointment.patientId,
-                patient_name: `${appointment.patient.firstName} ${appointment.patient.lastName}`,
+                person_id: appointment.personId,
+                person_name: `${appointment.person.firstName} ${appointment.person.lastName}`,
                 date: appointment.date,
                 start_time: appointment.startTime,
                 end_time: appointment.endTime,
@@ -76,11 +58,11 @@ export const createAppointment = async (req: AuthRequest, res: Response, next: N
 // Get appointments
 export const getAppointments = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
-        const { patient_id, status, from_date, to_date } = req.query;
+        const { person_id, status, from_date, to_date } = req.query;
 
         const where: any = { clinicianId: req.userId };
 
-        if (patient_id) where.patientId = patient_id;
+        if (person_id) where.personId = person_id;
         if (status) where.status = status;
         if (from_date || to_date) {
             where.date = {};
@@ -91,7 +73,7 @@ export const getAppointments = async (req: AuthRequest, res: Response, next: Nex
         const appointments = await prisma.appointment.findMany({
             where,
             include: {
-                patient: { select: { id: true, firstName: true, lastName: true } },
+                person: { select: { id: true, firstName: true, lastName: true } },
                 location: { select: { name: true } }
             },
             orderBy: [{ date: 'asc' }, { startTime: 'asc' }]
@@ -124,7 +106,7 @@ export const getCalendarAppointments = async (req: AuthRequest, res: Response, n
                 }
             },
             include: {
-                patient: { select: { id: true, firstName: true, lastName: true } },
+                person: { select: { id: true, firstName: true, lastName: true } },
                 location: { select: { name: true } }
             },
             orderBy: [{ date: 'asc' }, { startTime: 'asc' }]
@@ -150,10 +132,8 @@ export const getAppointment = async (req: AuthRequest, res: Response, next: Next
         const appointment = await prisma.appointment.findFirst({
             where: { id, clinicianId: req.userId },
             include: {
-                patient: { select: { id: true, firstName: true, lastName: true } },
-                location: true,
-                participants: true,
-                history: { orderBy: { changedAt: 'desc' } }
+                person: { select: { id: true, firstName: true, lastName: true } },
+                location: true
             }
         });
 
@@ -165,9 +145,7 @@ export const getAppointment = async (req: AuthRequest, res: Response, next: Next
             success: true,
             data: {
                 ...formatAppointment(appointment),
-                location_details: appointment.location,
-                participants: appointment.participants,
-                history: appointment.history
+                location_details: appointment.location
             }
         });
     } catch (error) {
@@ -179,7 +157,7 @@ export const getAppointment = async (req: AuthRequest, res: Response, next: Next
 export const updateAppointment = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
-        const updates = req.body;
+        const updates = toSnakeCase(req.body);
 
         const existing = await prisma.appointment.findFirst({
             where: { id, clinicianId: req.userId }
@@ -202,18 +180,7 @@ export const updateAppointment = async (req: AuthRequest, res: Response, next: N
                 status: updates.status
             },
             include: {
-                patient: { select: { firstName: true, lastName: true } }
-            }
-        });
-
-        // Log history
-        await prisma.appointmentHistory.create({
-            data: {
-                appointmentId: id,
-                changeType: 'updated',
-                oldValue: JSON.stringify(existing),
-                changedBy: req.userId!,
-                reason: updates.reason
+                person: { select: { firstName: true, lastName: true } }
             }
         });
 
@@ -230,20 +197,10 @@ export const updateAppointment = async (req: AuthRequest, res: Response, next: N
 export const cancelAppointment = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
-        const { reason } = req.body;
 
         const appointment = await prisma.appointment.update({
             where: { id },
             data: { status: 'cancelled' }
-        });
-
-        await prisma.appointmentHistory.create({
-            data: {
-                appointmentId: id,
-                changeType: 'cancelled',
-                reason,
-                changedBy: req.userId!
-            }
         });
 
         res.json({
@@ -330,8 +287,8 @@ export const getAvailableSlots = async (req: AuthRequest, res: Response, next: N
 function formatAppointment(apt: any) {
     return {
         id: apt.id,
-        patient_id: apt.patientId,
-        patient_name: apt.patient ? `${apt.patient.firstName} ${apt.patient.lastName}` : null,
+        person_id: apt.personId,
+        person_name: apt.person ? `${apt.person.firstName} ${apt.person.lastName}` : null,
         date: apt.date,
         start_time: apt.startTime,
         end_time: apt.endTime,

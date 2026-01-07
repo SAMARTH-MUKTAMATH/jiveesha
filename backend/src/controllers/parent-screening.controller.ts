@@ -11,15 +11,15 @@ const prisma = new PrismaClient();
 export const startScreening = async (req: Request, res: Response) => {
     try {
         const userId = (req as any).userId;
-        const { patientId, screeningType, ageAtScreening } = req.body;
+        const { personId, screeningType, ageAtScreening } = req.body;
 
         // Validate
-        if (!patientId || !screeningType || !ageAtScreening) {
+        if (!personId || !screeningType || !ageAtScreening) {
             return res.status(400).json({
                 success: false,
                 error: {
                     code: 'VALIDATION_ERROR',
-                    message: 'patientId, screeningType, and ageAtScreening are required'
+                    message: 'personId, screeningType, and ageAtScreening are required'
                 }
             });
         }
@@ -41,12 +41,10 @@ export const startScreening = async (req: Request, res: Response) => {
         }
 
         // Verify access to child
-        const relationship = await prisma.parentChild.findUnique({
+        const relationship = await prisma.parentChildView.findFirst({
             where: {
-                parentId_patientId: {
-                    parentId: user.parent.id,
-                    patientId
-                }
+                parentId: user.parent.id,
+                personId
             }
         });
 
@@ -69,17 +67,18 @@ export const startScreening = async (req: Request, res: Response) => {
         };
 
         // Create screening
-        const screening = await prisma.parentScreening.create({
+        const screening = await prisma.screening.create({
             data: {
-                parentId: user.parent.id,
-                patientId,
+                conductedBy: user.parent.id,
+                conductedByType: 'parent',
+                personId,
                 screeningType,
                 ageAtScreening,
                 totalQuestions: totalQuestions[screeningType] || 20,
                 status: 'in_progress'
             },
             include: {
-                patient: {
+                person: {
                     select: {
                         id: true,
                         firstName: true,
@@ -114,7 +113,7 @@ export const getQuestions = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
 
-        const screening = await prisma.parentScreening.findUnique({
+        const screening = await prisma.screening.findUnique({
             where: { id }
         });
 
@@ -179,7 +178,7 @@ export const saveResponse = async (req: Request, res: Response) => {
         const { id } = req.params;
         const { questionId, answer, currentQuestion } = req.body;
 
-        const screening = await prisma.parentScreening.findUnique({
+        const screening = await prisma.screening.findUnique({
             where: { id }
         });
 
@@ -197,7 +196,7 @@ export const saveResponse = async (req: Request, res: Response) => {
         const responses = screening.responses ? JSON.parse(screening.responses as string) : {};
         responses[questionId] = answer;
 
-        await prisma.parentScreening.update({
+        await prisma.screening.update({
             where: { id },
             data: {
                 responses: JSON.stringify(responses),
@@ -230,7 +229,7 @@ export const completeScreening = async (req: Request, res: Response) => {
         const { id } = req.params;
         const { responses } = req.body;
 
-        const screening = await prisma.parentScreening.findUnique({
+        const screening = await prisma.screening.findUnique({
             where: { id }
         });
 
@@ -258,7 +257,7 @@ export const completeScreening = async (req: Request, res: Response) => {
                 scoreResult.screenerResult
             );
 
-            await prisma.parentScreening.update({
+            await prisma.screening.update({
                 where: { id },
                 data: {
                     responses: JSON.stringify(finalResponses),
@@ -281,7 +280,7 @@ export const completeScreening = async (req: Request, res: Response) => {
                 scoreResult.riskLevel
             );
 
-            await prisma.parentScreening.update({
+            await prisma.screening.update({
                 where: { id },
                 data: {
                     responses: JSON.stringify(finalResponses),
@@ -300,20 +299,11 @@ export const completeScreening = async (req: Request, res: Response) => {
         }
 
         // Log activity
-        await prisma.patientActivityLog.create({
-            data: {
-                patientId: screening.patientId,
-                activityType: 'screening_completed',
-                description: `Parent completed ${screening.screeningType} - Risk: ${scoreResult.riskLevel}`,
-                metadata: JSON.stringify({ screeningId: screening.id }),
-                createdBy: (req as any).userId
-            }
-        });
 
-        const updated = await prisma.parentScreening.findUnique({
+        const updated = await prisma.screening.findUnique({
             where: { id },
             include: {
-                patient: {
+                person: {
                     select: {
                         id: true,
                         firstName: true,
@@ -354,10 +344,10 @@ export const getResults = async (req: Request, res: Response) => {
             include: { parent: true }
         });
 
-        const screening = await prisma.parentScreening.findUnique({
+        const screening = await prisma.screening.findUnique({
             where: { id },
             include: {
-                patient: {
+                person: {
                     select: {
                         id: true,
                         firstName: true,
@@ -379,7 +369,7 @@ export const getResults = async (req: Request, res: Response) => {
         }
 
         // Verify ownership
-        if (screening.parentId !== user?.parent?.id) {
+        if (screening.conductedBy !== user?.parent?.id) {
             return res.status(403).json({
                 success: false,
                 error: {
@@ -417,12 +407,12 @@ export const getResults = async (req: Request, res: Response) => {
 
 /**
  * Get screening history for child (TYPE-AGNOSTIC)
- * GET /api/v1/parent/screening/child/:patientId
+ * GET /api/v1/parent/screening/child/:personId
  */
 export const getChildScreenings = async (req: Request, res: Response) => {
     try {
         const userId = (req as any).userId;
-        const { patientId } = req.params;
+        const { personId } = req.params;
         const { screeningType, status } = req.query;
 
         const user = await prisma.user.findUnique({
@@ -441,12 +431,10 @@ export const getChildScreenings = async (req: Request, res: Response) => {
         }
 
         // Verify access
-        const relationship = await prisma.parentChild.findUnique({
+        const relationship = await prisma.parentChildView.findFirst({
             where: {
-                parentId_patientId: {
-                    parentId: user.parent.id,
-                    patientId
-                }
+                parentId: user.parent.id,
+                personId
             }
         });
 
@@ -460,11 +448,11 @@ export const getChildScreenings = async (req: Request, res: Response) => {
             });
         }
 
-        const where: any = { patientId };
+        const where: any = { personId };
         if (screeningType) where.screeningType = screeningType as string;
         if (status) where.status = status as string;
 
-        const screenings = await prisma.parentScreening.findMany({
+        const screenings = await prisma.screening.findMany({
             where,
             orderBy: { startedAt: 'desc' }
         });
@@ -508,10 +496,10 @@ export const getMyScreenings = async (req: Request, res: Response) => {
             });
         }
 
-        const screenings = await prisma.parentScreening.findMany({
-            where: { parentId: user.parent.id },
+        const screenings = await prisma.screening.findMany({
+            where: { conductedBy: user.parent.id },
             include: {
-                patient: {
+                person: {
                     select: {
                         id: true,
                         firstName: true,
@@ -552,11 +540,11 @@ export const deleteScreening = async (req: Request, res: Response) => {
             include: { parent: true }
         });
 
-        const screening = await prisma.parentScreening.findUnique({
+        const screening = await prisma.screening.findUnique({
             where: { id }
         });
 
-        if (!screening || screening.parentId !== user?.parent?.id) {
+        if (!screening || screening.conductedBy !== user?.parent?.id) {
             return res.status(403).json({
                 success: false,
                 error: {
@@ -577,7 +565,7 @@ export const deleteScreening = async (req: Request, res: Response) => {
             });
         }
 
-        await prisma.parentScreening.delete({
+        await prisma.screening.delete({
             where: { id }
         });
 

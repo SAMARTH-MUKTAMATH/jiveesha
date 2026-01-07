@@ -7,7 +7,8 @@ import {
     deleteJournalEntry,
     addJournalAttachment,
     getEntriesByType,
-    getClinicianRecentEntries
+    getClinicianRecentEntries,
+    getParentTimeline
 } from '../controllers/journal.controller';
 import { authenticate } from '../middleware/auth';
 
@@ -18,7 +19,8 @@ router.use(authenticate);
 
 // Journal CRUD
 router.post('/', createJournalEntry);
-router.get('/patient/:patientId', getPatientJournalEntries);
+router.get('/patient/:patientId', getPatientJournalEntries); // For clinician view mostly
+router.get('/parent/timeline/:personId', getParentTimeline); // New unified parent view
 router.get('/clinician/recent', getClinicianRecentEntries);
 router.get('/type/:entryType', getEntriesByType);
 router.get('/:id', getJournalEntry);

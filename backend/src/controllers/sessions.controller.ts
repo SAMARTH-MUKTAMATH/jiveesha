@@ -11,75 +11,54 @@ export const createSession = async (req: Request, res: Response) => {
     try {
         const clinicianId = (req as any).userId;
         const {
-            patientId,
+            personId,
             sessionDate,
-            duration,
+            startTime,
+            endTime,
             sessionType,
             format,
-            location,
-            notes,
-            participants,
-            linkedGoalId,
-            linkedInterventionId,
-            templateUsed
+            objectives,
+            status
         } = req.body;
 
         // Validate required fields
-        if (!patientId || !sessionDate || !duration || !sessionType || !format) {
+        if (!personId || !sessionDate || !sessionType || !format) {
             return res.status(400).json({
                 success: false,
                 error: {
                     code: 'VALIDATION_ERROR',
                     message: 'Missing required fields',
-                    details: ['patientId, sessionDate, duration, sessionType, and format are required']
+                    details: ['personId, sessionDate, sessionType, and format are required']
                 }
             });
         }
 
-        // Create session with participants
+        // Create session
         const session = await prisma.consultationSession.create({
             data: {
-                patientId,
+                personId,
                 clinicianId,
                 sessionDate: new Date(sessionDate),
-                duration,
+                startTime: startTime || '09:00',
+                endTime: endTime || '10:00',
                 sessionType,
                 format,
-                location,
-                notes,
-                linkedGoalId,
-                linkedInterventionId,
-                templateUsed,
-                participants: {
-                    create: participants?.map((p: any) => ({
-                        participantType: p.type,
-                        participantName: p.name
-                    })) || []
-                }
+                objectives,
+                status: status || 'scheduled'
             },
             include: {
-                patient: {
+                person: {
                     select: {
                         id: true,
                         firstName: true,
                         lastName: true
                     }
                 },
-                participants: true,
                 attachments: true
             }
         });
 
         // Log activity
-        await prisma.patientActivityLog.create({
-            data: {
-                patientId,
-                activityType: 'session_logged',
-                description: `${sessionType} session logged`,
-                metadata: JSON.stringify({ sessionId: session.id }),
-                createdBy: clinicianId
-            }
-        });
 
         res.status(201).json({
             success: true,
@@ -99,25 +78,24 @@ export const createSession = async (req: Request, res: Response) => {
 
 /**
  * Get all sessions for a patient
- * GET /api/v1/sessions/patient/:patientId
+ * GET /api/v1/sessions/patient/:personId
  */
 export const getPatientSessions = async (req: Request, res: Response) => {
     try {
-        const { patientId } = req.params;
+        const { personId } = req.params;
         const { page = 1, limit = 20, sessionType } = req.query;
 
-        const where: any = { patientId };
+        const where: any = { personId };
         if (sessionType) where.sessionType = sessionType as string;
 
         const sessions = await prisma.consultationSession.findMany({
             where,
             include: {
-                participants: true,
                 attachments: true,
                 clinician: {
                     select: {
                         id: true,
-                        profile: {
+                        clinicianProfile: {
                             select: {
                                 firstName: true,
                                 lastName: true,
@@ -169,7 +147,7 @@ export const getSession = async (req: Request, res: Response) => {
         const session = await prisma.consultationSession.findUnique({
             where: { id },
             include: {
-                patient: {
+                person: {
                     select: {
                         id: true,
                         firstName: true,
@@ -179,10 +157,9 @@ export const getSession = async (req: Request, res: Response) => {
                 },
                 clinician: {
                     include: {
-                        profile: true
+                        clinicianProfile: true
                     }
                 },
-                participants: true,
                 attachments: true
             }
         });
@@ -225,7 +202,7 @@ export const updateSession = async (req: Request, res: Response) => {
         // Remove fields that shouldn't be updated directly
         delete updateData.id;
         delete updateData.createdAt;
-        delete updateData.patientId;
+        delete updateData.personId;
         delete updateData.clinicianId;
 
         const session = await prisma.consultationSession.update({
@@ -241,15 +218,6 @@ export const updateSession = async (req: Request, res: Response) => {
         });
 
         // Log activity
-        await prisma.patientActivityLog.create({
-            data: {
-                patientId: session.patientId,
-                activityType: 'session_updated',
-                description: 'Session notes updated',
-                metadata: JSON.stringify({ sessionId: session.id }),
-                createdBy: (req as any).userId
-            }
-        });
 
         res.json({
             success: true,
@@ -278,7 +246,7 @@ export const deleteSession = async (req: Request, res: Response) => {
         // Get session first to log activity
         const session = await prisma.consultationSession.findUnique({
             where: { id },
-            select: { patientId: true, sessionType: true }
+            select: { personId: true, sessionType: true }
         });
 
         if (!session) {
@@ -297,14 +265,6 @@ export const deleteSession = async (req: Request, res: Response) => {
         });
 
         // Log activity
-        await prisma.patientActivityLog.create({
-            data: {
-                patientId: session.patientId,
-                activityType: 'session_deleted',
-                description: `${session.sessionType} session deleted`,
-                createdBy: (req as any).userId
-            }
-        });
 
         res.json({
             success: true,
@@ -328,21 +288,10 @@ export const deleteSession = async (req: Request, res: Response) => {
  */
 export const getSessionTemplates = async (req: Request, res: Response) => {
     try {
-        const clinicianId = (req as any).userId;
-
-        const templates = await prisma.sessionTemplate.findMany({
-            where: {
-                OR: [
-                    { isGlobal: true },
-                    { createdBy: clinicianId }
-                ]
-            },
-            orderBy: { createdAt: 'desc' }
-        });
-
+        // Session templates not currently supported in this schema version
         res.json({
             success: true,
-            data: templates
+            data: []
         });
     } catch (error) {
         console.error('Get templates error:', error);
@@ -362,22 +311,13 @@ export const getSessionTemplates = async (req: Request, res: Response) => {
  */
 export const createSessionTemplate = async (req: Request, res: Response) => {
     try {
-        const clinicianId = (req as any).userId;
-        const { name, sessionType, templateContent, isGlobal } = req.body;
-
-        const template = await prisma.sessionTemplate.create({
-            data: {
-                name,
-                sessionType,
-                templateContent,
-                createdBy: clinicianId,
-                isGlobal: isGlobal || false
+        // Session templates not currently supported in this schema version
+        res.status(501).json({
+            success: false,
+            error: {
+                code: 'NOT_IMPLEMENTED',
+                message: 'Session templates are not currently supported'
             }
-        });
-
-        res.status(201).json({
-            success: true,
-            data: template
         });
     } catch (error) {
         console.error('Create template error:', error);
@@ -406,8 +346,7 @@ export const addSessionAttachment = async (req: Request, res: Response) => {
                 fileType,
                 fileName,
                 fileUrl,
-                fileSize,
-                description
+                fileSize
             }
         });
 
@@ -449,14 +388,13 @@ export const getClinicianSessions = async (req: Request, res: Response) => {
         const sessions = await prisma.consultationSession.findMany({
             where,
             include: {
-                patient: {
+                person: {
                     select: {
                         id: true,
                         firstName: true,
                         lastName: true
                     }
-                },
-                participants: true
+                }
             },
             orderBy: { sessionDate: 'desc' }
         });

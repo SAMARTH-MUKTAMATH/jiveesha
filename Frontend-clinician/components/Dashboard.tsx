@@ -9,11 +9,13 @@ import { apiClient } from '../services/api';
 
 interface DashboardProps {
   onManageCredentials?: () => void;
+  onEditProfile?: () => void;
   onPatientClick?: (id: string) => void;
   onMessagesClick?: () => void;
   onTriageClick?: () => void;
   onScheduleClick?: () => void;
   onNewPatient?: () => void;
+  onEditPatientConsent?: (patientId: string) => void;
 }
 
 interface DashboardStats {
@@ -24,7 +26,7 @@ interface DashboardStats {
   urgentAlerts: number;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ onManageCredentials, onPatientClick, onMessagesClick, onTriageClick, onScheduleClick, onNewPatient }) => {
+const Dashboard: React.FC<DashboardProps> = ({ onManageCredentials, onEditProfile, onPatientClick, onMessagesClick, onTriageClick, onScheduleClick, onNewPatient, onEditPatientConsent }) => {
   const [stats, setStats] = useState<DashboardStats>({
     totalPatients: 0,
     activePatients: 0,
@@ -34,95 +36,262 @@ const Dashboard: React.FC<DashboardProps> = ({ onManageCredentials, onPatientCli
   });
   const [worklist, setWorklist] = useState<any[]>([]);
   const [schedule, setSchedule] = useState<any[]>([]);
+  const [upcomingSchedule, setUpcomingSchedule] = useState<any[]>([]);
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<any>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
+  // Watch for changes in localStorage (when returning from settings)
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        // Fetch dashboard stats
-        const statsRes = await apiClient.getDashboardStats();
-        if (statsRes.success && statsRes.data) {
-          // Map snake_case from API to camelCase
-          setStats({
-            totalPatients: statsRes.data.total_patients || 0,
-            activePatients: statsRes.data.active_patients || 0,
-            todayAppointments: statsRes.data.today_appointments || 0,
-            pendingConsents: statsRes.data.pending_credentials || 0,
-            urgentAlerts: 0 // No triage system yet
-          });
-        }
+    const handleStorageChange = () => {
 
-        // Fetch pending tasks for worklist
-        const tasksRes = await apiClient.getPendingTasks();
-        if (tasksRes.success && tasksRes.data) {
-          setWorklist(tasksRes.data.map((task: any) => ({
-            id: task.id,
-            patientId: task.patient_id, // Use actual patient_id from API
-            priority: task.priority === 'high' ? 'HIGH' : task.priority === 'medium' ? 'MEDIUM' : 'LOW',
-            priorityColor: task.priority === 'high' ? 'bg-red-100 text-red-600' : task.priority === 'medium' ? 'bg-amber-100 text-amber-600' : 'bg-green-100 text-green-600',
-            name: task.title,
-            task: task.type.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()),
-            due: task.date ? new Date(task.date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : 'Today',
-            action: task.type === 'upcoming_appointment' ? 'View' : 'Start'
-          })));
-        }
+      const cachedUser = localStorage.getItem('user');
+      const updatedAt = localStorage.getItem('updatedAt');
+      if (cachedUser) {
+        try {
+          const parsedUser = JSON.parse(cachedUser);
 
-        // Fetch today's schedule
-        const scheduleRes = await apiClient.getTodaySchedule();
-        if (scheduleRes.success && scheduleRes.data) {
-          setSchedule(scheduleRes.data.map((apt: any) => ({
-            id: apt.id,
-            patientId: apt.patient_id,
-            time: apt.start_time,
-            patient: apt.patient_name,
-            type: apt.appointment_type || 'Appointment',
-            format: apt.format || 'In-person',
-            location: apt.location,
-            status: apt.status,
-            active: apt.status === 'in_progress'
-          })));
-        }
-
-        // Fetch recent activity
-        const activityRes = await apiClient.getRecentActivity();
-        if (activityRes.success && activityRes.data) {
-          setRecentActivity(activityRes.data.map((act: any) => ({
-            id: act.resource_id || act.id,
-            color: getActivityColor(act.action),
-            title: act.description || act.action,
-            time: formatRelativeTime(new Date(act.created_at)),
-            detail: `${act.resource_type || ''} ${act.action}`.trim(),
-            action: getActivityAction(act.resource_type)
-          })));
-        }
-
-        // Fallback: If no tasks from API, fetch patients directly
-        if (!tasksRes.data?.length) {
-          const patientsRes = await apiClient.getPatients({ limit: 4 });
-          if (patientsRes.success && patientsRes.data?.patients) {
-            setWorklist(patientsRes.data.patients.map((p: any) => ({
-              id: p.id,
-              patientId: p.id,
-              priority: 'MEDIUM',
-              priorityColor: 'bg-amber-100 text-amber-600',
-              name: p.full_name || `${p.first_name} ${p.last_name}`,
-              age: p.age ? `${p.age} yrs` : '',
-              task: 'Review Patient',
-              due: 'Today',
-              action: 'View'
-            })));
+          setUser(parsedUser);
+          // Force a refresh if profile was recently updated
+          if (updatedAt) {
+            const updateTime = new Date(updatedAt).getTime();
+            const now = new Date().getTime();
+            if (now - updateTime < 10000) { // Updated within last 10 seconds
+              console.log('[Dashboard] Recent update detected, refreshing...');
+              setRefreshKey(prev => prev + 1);
+            }
           }
+        } catch (e) {
+          console.error('Failed to parse cached user');
         }
-      } catch (error) {
-        console.error('Failed to fetch dashboard data:', error);
-      } finally {
-        setLoading(false);
       }
     };
 
-    fetchDashboardData();
+    const handleProfileUpdate = (event: CustomEvent) => {
+      console.log('[Dashboard] Profile update event received:', event.detail);
+      setUser(event.detail);
+      setRefreshKey(prev => prev + 1);
+    };
+
+    const handlePatientAdded = () => {
+      console.log('✅ [Dashboard] "patientAdded" event received! Triggering refresh...');
+      // Force re-fetch by updating refreshKey
+      setRefreshKey(prev => prev + 1);
+      // Also manually call fetch to be sure
+      fetchDashboardData();
+    };
+
+    // Check immediately on mount
+    handleStorageChange();
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('profileUpdated', handleProfileUpdate as EventListener);
+    window.addEventListener('patientAdded', handlePatientAdded as EventListener);
+    // Also check on component visibility change (when coming back from another view)
+    window.addEventListener('visibilitychange', handleStorageChange);
+    // Check on focus (when returning to tab)
+    window.addEventListener('focus', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('profileUpdated', handleProfileUpdate as EventListener);
+      window.removeEventListener('patientAdded', handlePatientAdded as EventListener);
+      window.removeEventListener('visibilitychange', handleStorageChange);
+      window.removeEventListener('focus', handleStorageChange);
+    };
   }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      // Set mock token for testing (since auth is bypassed)
+      if (!localStorage.getItem('access_token')) {
+        const mockToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxIiwiZW1haWwiOiJ0ZXN0QHRlc3QuY29tIiwicm9sZSI6ImNsaW5pY2lhbiJ9.test';
+        localStorage.setItem('access_token', mockToken);
+      }
+
+      // Fetch user profile
+      const userResponse = await apiClient.getMe();
+      if (userResponse.success && userResponse.data) {
+        setUser(userResponse.data);
+        // Sync to localStorage and notify other components
+        localStorage.setItem('user', JSON.stringify(userResponse.data));
+        window.dispatchEvent(new CustomEvent('profileUpdated', { detail: userResponse.data }));
+      }
+
+      // Fetch dashboard stats
+      // Fetch fresh patients list for real-time stats (more reliable than stats endpoint for now)
+      const patientsRes = await apiClient.getPatients();
+
+      let total = 0;
+      let active = 0;
+
+      if (patientsRes.success && patientsRes.data) {
+        // Handle both response structures just in case (api.ts says it returns { patients: [] })
+        const patientsList = Array.isArray(patientsRes.data) ? patientsRes.data : patientsRes.data.patients;
+
+        if (Array.isArray(patientsList)) {
+          // Log first patient to see structure
+          if (patientsList.length > 0) {
+            console.log('[Dashboard] First patient sample:', patientsList[0]);
+          }
+
+          total = patientsList.length;
+
+          const checkStatus = (p: any, statusType: string) => {
+            const val = (p.case_status || p.caseStatus || p.status || '').toLowerCase();
+            return val === statusType;
+          };
+
+          active = patientsList.filter((p: any) => checkStatus(p, 'active') || checkStatus(p, 'pending')).length;
+
+          // Calculate pending consents specifically
+          const pending = patientsList.filter((p: any) => checkStatus(p, 'pending')).length;
+
+          console.log(`[Dashboard] Real-time stats: ${total} total, ${active} active, ${pending} pending consents`);
+
+          setStats(prev => ({
+            ...prev,
+            totalPatients: total,
+            activePatients: active,
+            pendingConsents: pending
+          }));
+        }
+      } else {
+        // Fallback to stats endpoint if patients list fails
+        const statsRes = await apiClient.getDashboardStats();
+        if (statsRes.success && statsRes.data) {
+          total = statsRes.data.total_patients || 0;
+          active = statsRes.data.active_patients || 0;
+        }
+      }
+
+      setStats(prev => ({
+        ...prev,
+        totalPatients: total,
+        activePatients: active,
+      }));
+
+
+      // Fetch pending tasks for worklist
+      const tasksRes = await apiClient.getPendingTasks();
+      if (tasksRes.success && tasksRes.data) {
+        // Handle flat array from backend
+        if (Array.isArray(tasksRes.data)) {
+          // Extract upcoming appointments first
+          const upcoming = tasksRes.data
+            .filter((t: any) => t.type === 'upcoming_appointment')
+            .map((t: any) => ({
+              id: t.id,
+              patientId: t.personId || t.patientId || t.person_id || t.patient_id,
+              patient: t.title?.replace(/^Appointment with /, ''),
+              type: 'Appointment',
+              date: t.date,
+              time: t.date ? new Date(t.date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : 'TBD', // Format time from date
+              format: 'In-person', // Default since tasks doesn't have format
+              active: false
+            }));
+
+          setUpcomingSchedule(upcoming);
+
+          // Filter for worklist (excluding appointments)
+          const mappedTasks = tasksRes.data.map((task: any) => {
+            // Map based on task type
+            switch (task.type) {
+              case 'new_patient_review':
+                return {
+                  id: task.id,
+                  patientId: task.personId || task.patientId || task.person_id || task.patient_id,
+                  priority: 'HIGH',
+                  priorityColor: 'bg-red-100 text-red-600',
+                  name: task.title,
+                  task: 'NEW PATIENT',
+                  due: 'Action Required',
+                  action: 'Review',
+                  isReview: true
+                };
+              case 'credential_verification':
+                return {
+                  id: task.id,
+                  patientId: '',
+                  priority: 'HIGH',
+                  priorityColor: 'bg-red-100 text-red-600',
+                  name: task.title,
+                  task: 'CREDENTIAL',
+                  due: 'Pending',
+                  action: 'Verify'
+                };
+              case 'incomplete_assessment':
+                return {
+                  id: task.id,
+                  patientId: task.personId || task.patientId || task.person_id || task.patient_id,
+                  priority: 'MEDIUM',
+                  priorityColor: 'bg-amber-100 text-amber-600',
+                  name: task.title,
+                  task: 'ASSESSMENT',
+                  due: 'In Progress',
+                  action: 'Continue'
+                };
+              // Upcoming appointments are handled separately above
+              default:
+                return null;
+            }
+          }).filter(Boolean); // Remove nulls
+
+          setWorklist(mappedTasks);
+        } else {
+          setWorklist([]);
+        }
+      }
+
+      // Fetch today's schedule
+      const scheduleRes = await apiClient.getTodaySchedule();
+      if (scheduleRes.success && scheduleRes.data) {
+        const mappedSchedule = scheduleRes.data.map((apt: any) => ({
+          id: apt.id,
+          patientId: apt.personId || apt.person_id || apt.patientId || apt.patient_id,
+          time: apt.startTime || apt.start_time,
+          patient: apt.patientName || apt.patient_name,
+          type: apt.appointmentType || apt.appointment_type || 'Appointment',
+          format: apt.format || 'In-person',
+          location: apt.locationId || apt.location,
+          status: apt.status,
+          active: apt.status === 'in_progress'
+        }));
+        setSchedule(mappedSchedule);
+
+        // Update the KPI dashboard stat for today's appointments
+        setStats(prev => ({
+          ...prev,
+          todayAppointments: mappedSchedule.length
+        }));
+      }
+
+      // Fetch recent activity
+      const activityRes = await apiClient.getRecentActivity();
+      if (activityRes.success && activityRes.data) {
+        setRecentActivity(activityRes.data.map((act: any) => ({
+          id: act.resource_id || act.id,
+          color: getActivityColor(act.action),
+          title: act.details || act.description || act.action,
+          time: formatRelativeTime(new Date(act.created_at)),
+          detail: act.description,
+          action: getActivityAction(act.resource_type)
+        })));
+      }
+
+
+    } catch (error) {
+      console.error('Failed to fetch dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [refreshKey]);
 
   // Helper functions
   const getActivityColor = (action: string) => {
@@ -155,17 +324,38 @@ const Dashboard: React.FC<DashboardProps> = ({ onManageCredentials, onPatientCli
     return `${diffDays} days ago`;
   };
 
-  // Get logged-in user info
-  const getStoredUser = () => {
-    try {
-      const user = localStorage.getItem('user');
-      return user ? JSON.parse(user) : null;
-    } catch { return null; }
+  // Get logged-in user info with photo handling
+
+  const rawUserName = user?.profile?.firstName || user?.profile?.first_name || 'Doctor';
+  const userName = rawUserName.replace(/^Dr\.\s+/i, '');
+  const userTitle = user?.profile?.professionalTitle || user?.profile?.professional_title || 'Healthcare Professional';
+  const userSeed = user?.profile?.first_name || user?.profile?.firstName || 'User';
+
+  // Get profile photo - check localStorage first, then API, then fallback to generated avatar
+  const getProfilePhoto = () => {
+    const storedPhoto = localStorage.getItem('clinician_photo');
+    const apiPhoto = user?.profile?.photo_url;
+
+    if (storedPhoto && storedPhoto.startsWith('data:')) {
+      return storedPhoto;
+    }
+    if (apiPhoto && apiPhoto !== 'photo_exists' && apiPhoto.startsWith('http')) {
+      return apiPhoto;
+    }
+    return `https://api.dicebear.com/7.x/avataaars/svg?seed=${userSeed}`;
   };
-  const user = getStoredUser();
-  const userName = user?.profile?.first_name || 'Doctor';
-  const userTitle = user?.profile?.professional_title || 'Healthcare Professional';
-  const userSeed = user?.profile?.first_name || 'User';
+
+  const handleCompleteTask = async (task: any) => {
+    if (task.isReview && task.patientId) {
+      // Open Patient Onboarding consent step for this patient
+      if (onEditPatientConsent) {
+        onEditPatientConsent(task.patientId);
+      }
+    } else {
+      // Default action
+      if (task.patientId) onPatientClick?.(task.patientId);
+    }
+  };
 
   return (
     <div className="w-full animate-in fade-in duration-700">
@@ -184,25 +374,16 @@ const Dashboard: React.FC<DashboardProps> = ({ onManageCredentials, onPatientCli
               <span className="text-sm text-slate-400 font-medium">Last active: Today at {new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</span>
             </div>
           </div>
-          <div className="flex items-center gap-6">
-            <div className="text-right hidden sm:block">
-              <button className="text-sm font-bold text-[#2563EB] hover:underline">Edit Profile</button>
-            </div>
-            <div className="w-20 h-20 rounded-full border-4 border-white shadow-xl overflow-hidden ring-4 ring-blue-50">
-              <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${userSeed}`} alt={`Dr. ${userName}`} className="w-full h-full object-cover" />
-            </div>
-          </div>
         </div>
       </div>
 
       {/* KPI Section */}
       <div className="max-w-[1440px] mx-auto px-6 lg:px-12 py-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {[
             { id: 'consents', icon: <Clock size={20} />, value: String(stats.pendingConsents || 0), label: 'Pending Consents', sub: 'Awaiting approval', color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-100', urgency: stats.pendingConsents > 0 ? 'Orange' : undefined },
-            { id: 'alerts', icon: <AlertTriangle size={20} className="animate-pulse" />, value: String(stats.urgentAlerts || 0), label: 'Triage Alerts', sub: 'Urgent attention required', color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-100', urgency: stats.urgentAlerts > 0 ? 'Red' : undefined, action: onTriageClick },
             { id: 'active', icon: <FolderOpen size={20} />, value: String(stats.activePatients || stats.totalPatients || 0), label: 'Active Cases', sub: `${stats.totalPatients} total patients`, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100' },
-            { id: 'schedule', icon: <Calendar size={20} />, value: String(stats.todayAppointments || 0), label: "Today's Appointments", sub: 'View schedule', color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-100', action: onScheduleClick },
+            { id: 'schedule', icon: <Calendar size={20} />, value: String(stats.todayAppointments || 0), label: "Appointments", sub: 'View schedule', color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-100', action: onScheduleClick },
           ].map((kpi) => (
             <div
               key={kpi.id}
@@ -261,36 +442,54 @@ const Dashboard: React.FC<DashboardProps> = ({ onManageCredentials, onPatientCli
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">
-                    {worklist.length > 0 ? worklist.map((row, i) => (
-                      <tr key={i} className="hover:bg-slate-50/50 transition-colors group">
-                        <td className="px-6 py-4">
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${row.priorityColor}`}>
-                            {row.priority}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-3 cursor-pointer" onClick={() => onPatientClick?.(row.patientId || row.id)}>
-                            <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500 uppercase">
-                              {row.name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2) || '??'}
+                    {worklist.length > 0 ? (
+                      worklist.map((row, i) => (
+                        <tr key={i} className="hover:bg-slate-50/50 transition-colors group">
+                          <td className="px-6 py-4">
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${row.priorityColor}`}>
+                              {row.priority}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3 cursor-pointer" onClick={() => onPatientClick?.(row.patientId || row.id)}>
+                              <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500 uppercase">
+                                {row.name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2) || '??'}
+                              </div>
+                              <div>
+                                <div className="text-sm font-bold text-slate-800 hover:text-[#2563EB]">{row.name}</div>
+                                {row.age && <div className="text-[11px] text-slate-400 font-semibold uppercase">{row.age}</div>}
+                              </div>
                             </div>
-                            <div>
-                              <div className="text-sm font-bold text-slate-800 hover:text-[#2563EB]">{row.name}</div>
-                              {row.age && <div className="text-[11px] text-slate-400 font-semibold uppercase">{row.age}</div>}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 text-sm font-medium text-slate-600">{row.task}</td>
-                        <td className={`px-6 py-4 text-sm font-bold ${row.priority === 'HIGH' ? 'text-red-500' : 'text-slate-500'}`}>{row.due}</td>
-                        <td className="px-6 py-4 text-right">
-                          <button className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-50 text-[#2563EB] text-xs font-bold rounded-lg hover:bg-[#2563EB] hover:text-white transition-all">
-                            {row.action}
-                          </button>
-                        </td>
-                      </tr>
-                    )) : (
+                          </td>
+                          <td className="px-6 py-4 text-sm font-medium text-slate-600">{row.task}</td>
+                          <td className={`px-6 py-4 text-sm font-bold ${row.priority === 'HIGH' ? 'text-red-500' : 'text-slate-500'}`}>{row.due}</td>
+                          <td className="px-6 py-4 text-right">
+                            {row.isReview ? (
+                              <button
+                                onClick={() => handleCompleteTask(row)}
+                                className="inline-flex items-center gap-2 px-4 py-1.5 bg-amber-100 text-amber-700 text-xs font-bold rounded-lg hover:bg-green-100 hover:text-green-700 transition-all border border-amber-200 hover:border-green-200"
+                              >
+                                Pending
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => onPatientClick?.(row.patientId || row.id)}
+                                className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-50 text-[#2563EB] text-xs font-bold rounded-lg hover:bg-[#2563EB] hover:text-white transition-all"
+                              >
+                                View
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
                       <tr>
-                        <td colSpan={5} className="px-6 py-12 text-center text-sm text-slate-400">
-                          No pending tasks. You're all caught up!
+                        <td colSpan={5} className="px-6 py-12 text-center">
+                          <div className="flex flex-col items-center gap-2">
+                            <CheckCircle2 size={32} className="text-green-500" />
+                            <p className="text-sm font-bold text-slate-600">All caught up!</p>
+                            <p className="text-xs text-slate-400">No pending tasks at the moment</p>
+                          </div>
                         </td>
                       </tr>
                     )}
@@ -338,22 +537,20 @@ const Dashboard: React.FC<DashboardProps> = ({ onManageCredentials, onPatientCli
               </button>
             </div>
 
-            {/* Quick Actions Footer */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              {[
-                { label: 'New Patient', icon: <Plus size={18} />, primary: true, onClick: onNewPatient },
-                { label: 'Generate Report', icon: <FileText size={18} /> },
-                { label: 'Schedule', icon: <Calendar size={18} />, onClick: onScheduleClick },
-                { label: 'Clinical resources', icon: <BookOpen size={18} /> },
-              ].map((btn, i) => (
-                <button
-                  key={i}
-                  onClick={btn.onClick}
-                  className={`flex items-center justify-center gap-2 h-12 rounded-xl font-bold text-xs uppercase tracking-widest transition-all ${btn.primary ? 'bg-[#2563EB] text-white shadow-lg shadow-blue-200 hover:bg-blue-700' : 'bg-white border border-slate-200 text-slate-600 hover:border-blue-300 hover:bg-blue-50/50'}`}
-                >
-                  {btn.icon} {btn.label}
-                </button>
-              ))}
+            {/* Quick Resources Card */}
+            <div className="bg-[#2563EB] rounded-3xl p-6 text-white">
+              <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+                <BookOpen size={20} /> Quick Resources
+              </h2>
+              <ul className="space-y-3">
+                {['DSM-5 Criteria', 'ISAA Manual', 'IEP Templates', 'Assessment Protocols'].map((r, i) => (
+                  <li key={i}>
+                    <button className="w-full flex items-center justify-between p-3 bg-white/10 rounded-xl hover:bg-white/20 transition-all group text-sm font-semibold">
+                      {r} <ArrowRight size={14} className="opacity-40 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
 
@@ -369,27 +566,64 @@ const Dashboard: React.FC<DashboardProps> = ({ onManageCredentials, onPatientCli
                   <button className="px-2 py-1 text-[10px] font-bold text-slate-500 hover:text-slate-700">Week</button>
                 </div>
               </div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">{new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</p>
+              {/* Date Header - Compact */}
+              <div className="flex items-center gap-3 mb-4 bg-slate-50 py-2 px-3 rounded-xl border border-slate-100">
+                <div className="p-1.5 bg-white rounded-lg shadow-sm text-[#2563EB] border border-slate-100">
+                  <Calendar size={16} strokeWidth={2.5} />
+                </div>
+                <p className="text-sm font-black text-slate-700">
+                  {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+                </p>
+              </div>
 
-              <div className="space-y-4">
-                {schedule.length > 0 ? schedule.map((item, i) => (
-                  <div key={i} className={`p-4 rounded-xl border-l-4 bg-slate-50/50 ${item.active ? 'border-blue-500 bg-blue-50/30' : item.format === 'video_call' ? 'border-green-400' : 'border-slate-300'}`}>
-                    <div className="flex justify-between items-start mb-2">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase">{item.time}</span>
-                      {item.format === 'video_call' && <Video size={14} className="text-green-600" />}
-                    </div>
-                    <div onClick={() => onPatientClick?.(item.patientId)} className="text-sm font-bold text-slate-800 cursor-pointer hover:text-[#2563EB]">{item.patient}</div>
-                    <div className="text-xs font-medium text-slate-500 mb-3">{item.type}</div>
-                    <div className="flex flex-wrap gap-2">
-                      <button className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${item.active ? 'bg-[#2563EB] text-white' : 'bg-white border border-slate-200 text-slate-500'}`}>
-                        {item.format === 'video_call' ? 'Join Call' : 'Start'}
-                      </button>
-                      <button className="px-2 py-1 bg-white border border-slate-200 rounded text-[10px] font-bold text-slate-500 uppercase">Notes</button>
-                    </div>
-                  </div>
-                )) : (
-                  <div className="text-center py-8 text-sm text-slate-400">
-                    No appointments scheduled for today
+              <div className="space-y-2">
+                {[...schedule, ...upcomingSchedule].length > 0 ? (
+                  <>
+                    {/* Today's Items */}
+                    {schedule.map((item, i) => (
+                      <div key={`today-${i}`} className="group flex items-center justify-between p-3 rounded-xl border border-slate-100 hover:border-blue-300 hover:bg-blue-50/30 transition-all bg-white">
+                        <div className="flex items-center gap-3">
+                          <div className="flex flex-col items-center justify-center w-12 h-12 rounded-lg bg-blue-50 text-blue-700 border border-blue-100">
+                            <span className="text-[10px] font-bold uppercase">{item.time?.includes(' ') ? item.time.split(' ')[1] : 'AM'}</span>
+                            <span className="text-sm font-black">{item.time?.includes(' ') ? item.time.split(' ')[0] : (item.time || '--:--')}</span>
+                          </div>
+                          <div>
+                            <div onClick={() => onPatientClick?.(item.patientId)} className="text-sm font-bold text-slate-900 cursor-pointer hover:text-blue-600">{item.patient}</div>
+                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wide flex items-center gap-1">
+                              {item.active && <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />}
+                              TODAY • {item.type}
+                            </div>
+                          </div>
+                        </div>
+                        <button className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider ${item.active ? 'bg-blue-600 text-white shadow-md shadow-blue-200' : 'bg-slate-100 text-slate-500 group-hover:bg-white group-hover:border group-hover:border-blue-200 group-hover:text-blue-600'}`}>
+                          {item.active ? 'Join' : 'View'}
+                        </button>
+                      </div>
+                    ))}
+
+                    {/* Upcoming Items */}
+                    {upcomingSchedule.map((item, i) => (
+                      <div key={`up-${i}`} className="group flex items-center justify-between p-3 rounded-xl border border-slate-100 hover:border-blue-300 hover:bg-blue-50/30 transition-all bg-slate-50/50">
+                        <div className="flex items-center gap-3">
+                          <div className="flex flex-col items-center justify-center w-12 h-12 rounded-lg bg-white border border-slate-200">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase">{new Date(item.date).toLocaleDateString('en-US', { month: 'short' })}</span>
+                            <span className="text-sm font-black text-slate-700">{new Date(item.date).getDate()}</span>
+                          </div>
+                          <div>
+                            <div className="text-sm font-bold text-slate-700">{item.patient}</div>
+                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{item.time} • {item.type}</div>
+                          </div>
+                        </div>
+                        <button className="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-white border border-slate-200 text-slate-400 group-hover:text-blue-600 group-hover:border-blue-200">
+                          Prior
+                        </button>
+                      </div>
+                    ))}
+                  </>
+                ) : (
+                  <div className="text-center py-8 bg-slate-50 rounded-2xl border border-slate-100 border-dashed">
+                    <p className="text-sm font-bold text-slate-400">No appointments scheduled</p>
+                    <p className="text-[10px] font-medium text-slate-300 mt-1">Check back later or add new</p>
                   </div>
                 )}
               </div>
@@ -400,23 +634,13 @@ const Dashboard: React.FC<DashboardProps> = ({ onManageCredentials, onPatientCli
             <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-bold text-slate-900">Messages</h2>
-                <span className="px-2 py-0.5 bg-red-100 text-red-600 rounded text-[10px] font-bold">2 new</span>
               </div>
 
               <div className="space-y-4">
-                {[
-                  { name: 'Mrs. Kumar', sub: 'Question about therapy schedule', msg: 'Hi Dr. Rivera, I wanted to ask if...', time: '1 hr ago', unread: true },
-                  { name: 'Mr. Sharma', sub: 'Progress update', msg: 'Thank you for the detailed report...', time: 'Yesterday' },
-                ].map((msg, i) => (
-                  <div key={i} onClick={onMessagesClick} className={`p-3 rounded-xl border transition-all cursor-pointer ${msg.unread ? 'bg-blue-50/50 border-blue-100' : 'border-transparent hover:bg-slate-50'}`}>
-                    <div className="flex justify-between items-start mb-1">
-                      <h4 className={`text-sm ${msg.unread ? 'font-bold text-slate-900' : 'font-semibold text-slate-700'}`}>{msg.name}</h4>
-                      <span className="text-[9px] font-bold text-slate-400 uppercase">{msg.time}</span>
-                    </div>
-                    <p className={`text-xs truncate ${msg.unread ? 'font-bold text-slate-700' : 'text-slate-500'}`}>{msg.sub}</p>
-                    <p className="text-[11px] text-slate-400 truncate mt-0.5">{msg.msg}</p>
-                  </div>
-                ))}
+                {/* Placeholder for real messages integration */}
+                <div className="text-center py-6 text-sm text-slate-400">
+                  No new messages
+                </div>
               </div>
               <button onClick={onMessagesClick} className="w-full mt-6 text-xs font-bold text-[#2563EB] hover:underline uppercase tracking-widest">View All Messages</button>
             </div>
@@ -454,21 +678,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onManageCredentials, onPatientCli
               </button>
             </div>
 
-            {/* Resources Card */}
-            <div className="bg-[#2563EB] rounded-3xl p-6 text-white">
-              <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-                <BookOpen size={20} /> Quick Resources
-              </h2>
-              <ul className="space-y-3">
-                {['DSM-5 Criteria', 'ISAA Manual', 'IEP Templates', 'Assessment Protocols'].map((r, i) => (
-                  <li key={i}>
-                    <button className="w-full flex items-center justify-between p-3 bg-white/10 rounded-xl hover:bg-white/20 transition-all group text-sm font-semibold">
-                      {r} <ArrowRight size={14} className="opacity-40 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
+
           </div>
         </div>
       </div>
@@ -489,7 +699,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onManageCredentials, onPatientCli
           </div>
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 

@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { User, Calendar, Users as GenderIcon, FileText, Loader2, ArrowRight, ArrowLeft, Heart } from 'lucide-react';
+import { User, Calendar, Users, FileText, Loader2, ArrowRight, ArrowLeft, Heart } from 'lucide-react';
 import Stepper from '../components/Stepper';
-import childrenService, { AddChildData } from '../services/children.service';
+import childrenService from '../services/children.service';
+import type { AddChildData } from '../services/children.service';
 
-interface FormData extends AddChildData { }
+interface FormData extends AddChildData {
+    relationshipType?: string;
+}
 
 const steps = [
     { label: 'Basic Info', description: 'Name and birthday' },
@@ -23,24 +26,66 @@ export default function AddChild() {
         register,
         handleSubmit,
         watch,
+        trigger,
         formState: { errors },
     } = useForm<FormData>();
 
     const formData = watch();
 
-    const nextStep = () => {
+    const nextStep = async () => {
+        console.log('nextStep called. Current step:', currentStep);
+        // Clear any previous errors first
+        setError('');
+
+        // Validate current step before proceeding
+        let fieldsToValidate: (keyof FormData)[] = [];
+
+        if (currentStep === 0) {
+            // Step 1: Basic Info - validate required fields
+            fieldsToValidate = ['firstName', 'lastName', 'dateOfBirth'];
+        } else if (currentStep === 1) {
+            // Step 2: Details - validate required fields
+            fieldsToValidate = ['gender'];
+        }
+
+        // Trigger validation only for the current step's required fields
+        if (fieldsToValidate.length > 0) {
+            const isValid = await trigger(fieldsToValidate);
+
+            if (!isValid) {
+                setError('Please fill in all required fields before continuing.');
+                return;
+            }
+        }
+
+        // If validation passes, move to next step
         if (currentStep < steps.length - 1) {
+            console.log('Moving to step:', currentStep + 1);
             setCurrentStep(currentStep + 1);
+            // Small delay to ensure UI updates before button type changes
+            await new Promise(resolve => setTimeout(resolve, 50));
         }
     };
 
     const prevStep = () => {
         if (currentStep > 0) {
             setCurrentStep(currentStep - 1);
+            setError(''); // Clear errors when going back
         }
     };
 
-    const onSubmit = async (data: FormData) => {
+    const onSubmit = async (data: FormData, e?: React.BaseSyntheticEvent) => {
+        console.log('AddChild onSubmit触发. currentStep:', currentStep);
+        e?.preventDefault();
+
+        // Prevent accidental submission via Enter key from earlier steps
+        if (currentStep !== steps.length - 1) {
+            console.log('Blocking submission, moving to next step instead.');
+            setCurrentStep(step => step + 1);
+            return;
+        }
+
+        console.log('Submitting data:', data);
         try {
             setLoading(true);
             setError('');
@@ -87,7 +132,16 @@ export default function AddChild() {
                         </div>
                     )}
 
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                    <form
+                        onSubmit={handleSubmit(onSubmit)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' && currentStep !== steps.length - 1) {
+                                console.log('Enter key blocked on step', currentStep);
+                                e.preventDefault();
+                            }
+                        }}
+                        className="space-y-6"
+                    >
                         {/* Step 1: Basic Info */}
                         {currentStep === 0 && (
                             <div className="space-y-6 animate-in fade-in duration-300">
@@ -168,7 +222,7 @@ export default function AddChild() {
                                         Gender
                                     </label>
                                     <div className="relative">
-                                        <GenderIcon className="absolute left-3 top-3.5 text-slate-400" size={18} />
+                                        <User className="absolute left-3 top-3.5 text-slate-400" size={18} />
                                         <select
                                             {...register('gender', { required: 'Please select gender' })}
                                             className="w-full h-12 pl-10 pr-4 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500/20 focus:border-[#2563EB] outline-none transition-all appearance-none"
@@ -182,6 +236,29 @@ export default function AddChild() {
                                     </div>
                                     {errors.gender && (
                                         <p className="mt-1.5 text-sm text-red-600 font-medium">{errors.gender.message}</p>
+                                    )}
+                                </div>
+
+                                {/* Relationship */}
+                                <div>
+                                    <label className="text-sm font-semibold text-slate-700 mb-1.5 block">
+                                        Relationship to Child
+                                    </label>
+                                    <div className="relative">
+                                        <Users className="absolute left-3 top-3.5 text-slate-400" size={18} />
+                                        <select
+                                            {...register('relationshipType', { required: 'Please select relationship' })}
+                                            className="w-full h-12 pl-10 pr-4 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500/20 focus:border-[#2563EB] outline-none transition-all appearance-none"
+                                        >
+                                            <option value="">Select relationship</option>
+                                            <option value="Mother">Mother</option>
+                                            <option value="Father">Father</option>
+                                            <option value="Guardian">Guardian</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    </div>
+                                    {errors.relationshipType && (
+                                        <p className="mt-1.5 text-sm text-red-600 font-medium">{errors.relationshipType.message}</p>
                                     )}
                                 </div>
 
@@ -290,7 +367,10 @@ export default function AddChild() {
                             {currentStep < steps.length - 1 ? (
                                 <button
                                     type="button"
-                                    onClick={nextStep}
+                                    onClick={(e) => {
+                                        e.currentTarget.blur();
+                                        nextStep();
+                                    }}
                                     className="flex items-center gap-2 px-6 py-3 bg-[#2563EB] text-white font-semibold rounded-lg hover:bg-blue-700 transition-all"
                                 >
                                     Next
@@ -298,8 +378,12 @@ export default function AddChild() {
                                 </button>
                             ) : (
                                 <button
-                                    type="submit"
+                                    type="button"
                                     disabled={loading}
+                                    onClick={() => {
+                                        console.log('Submit button clicked!');
+                                        handleSubmit(onSubmit)();
+                                    }}
                                     className="flex items-center gap-2 px-6 py-3 bg-[#2563EB] text-white font-semibold rounded-lg hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {loading ? (

@@ -11,83 +11,56 @@ export const createIntervention = async (req: Request, res: Response) => {
     try {
         const clinicianId = (req as any).userId;
         const {
-            patientId,
+            personId,
             interventionName,
-            protocol,
-            focus,
-            targetBehaviors,
-            frequency,
-            duration,
-            totalSessions,
-            provider,
-            providerRole,
+            interventionType,
+            targetBehavior,
+            goalStatement,
             startDate,
             endDate,
-            targetCompletionDate,
-            linkedIEPGoalId,
-            strategies
+            frequency,
+            duration,
+            notes
         } = req.body;
 
         // Validate required fields
-        if (!patientId || !interventionName || !focus || !startDate) {
+        if (!personId || !interventionName || !interventionType || !targetBehavior || !goalStatement || !startDate) {
             return res.status(400).json({
                 success: false,
                 error: {
                     code: 'VALIDATION_ERROR',
                     message: 'Missing required fields',
-                    details: ['patientId, interventionName, focus, and startDate are required']
+                    details: ['personId, interventionName, interventionType, targetBehavior, goalStatement, and startDate are required']
                 }
             });
         }
 
-        // Create intervention with strategies
         const intervention = await prisma.intervention.create({
             data: {
-                patientId,
+                personId,
                 clinicianId,
                 interventionName,
-                protocol,
-                focus,
-                targetBehaviors,
-                frequency,
-                duration,
-                totalSessions,
-                provider,
-                providerRole,
+                interventionType,
+                targetBehavior,
+                goalStatement,
                 startDate: new Date(startDate),
                 endDate: endDate ? new Date(endDate) : null,
-                targetCompletionDate: targetCompletionDate ? new Date(targetCompletionDate) : null,
-                linkedIEPGoalId,
+                frequency,
+                duration,
+                notes,
                 status: 'active',
-                strategies: {
-                    create: strategies?.map((s: any) => ({
-                        strategyName: s.name,
-                        strategyText: s.text,
-                        implementation: s.implementation,
-                        frequency: s.frequency
-                    })) || []
-                }
+                overallProgress: 0
             },
             include: {
-                patient: {
+                person: {
                     select: {
                         id: true,
                         firstName: true,
                         lastName: true
                     }
                 },
-                strategies: true
-            }
-        });
-
-        // Log activity
-        await prisma.patientActivityLog.create({
-            data: {
-                patientId,
-                activityType: 'intervention_created',
-                description: `Intervention plan created: ${interventionName}`,
-                metadata: JSON.stringify({ interventionId: intervention.id }),
-                createdBy: clinicianId
+                strategies: true,
+                progressRecords: true
             }
         });
 
@@ -118,17 +91,18 @@ export const getIntervention = async (req: Request, res: Response) => {
         const intervention = await prisma.intervention.findUnique({
             where: { id },
             include: {
-                patient: {
+                person: {
                     select: {
                         id: true,
                         firstName: true,
-                        lastName: true
+                        lastName: true,
+                        dateOfBirth: true
                     }
                 },
                 clinician: {
                     select: {
                         id: true,
-                        profile: {
+                        clinicianProfile: {
                             select: {
                                 firstName: true,
                                 lastName: true,
@@ -138,9 +112,9 @@ export const getIntervention = async (req: Request, res: Response) => {
                     }
                 },
                 strategies: true,
-                progressTracking: {
-                    orderBy: { updateDate: 'desc' },
-                    take: 20
+                progressRecords: {
+                    orderBy: { recordDate: 'desc' },
+                    take: 10
                 }
             }
         });
@@ -173,27 +147,28 @@ export const getIntervention = async (req: Request, res: Response) => {
 
 /**
  * Get all interventions for a patient
- * GET /api/v1/interventions/patient/:patientId
+ * GET /api/v1/interventions/patient/:personId
  */
 export const getPatientInterventions = async (req: Request, res: Response) => {
     try {
-        const { patientId } = req.params;
+        const { personId } = req.params;
         const { status } = req.query;
 
-        const where: any = { patientId };
+        const where: any = { personId };
         if (status) where.status = status as string;
 
         const interventions = await prisma.intervention.findMany({
             where,
             include: {
                 strategies: true,
-                progressTracking: {
-                    orderBy: { updateDate: 'desc' },
-                    take: 1
+                progressRecords: {
+                    orderBy: { recordDate: 'desc' },
+                    take: 3
                 },
                 _count: {
                     select: {
-                        progressTracking: true
+                        strategies: true,
+                        progressRecords: true
                     }
                 }
             },
@@ -225,33 +200,22 @@ export const updateIntervention = async (req: Request, res: Response) => {
         const { id } = req.params;
         const updateData = req.body;
 
-        // Remove fields that shouldn't be updated directly
+        // Remove fields that shouldn't be updated
         delete updateData.id;
         delete updateData.createdAt;
-        delete updateData.patientId;
+        delete updateData.personId;
         delete updateData.clinicianId;
 
-        // Convert dates
+        // Handle date fields
         if (updateData.startDate) updateData.startDate = new Date(updateData.startDate);
         if (updateData.endDate) updateData.endDate = new Date(updateData.endDate);
-        if (updateData.targetCompletionDate) updateData.targetCompletionDate = new Date(updateData.targetCompletionDate);
 
         const intervention = await prisma.intervention.update({
             where: { id },
             data: updateData,
             include: {
-                strategies: true
-            }
-        });
-
-        // Log activity
-        await prisma.patientActivityLog.create({
-            data: {
-                patientId: intervention.patientId,
-                activityType: 'intervention_updated',
-                description: `Intervention updated: ${intervention.interventionName}`,
-                metadata: JSON.stringify({ interventionId: intervention.id }),
-                createdBy: (req as any).userId
+                strategies: true,
+                progressRecords: true
             }
         });
 
@@ -279,33 +243,8 @@ export const deleteIntervention = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
 
-        const intervention = await prisma.intervention.findUnique({
-            where: { id },
-            select: { patientId: true, interventionName: true }
-        });
-
-        if (!intervention) {
-            return res.status(404).json({
-                success: false,
-                error: {
-                    code: 'INTERVENTION_NOT_FOUND',
-                    message: 'Intervention not found'
-                }
-            });
-        }
-
         await prisma.intervention.delete({
             where: { id }
-        });
-
-        // Log activity
-        await prisma.patientActivityLog.create({
-            data: {
-                patientId: intervention.patientId,
-                activityType: 'intervention_deleted',
-                description: `Intervention deleted: ${intervention.interventionName}`,
-                createdBy: (req as any).userId
-            }
         });
 
         res.json({
@@ -331,15 +270,15 @@ export const deleteIntervention = async (req: Request, res: Response) => {
 export const addStrategy = async (req: Request, res: Response) => {
     try {
         const { id: interventionId } = req.params;
-        const { strategyName, strategyText, implementation, frequency } = req.body;
+        const { strategyName, description, implementation, expectedOutcome } = req.body;
 
         const strategy = await prisma.interventionStrategy.create({
             data: {
                 interventionId,
                 strategyName,
-                strategyText,
+                description,
                 implementation,
-                frequency
+                expectedOutcome
             }
         });
 
@@ -426,44 +365,36 @@ export const deleteStrategy = async (req: Request, res: Response) => {
  */
 export const addProgressUpdate = async (req: Request, res: Response) => {
     try {
+        const clinicianId = (req as any).userId;
         const { id: interventionId } = req.params;
-        const userId = (req as any).userId;
-        const {
-            updateDate,
-            progressNote,
-            sessionCount,
-            dataPoints,
-            attachments
-        } = req.body;
+        const { progressPercentage, observations, dataPoints } = req.body;
 
-        const progressUpdate = await prisma.interventionProgress.create({
+        const progress = await prisma.interventionProgress.create({
             data: {
                 interventionId,
-                updateDate: new Date(updateDate),
-                progressNote,
-                sessionCount,
+                recordDate: new Date(),
+                progressPercentage,
+                observations,
                 dataPoints,
-                attachments,
-                updatedBy: userId
+                recordedBy: clinicianId
             }
         });
 
-        // Update intervention sessions completed
-        if (sessionCount) {
-            await prisma.intervention.update({
-                where: { id: interventionId },
-                data: {
-                    sessionsCompleted: sessionCount
-                }
-            });
-        }
+        // Update intervention overall progress
+        await prisma.intervention.update({
+            where: { id: interventionId },
+            data: {
+                overallProgress: progressPercentage,
+                status: progressPercentage >= 100 ? 'completed' : 'active'
+            }
+        });
 
         res.status(201).json({
             success: true,
-            data: progressUpdate
+            data: progress
         });
     } catch (error) {
-        console.error('Add progress error:', error);
+        console.error('Add progress update error:', error);
         res.status(500).json({
             success: false,
             error: {
@@ -482,14 +413,14 @@ export const getProgressTimeline = async (req: Request, res: Response) => {
     try {
         const { id: interventionId } = req.params;
 
-        const progressUpdates = await prisma.interventionProgress.findMany({
+        const progress = await prisma.interventionProgress.findMany({
             where: { interventionId },
-            orderBy: { updateDate: 'asc' }
+            orderBy: { recordDate: 'desc' }
         });
 
         res.json({
             success: true,
-            data: progressUpdates
+            data: progress
         });
     } catch (error) {
         console.error('Get progress timeline error:', error);
@@ -510,32 +441,19 @@ export const getProgressTimeline = async (req: Request, res: Response) => {
 export const updateStatus = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const { status } = req.body;
-
-        const validStatuses = ['active', 'paused', 'completed', 'discontinued'];
-        if (!validStatuses.includes(status)) {
-            return res.status(400).json({
-                success: false,
-                error: {
-                    code: 'INVALID_STATUS',
-                    message: 'Invalid status value',
-                    details: [`Must be one of: ${validStatuses.join(', ')}`]
-                }
-            });
-        }
+        const { status, notes } = req.body;
 
         const intervention = await prisma.intervention.update({
             where: { id },
             data: {
                 status,
-                endDate: status === 'completed' || status === 'discontinued' ? new Date() : undefined
+                notes: notes || undefined
             }
         });
 
         res.json({
             success: true,
-            data: intervention,
-            message: `Intervention status updated to ${status}`
+            data: intervention
         });
     } catch (error) {
         console.error('Update status error:', error);
@@ -560,8 +478,9 @@ export const getInterventionStatistics = async (req: Request, res: Response) => 
         const intervention = await prisma.intervention.findUnique({
             where: { id },
             include: {
-                progressTracking: {
-                    orderBy: { updateDate: 'asc' }
+                strategies: true,
+                progressRecords: {
+                    orderBy: { recordDate: 'desc' }
                 }
             }
         });
@@ -576,39 +495,29 @@ export const getInterventionStatistics = async (req: Request, res: Response) => 
             });
         }
 
-        const totalUpdates = intervention.progressTracking.length;
-        const completionRate = intervention.totalSessions
-            ? Math.round((intervention.sessionsCompleted / intervention.totalSessions) * 100)
-            : 0;
-
-        // Calculate days active
-        const startDate = new Date(intervention.startDate);
-        const endDate = intervention.endDate ? new Date(intervention.endDate) : new Date();
-        const daysActive = Math.floor((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-
+        // Calculate statistics
+        const progressRecords = intervention.progressRecords;
         const statistics = {
-            interventionId: intervention.id,
-            status: intervention.status,
-            sessions: {
-                completed: intervention.sessionsCompleted,
-                total: intervention.totalSessions,
-                completionRate
-            },
-            timeline: {
-                startDate: intervention.startDate,
-                endDate: intervention.endDate,
-                targetCompletion: intervention.targetCompletionDate,
-                daysActive
-            },
-            progress: {
-                totalUpdates,
-                overallProgress: intervention.overallProgress
-            }
+            totalProgressRecords: progressRecords.length,
+            currentProgress: intervention.overallProgress,
+            strategiesCount: intervention.strategies.length,
+            progressTrend: progressRecords.length > 1
+                ? progressRecords[0].progressPercentage - progressRecords[progressRecords.length - 1].progressPercentage
+                : 0,
+            averageProgress: progressRecords.length > 0
+                ? Math.round(progressRecords.reduce((sum, p) => sum + p.progressPercentage, 0) / progressRecords.length)
+                : 0,
+            daysActive: Math.ceil((new Date().getTime() - intervention.startDate.getTime()) / (1000 * 60 * 60 * 24)),
+            status: intervention.status
         };
 
         res.json({
             success: true,
-            data: statistics
+            data: {
+                interventionId: intervention.id,
+                interventionName: intervention.interventionName,
+                statistics
+            }
         });
     } catch (error) {
         console.error('Get statistics error:', error);
@@ -616,7 +525,7 @@ export const getInterventionStatistics = async (req: Request, res: Response) => 
             success: false,
             error: {
                 code: 'GET_STATISTICS_FAILED',
-                message: 'Failed to retrieve statistics'
+                message: 'Failed to get statistics'
             }
         });
     }

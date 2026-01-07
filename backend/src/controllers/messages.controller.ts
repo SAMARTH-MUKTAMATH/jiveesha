@@ -13,7 +13,7 @@ export const createConversation = async (req: Request, res: Response) => {
         const {
             recipientId,
             recipientType,
-            patientId,
+            personId,
             subject,
             body,
             senderName,
@@ -26,7 +26,7 @@ export const createConversation = async (req: Request, res: Response) => {
                     { id: senderId, type: 'clinician', name: senderName },
                     { id: recipientId, type: recipientType, name: recipientName }
                 ]),
-                patientId,
+                personId,
                 subject,
                 lastMessageAt: new Date(),
                 messages: {

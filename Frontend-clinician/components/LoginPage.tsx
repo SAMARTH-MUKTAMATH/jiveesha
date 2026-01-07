@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import logo from '@common/logo.png';
 import { Briefcase, Eye, EyeOff, Mail, Lock, Shield, Clock, ArrowRight, Loader2, XCircle } from 'lucide-react';
 import { apiClient } from '../services/api';
 
@@ -39,8 +40,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onBack, onLoginSuccess }) => {
     <div className="p-8 sm:p-10 animate-in fade-in slide-in-from-top-4 duration-500 max-w-[440px] mx-auto">
       {/* Header */}
       <div className="flex flex-col items-center text-center mb-8">
-        <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-4">
-          <Briefcase className="text-[#2563EB]" size={32} />
+        <div className="mb-4">
+          <img src={logo} alt="Daira Logo" className="h-20 w-auto" />
         </div>
         <h2 className="text-2xl font-bold text-slate-900 mb-4">Welcome Back</h2>
 

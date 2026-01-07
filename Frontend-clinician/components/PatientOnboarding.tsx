@@ -5,26 +5,71 @@ import {
    ChevronRight, AlertTriangle, ShieldCheck, Mail,
    Phone, Calendar, Upload, Plus, X, Search, Heart,
    Baby, Home, Globe, School, Lock, Save, HelpCircle,
-   Clock, Check, ArrowRight
+   Clock, Check, ArrowRight, Loader2
 } from 'lucide-react';
+import { apiClient } from '../services/api';
 
 interface PatientOnboardingProps {
    onBack: () => void;
    onFinish: (id: string) => void;
+   patientId?: string | null;
+   initialMethod?: 'token' | 'manual' | null;
 }
 
-const PatientOnboarding: React.FC<PatientOnboardingProps> = ({ onBack, onFinish }) => {
-   const [method, setMethod] = useState<'token' | 'manual' | null>(null);
+const PatientOnboarding: React.FC<PatientOnboardingProps> = ({ onBack, onFinish, patientId, initialMethod }) => {
+   const [method, setMethod] = useState<'token' | 'manual' | null>(initialMethod || null);
    const [step, setStep] = useState(1);
 
    // Token Flow State
    const [token, setToken] = useState(['', '', '', '', '', '', '', '']);
    const [tokenStatus, setTokenStatus] = useState<'idle' | 'validating' | 'success'>('idle');
+   const [validatedData, setValidatedData] = useState<any>(null);
    const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
    // Manual Flow State
    const [manualStep, setManualStep] = useState(1);
    const [showSuccess, setShowSuccess] = useState(false);
+   const [isSaving, setIsSaving] = useState(false);
+   const [createdPatient, setCreatedPatient] = useState<any>(null);
+
+   // Form data state
+   const [formData, setFormData] = useState({
+      firstName: '',
+      lastName: '',
+      dateOfBirth: '',
+      gender: '',
+      addressLine1: '',
+      city: '',
+      pinCode: '',
+      primaryConcerns: '',
+      existingDiagnosis: '',
+      diagnosedBy: '',
+      hasExistingDiagnosis: false,
+      firstWordsAge: '',
+      walkingAge: '',
+      guardianName: '',
+      guardianRelationship: 'Mother',
+      guardianPhone: '',
+      guardianEmail: '',
+      addSchoolInfo: false,
+      schoolName: '',
+      schoolGrade: '',
+      schoolLocation: '',
+      hipaaAgreement: false,
+      consentStatus: 'digital_request' // digital_request, upload_form, pending
+   });
+
+   const handleFormChange = (field: string, value: string | boolean) => {
+      setFormData(prev => ({ ...prev, [field]: value }));
+   };
+
+   // Auto-navigate to consent step when editing existing patient
+   React.useEffect(() => {
+      if (patientId) {
+         setMethod('manual');
+         setManualStep(4);
+      }
+   }, [patientId]);
 
    const handleTokenChange = (index: number, value: string) => {
       if (value.length > 1) value = value.slice(-1);
@@ -34,17 +79,140 @@ const PatientOnboarding: React.FC<PatientOnboardingProps> = ({ onBack, onFinish 
       if (value && index < 7) inputRefs.current[index + 1]?.focus();
    };
 
-   const handleTokenSubmit = () => {
+   const handleTokenSubmit = async () => {
       setTokenStatus('validating');
-      setTimeout(() => setTokenStatus('success'), 1500);
+      try {
+         const joinedToken = token.slice(0, 4).join('') + '-' + token.slice(4).join('');
+         const response = await apiClient.validateConsentToken(joinedToken);
+         if (response.success && response.data) {
+            setValidatedData(response.data);
+            setTokenStatus('success');
+         } else {
+            alert('Invalid or expired token. Please check and try again.');
+            setTokenStatus('idle');
+         }
+      } catch (e) {
+         console.error('Validation error:', e);
+         alert('Failed to validate token. Please try again.');
+         setTokenStatus('idle');
+      }
    };
 
-   const handleManualNext = () => {
+   const handleAcceptToken = async () => {
+      if (!validatedData || !validatedData.token) return;
+
+      const confirmed = window.confirm(`Are you sure you want to add ${validatedData?.patient?.firstName} ${validatedData?.patient?.lastName} to your caseload?`);
+      if (!confirmed) return;
+
+      try {
+         setTokenStatus('validating'); // Re-use validating state for the claim process
+         const response = await apiClient.claimAccessGrant(validatedData.token);
+
+         if (response.success) {
+            // Map to format confirmed by success screen expectation
+            setCreatedPatient({
+               id: validatedData.patient.id,
+               first_name: validatedData.patient.firstName,
+               last_name: validatedData.patient.lastName
+            });
+            setShowSuccess(true);
+            // Dispatch refresh event
+            window.dispatchEvent(new CustomEvent('patientAdded'));
+         } else {
+            alert('Failed to claim access: ' + (response.error?.message || 'Unknown error'));
+            setTokenStatus('success'); // Return to preview state
+         }
+      } catch (e) {
+         console.error('Claim error:', e);
+         alert('Failed to complete access claim. Please try again.');
+         setTokenStatus('success');
+      }
+   };
+
+   const handleManualNext = async () => {
+      // Validation
+      if (manualStep === 1) {
+         if (!formData.firstName || !formData.lastName || !formData.dateOfBirth || !formData.gender || !formData.addressLine1 || !formData.city || !formData.pinCode) {
+            alert('Please fill in all required fields in Patient Information.');
+            return;
+         }
+      }
+      if (manualStep === 2) {
+         if (!formData.primaryConcerns || !formData.firstWordsAge || !formData.walkingAge) {
+            alert('Please fill in all required fields including Primary Concerns and Developmental Milestones.');
+            return;
+         }
+         if (formData.hasExistingDiagnosis && (!formData.existingDiagnosis || !formData.diagnosedBy)) {
+            alert('Please fill in Diagnosis Name and Diagnosed By.');
+            return;
+         }
+      }
+      if (manualStep === 3) {
+         if (!formData.guardianName || !formData.guardianPhone || !formData.guardianEmail) {
+            alert('Please fill in Guardian Name, Phone and Email.');
+            return;
+         }
+         if (formData.addSchoolInfo && (!formData.schoolName || !formData.schoolGrade || !formData.schoolLocation)) {
+            alert('Please fill in all school information fields.');
+            return;
+         }
+      }
+      if (manualStep === 4) {
+         if (!formData.hipaaAgreement) {
+            alert('Please agree to HIPAA compliance to continue.');
+            return;
+         }
+      }
+
       if (manualStep < 5) {
          setManualStep(prev => prev + 1);
          window.scrollTo(0, 0);
       } else {
-         setShowSuccess(true);
+         // Save patient to database
+         await savePatient();
+      }
+   };
+
+   const savePatient = async () => {
+      try {
+         setIsSaving(true);
+         const patientData = {
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+            date_of_birth: formData.dateOfBirth,
+            gender: formData.gender || 'male',
+            address_line1: formData.addressLine1,
+            city: formData.city,
+            pin_code: formData.pinCode,
+            primary_concerns: formData.primaryConcerns,
+            existing_diagnosis: formData.hasExistingDiagnosis ? formData.existingDiagnosis : null,
+            developmental_milestones: JSON.stringify({
+               firstWordsAge: formData.firstWordsAge,
+               walkingAge: formData.walkingAge
+            }),
+            status: (formData.consentStatus === 'pending' || formData.consentStatus === 'digital_request' || formData.consentStatus === 'upload_form') ? 'pending' : 'active',
+            // Map guardian info to contacts if backend supports it (or just store in patient for now if contacts endpoint distinct)
+            // Ideally backend createPatient should handle contacts, but we'll stick to basic fields first
+            // Note: backend might not save guardian info yet as it wasn't in main createPatient body in controller?
+            // Let's assume standard fields for now.
+         };
+
+         const response = await apiClient.createPatient(patientData);
+
+         if (response.success && response.data) {
+            setCreatedPatient(response.data);
+            setShowSuccess(true);
+
+            // Dispatch event to notify dashboard to refresh
+            window.dispatchEvent(new CustomEvent('patientAdded'));
+         } else {
+            alert('Failed to creat patient: ' + (response.error?.message || 'Unknown error'));
+         }
+      } catch (error: any) {
+         console.error('Failed to save patient:', error);
+         alert('Failed to save patient. Please try again.');
+      } finally {
+         setIsSaving(false);
       }
    };
 
@@ -57,8 +225,8 @@ const PatientOnboarding: React.FC<PatientOnboardingProps> = ({ onBack, onFinish 
       <div className="min-h-screen bg-[#F8FAFC] pb-20 animate-in fade-in duration-500 relative">
 
          <div className="max-w-[1200px] mx-auto px-6 py-10">
-            {/* Header */}
-            {!showSuccess && (
+            {/* Header - Only show when adding new patient, not when editing consent */}
+            {!showSuccess && !patientId && (
                <div className="text-center mb-12">
                   <h1 className="text-3xl font-black text-slate-900 tracking-tight">Add New Patient</h1>
                   <p className="text-slate-500 mt-2 font-medium">Register a new patient to your caseload</p>
@@ -174,21 +342,23 @@ const PatientOnboarding: React.FC<PatientOnboardingProps> = ({ onBack, onFinish 
                         <div className="bg-slate-50 rounded-3xl p-6 border border-slate-200 mb-8">
                            <div className="flex items-center gap-4 mb-6">
                               <div className="w-16 h-16 rounded-2xl bg-white border-2 border-slate-100 overflow-hidden shadow-sm">
-                                 <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Rivera" className="w-full h-full object-cover" />
+                                 <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${validatedData?.patient?.firstName || 'User'}`} className="w-full h-full object-cover" />
                               </div>
                               <div>
-                                 <h3 className="text-lg font-black text-slate-900">Aarav Kumar</h3>
-                                 <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">7 years • Male • #DAI-8291</p>
+                                 <h3 className="text-lg font-black text-slate-900">{validatedData?.patient?.fullName}</h3>
+                                 <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">
+                                    {validatedData?.patient?.gender} • #{validatedData?.patient?.id?.slice(0, 8).toUpperCase()}
+                                 </p>
                               </div>
                            </div>
                            <div className="space-y-3">
                               <div className="flex justify-between text-xs font-medium">
                                  <span className="text-slate-400 font-bold uppercase tracking-widest">Parent</span>
-                                 <span className="text-slate-800 font-bold">Mrs. Priya Kumar (Mother)</span>
+                                 <span className="text-slate-800 font-bold">{validatedData?.parent?.name} ({validatedData?.parent?.email})</span>
                               </div>
                               <div className="flex justify-between text-xs font-medium">
-                                 <span className="text-slate-400 font-bold uppercase tracking-widest">School</span>
-                                 <span className="text-slate-800 font-bold">Delhi Public School</span>
+                                 <span className="text-slate-400 font-bold uppercase tracking-widest">Access</span>
+                                 <span className="text-slate-800 font-bold capitalize">{validatedData?.accessLevel}</span>
                               </div>
                               <div className="h-px bg-slate-200 my-2" />
                               <div className="flex gap-2">
@@ -207,7 +377,20 @@ const PatientOnboarding: React.FC<PatientOnboardingProps> = ({ onBack, onFinish 
 
                         <div className="flex gap-4">
                            <button onClick={() => setTokenStatus('idle')} className="flex-1 h-12 border-2 border-slate-200 text-slate-500 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-slate-50">Back</button>
-                           <button onClick={() => setShowSuccess(true)} className="flex-[2] h-12 bg-[#2563EB] text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-blue-700 shadow-lg shadow-blue-100">Accept & Add Patient</button>
+                           <button
+                              onClick={handleAcceptToken}
+                              disabled={tokenStatus === 'validating'}
+                              className="flex-[2] h-12 bg-[#2563EB] text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-blue-700 shadow-lg shadow-blue-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                           >
+                              {tokenStatus === 'validating' ? (
+                                 <>
+                                    <Loader2 className="animate-spin" size={16} />
+                                    Processing...
+                                 </>
+                              ) : (
+                                 'Accept & Add Patient'
+                              )}
+                           </button>
                         </div>
                      </div>
                   )}
@@ -244,22 +427,22 @@ const PatientOnboarding: React.FC<PatientOnboardingProps> = ({ onBack, onFinish 
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                  <div className="space-y-2">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">First Name *</label>
-                                    <input type="text" className="w-full h-12 px-4 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500 transition-all" />
+                                    <input type="text" value={formData.firstName} onChange={(e) => handleFormChange("firstName", e.target.value)} className="w-full h-12 px-4 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500 transition-all" />
                                  </div>
                                  <div className="space-y-2">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Last Name *</label>
-                                    <input type="text" className="w-full h-12 px-4 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500 transition-all" />
+                                    <input type="text" value={formData.lastName} onChange={(e) => handleFormChange("lastName", e.target.value)} className="w-full h-12 px-4 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500 transition-all" />
                                  </div>
                                  <div className="space-y-2">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Date of Birth *</label>
-                                    <input type="date" className="w-full h-12 px-4 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500 transition-all" />
+                                    <input type="date" value={formData.dateOfBirth} onChange={(e) => handleFormChange("dateOfBirth", e.target.value)} className="w-full h-12 px-4 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500 transition-all" />
                                  </div>
                                  <div className="space-y-2">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Gender *</label>
                                     <div className="flex gap-2">
                                        {['Male', 'Female', 'Other'].map(g => (
                                           <label key={g} className="flex-1 h-12 flex items-center justify-center bg-slate-50 border-2 border-slate-100 rounded-xl cursor-pointer hover:border-blue-200 has-[:checked]:bg-blue-50 has-[:checked]:border-blue-500 has-[:checked]:text-blue-700 transition-all">
-                                             <input type="radio" name="gender" className="hidden" />
+                                             <input type="radio" name="gender" className="hidden" checked={formData.gender.toLowerCase() === g.toLowerCase()} onChange={() => handleFormChange("gender", g.toLowerCase())} />
                                              <span className="text-xs font-black uppercase tracking-widest">{g}</span>
                                           </label>
                                        ))}
@@ -269,10 +452,10 @@ const PatientOnboarding: React.FC<PatientOnboardingProps> = ({ onBack, onFinish 
 
                               <div className="space-y-2">
                                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Current Address *</label>
-                                 <input type="text" placeholder="Street Address" className="w-full h-12 px-4 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500 transition-all mb-3" />
+                                 <input type="text" placeholder="Street Address" value={formData.addressLine1} onChange={(e) => handleFormChange("addressLine1", e.target.value)} className="w-full h-12 px-4 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500 transition-all mb-3" />
                                  <div className="grid grid-cols-2 gap-4">
-                                    <input type="text" placeholder="City" className="w-full h-12 px-4 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500 transition-all" />
-                                    <input type="text" placeholder="PIN Code" className="w-full h-12 px-4 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500 transition-all" />
+                                    <input type="text" placeholder="City" value={formData.city} onChange={(e) => handleFormChange("city", e.target.value)} className="w-full h-12 px-4 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500 transition-all" />
+                                    <input type="text" placeholder="PIN Code" value={formData.pinCode} onChange={(e) => handleFormChange("pinCode", e.target.value)} className="w-full h-12 px-4 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500 transition-all" />
                                  </div>
                               </div>
                            </div>
@@ -288,30 +471,32 @@ const PatientOnboarding: React.FC<PatientOnboardingProps> = ({ onBack, onFinish 
 
                               <div className="space-y-2">
                                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Primary Concerns *</label>
-                                 <textarea placeholder="Describe the main concerns, symptoms, or developmental delays..." className="w-full h-32 p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl font-medium text-slate-700 outline-none focus:border-blue-500 transition-all resize-none" />
+                                 <textarea placeholder="Describe the main concerns, symptoms, or developmental delays..." value={formData.primaryConcerns} onChange={(e) => handleFormChange("primaryConcerns", e.target.value)} className="w-full h-32 p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl font-medium text-slate-700 outline-none focus:border-blue-500 transition-all resize-none" />
                               </div>
 
                               <div className="space-y-4">
                                  <label className="flex items-center gap-3 cursor-pointer">
-                                    <input type="checkbox" className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+                                    <input type="checkbox" checked={formData.hasExistingDiagnosis} onChange={(e) => handleFormChange('hasExistingDiagnosis', e.target.checked)} className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
                                     <span className="text-sm font-bold text-slate-700">Patient has existing diagnosis</span>
                                  </label>
-                                 <div className="pl-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <input type="text" placeholder="Diagnosis Name (e.g. ASD)" className="w-full h-12 px-4 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500 transition-all" />
-                                    <input type="text" placeholder="Diagnosed By" className="w-full h-12 px-4 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500 transition-all" />
-                                 </div>
+                                 {formData.hasExistingDiagnosis && (
+                                    <div className="pl-8 grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in">
+                                       <input type="text" value={formData.existingDiagnosis} onChange={(e) => handleFormChange("existingDiagnosis", e.target.value)} placeholder="Diagnosis Name (e.g. ASD) *" className="w-full h-12 px-4 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500 transition-all" />
+                                       <input type="text" value={formData.diagnosedBy} onChange={(e) => handleFormChange("diagnosedBy", e.target.value)} placeholder="Diagnosed By *" className="w-full h-12 px-4 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500 transition-all" />
+                                    </div>
+                                 )}
                               </div>
 
                               <div className="space-y-3">
-                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Developmental Milestones</p>
+                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Developmental Milestones *</p>
                                  <div className="grid grid-cols-2 gap-4">
-                                    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                                       <Baby size={18} className="text-slate-400" />
-                                       <input type="text" placeholder="First words age" className="bg-transparent text-sm font-bold outline-none w-full" />
+                                    <div className="space-y-2">
+                                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">First Words Age *</label>
+                                       <input type="text" value={formData.firstWordsAge} onChange={(e) => handleFormChange("firstWordsAge", e.target.value)} placeholder="e.g., 18 months" className="w-full h-12 px-4 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500 transition-all" />
                                     </div>
-                                    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                                       <Baby size={18} className="text-slate-400" />
-                                       <input type="text" placeholder="Walking age" className="bg-transparent text-sm font-bold outline-none w-full" />
+                                    <div className="space-y-2">
+                                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Walking Age *</label>
+                                       <input type="text" value={formData.walkingAge} onChange={(e) => handleFormChange("walkingAge", e.target.value)} placeholder="e.g., 14 months" className="w-full h-12 px-4 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500 transition-all" />
                                     </div>
                                  </div>
                               </div>
@@ -331,29 +516,38 @@ const PatientOnboarding: React.FC<PatientOnboardingProps> = ({ onBack, onFinish 
                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Full Name *</label>
-                                       <input type="text" className="w-full h-12 px-4 bg-white border-2 border-slate-200 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500" />
+                                       <input type="text" value={formData.guardianName} onChange={(e) => handleFormChange("guardianName", e.target.value)} className="w-full h-12 px-4 bg-white border-2 border-slate-200 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500" />
                                     </div>
                                     <div className="space-y-2">
                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Relationship *</label>
-                                       <select className="w-full h-12 px-4 bg-white border-2 border-slate-200 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500">
-                                          <option>Mother</option><option>Father</option><option>Guardian</option>
+                                       <select value={formData.guardianRelationship} onChange={(e) => handleFormChange("guardianRelationship", e.target.value)} className="w-full h-12 px-4 bg-white border-2 border-slate-200 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500">
+                                          <option value="">Select Relationship</option><option>Mother</option><option>Father</option><option>Guardian</option>
                                        </select>
                                     </div>
                                     <div className="space-y-2">
                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Phone *</label>
-                                       <input type="tel" className="w-full h-12 px-4 bg-white border-2 border-slate-200 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500" />
+                                       <input type="tel" value={formData.guardianPhone} onChange={(e) => handleFormChange("guardianPhone", e.target.value)} className="w-full h-12 px-4 bg-white border-2 border-slate-200 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500" />
                                     </div>
                                     <div className="space-y-2">
                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Email *</label>
-                                       <input type="email" className="w-full h-12 px-4 bg-white border-2 border-slate-200 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500" />
+                                       <input type="email" value={formData.guardianEmail} onChange={(e) => handleFormChange("guardianEmail", e.target.value)} className="w-full h-12 px-4 bg-white border-2 border-slate-200 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500" />
                                     </div>
                                  </div>
                               </div>
 
                               <div className="flex items-center gap-3">
-                                 <input type="checkbox" className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+                                 <input type="checkbox" checked={formData.addSchoolInfo} onChange={(e) => handleFormChange('addSchoolInfo', e.target.checked)} className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
                                  <span className="text-sm font-bold text-slate-600">Add School Information</span>
                               </div>
+                              {formData.addSchoolInfo && (
+                                 <div className="p-4 bg-blue-50 rounded-xl border border-blue-100 space-y-3 animate-in fade-in">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                       <input type="text" value={formData.schoolName} onChange={(e) => handleFormChange("schoolName", e.target.value)} placeholder="School Name *" className="w-full h-12 px-4 bg-white border-2 border-slate-200 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500" />
+                                       <input type="text" value={formData.schoolGrade} onChange={(e) => handleFormChange("schoolGrade", e.target.value)} placeholder="Standard/Grade *" className="w-full h-12 px-4 bg-white border-2 border-slate-200 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500" />
+                                    </div>
+                                    <input type="text" value={formData.schoolLocation} onChange={(e) => handleFormChange("schoolLocation", e.target.value)} placeholder="School Location *" className="w-full h-12 px-4 bg-white border-2 border-slate-200 rounded-xl font-bold text-slate-700 outline-none focus:border-blue-500" />
+                                 </div>
+                              )}
                            </div>
                         )}
 
@@ -374,7 +568,7 @@ const PatientOnboarding: React.FC<PatientOnboardingProps> = ({ onBack, onFinish 
 
                               <div className="space-y-4">
                                  <label className="flex items-start gap-4 p-4 rounded-2xl border-2 border-blue-500 bg-blue-50/20 cursor-pointer">
-                                    <input type="radio" name="consent" defaultChecked className="mt-1 w-5 h-5 text-blue-600 border-slate-300 focus:ring-blue-500" />
+                                    <input type="radio" name="consent" checked={formData.consentStatus === 'digital_request'} onChange={() => handleFormChange('consentStatus', 'digital_request')} className="mt-1 w-5 h-5 text-blue-600 border-slate-300 focus:ring-blue-500" />
                                     <div>
                                        <span className="block text-sm font-black text-slate-900">Send Digital Consent Request</span>
                                        <span className="text-xs font-medium text-slate-500 block mt-1">Send an email/SMS to parent with secure link</span>
@@ -385,7 +579,7 @@ const PatientOnboarding: React.FC<PatientOnboardingProps> = ({ onBack, onFinish 
                                  </label>
 
                                  <label className="flex items-start gap-4 p-4 rounded-2xl border-2 border-slate-100 hover:border-slate-300 cursor-pointer">
-                                    <input type="radio" name="consent" className="mt-1 w-5 h-5 text-blue-600 border-slate-300 focus:ring-blue-500" />
+                                    <input type="radio" name="consent" checked={formData.consentStatus === 'upload_form'} onChange={() => handleFormChange('consentStatus', 'upload_form')} className="mt-1 w-5 h-5 text-blue-600 border-slate-300 focus:ring-blue-500" />
                                     <div>
                                        <span className="block text-sm font-black text-slate-900">Upload Signed Form</span>
                                        <span className="text-xs font-medium text-slate-500 block mt-1">If you have a physical copy</span>
@@ -393,7 +587,7 @@ const PatientOnboarding: React.FC<PatientOnboardingProps> = ({ onBack, onFinish 
                                  </label>
 
                                  <label className="flex items-start gap-4 p-4 rounded-2xl border-2 border-slate-100 hover:border-slate-300 cursor-pointer">
-                                    <input type="radio" name="consent" className="mt-1 w-5 h-5 text-blue-600 border-slate-300 focus:ring-blue-500" />
+                                    <input type="radio" name="consent" checked={formData.consentStatus === 'pending'} onChange={() => handleFormChange('consentStatus', 'pending')} className="mt-1 w-5 h-5 text-blue-600 border-slate-300 focus:ring-blue-500" />
                                     <div>
                                        <span className="block text-sm font-black text-slate-900">Mark as Pending</span>
                                        <span className="text-xs font-medium text-slate-500 block mt-1">Limited access until consent obtained</span>
@@ -402,9 +596,9 @@ const PatientOnboarding: React.FC<PatientOnboardingProps> = ({ onBack, onFinish 
                               </div>
 
                               <label className="flex items-start gap-3 mt-6">
-                                 <input type="checkbox" className="mt-1 w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+                                 <input type="checkbox" checked={formData.hipaaAgreement || false} onChange={(e) => handleFormChange('hipaaAgreement', e.target.checked)} className="mt-1 w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
                                  <span className="text-xs font-bold text-slate-600 leading-relaxed">
-                                    I understand and agree to maintain patient confidentiality in accordance with HIPAA and professional ethical standards.
+                                    I understand and agree to maintain patient confidentiality in accordance with HIPAA and professional ethical standards. *
                                  </span>
                               </label>
                            </div>
@@ -424,7 +618,7 @@ const PatientOnboarding: React.FC<PatientOnboardingProps> = ({ onBack, onFinish 
                                     <div className="flex items-center gap-4">
                                        <div className="w-12 h-12 bg-white rounded-xl border border-slate-200"></div>
                                        <div>
-                                          <p className="text-sm font-black text-slate-900">Aarav Kumar</p>
+                                          <p className="text-sm font-black text-slate-900">{formData.firstName} {formData.lastName}</p>
                                           <p className="text-xs font-medium text-slate-500">7 years • Male</p>
                                        </div>
                                     </div>
@@ -435,8 +629,8 @@ const PatientOnboarding: React.FC<PatientOnboardingProps> = ({ onBack, onFinish 
                                        <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">Contacts</h4>
                                        <button onClick={() => setManualStep(3)} className="text-[10px] font-bold text-blue-600 uppercase hover:underline">Edit</button>
                                     </div>
-                                    <p className="text-sm font-bold text-slate-800">Mrs. Priya Kumar (Mother)</p>
-                                    <p className="text-xs text-slate-500">priya@email.com • +91 98765 43210</p>
+                                    <p className="text-sm font-bold text-slate-800">{formData.guardianName || "Not provided"} ({formData.guardianRelationship})</p>
+                                    <p className="text-xs text-slate-500">{formData.guardianEmail || "No email"} • {formData.guardianPhone || "No phone"}</p>
                                  </div>
 
                                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
@@ -476,7 +670,7 @@ const PatientOnboarding: React.FC<PatientOnboardingProps> = ({ onBack, onFinish 
                            {[1, 2, 3, 4, 5].map(s => (
                               <div key={s} className="flex items-center gap-3">
                                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black border-2 ${manualStep > s ? 'bg-green-500 border-green-500 text-white' :
-                                       manualStep === s ? 'border-[#2563EB] text-[#2563EB]' : 'border-slate-200 text-slate-300'
+                                    manualStep === s ? 'border-[#2563EB] text-[#2563EB]' : 'border-slate-200 text-slate-300'
                                     }`}>
                                     {manualStep > s ? <Check size={12} strokeWidth={4} /> : s}
                                  </div>
@@ -508,15 +702,15 @@ const PatientOnboarding: React.FC<PatientOnboardingProps> = ({ onBack, onFinish 
                      <CheckCircle2 size={64} className="text-green-500" />
                   </div>
                   <h2 className="text-4xl font-black text-slate-900 mb-4 tracking-tight">Patient Added Successfully!</h2>
-                  <p className="text-lg text-slate-500 font-medium mb-10">Aarav Kumar is now in your caseload</p>
+                  <p className="text-lg text-slate-500 font-medium mb-10">{createdPatient?.first_name} {createdPatient?.last_name} is now in your caseload</p>
 
                   <div className="bg-white rounded-[2rem] border border-slate-200 p-8 shadow-sm mb-10">
                      <div className="flex items-center gap-6 mb-8 text-left">
                         <div className="w-20 h-20 rounded-2xl bg-slate-100 overflow-hidden">
-                           <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Rivera" className="w-full h-full object-cover" />
+                           <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${createdPatient?.first_name || 'Patient'}`} className="w-full h-full object-cover" />
                         </div>
                         <div>
-                           <h3 className="text-xl font-black text-slate-900">Aarav Kumar</h3>
+                           <h3 className="text-xl font-black text-slate-900">{createdPatient?.first_name} {createdPatient?.last_name}</h3>
                            <p className="text-sm font-bold text-slate-500">#DAI-8291 • 7 years</p>
                            <div className="flex gap-2 mt-2">
                               <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded text-[9px] font-black uppercase tracking-widest">Active</span>
@@ -528,7 +722,7 @@ const PatientOnboarding: React.FC<PatientOnboardingProps> = ({ onBack, onFinish 
                      </div>
 
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <button onClick={() => onFinish('aarav')} className="h-14 bg-[#2563EB] text-white rounded-xl text-sm font-black uppercase tracking-widest shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all">View Patient Profile</button>
+                        <button onClick={() => onFinish(createdPatient?.id)} className="h-14 bg-[#2563EB] text-white rounded-xl text-sm font-black uppercase tracking-widest shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all">View Patient Profile</button>
                         <button className="h-14 border-2 border-slate-100 text-slate-600 rounded-xl text-sm font-black uppercase tracking-widest hover:border-slate-300 transition-all">Schedule Assessment</button>
                      </div>
                   </div>
@@ -544,3 +738,17 @@ const PatientOnboarding: React.FC<PatientOnboardingProps> = ({ onBack, onFinish 
 };
 
 export default PatientOnboarding;
+
+
+
+
+
+
+
+
+
+
+
+
+
+

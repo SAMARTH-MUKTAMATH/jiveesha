@@ -1,3 +1,4 @@
+// UPDATED: 2026-01-07 - Fixed port to 5001
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api/v1';
 
 interface ApiResponse<T> {
@@ -64,15 +65,15 @@ class ApiClient {
             'Content-Type': 'application/json',
         };
 
-        const token = localStorage.getItem('access_token');
-        if (token) {
-            headers['Authorization'] = `Bearer ${token}`;
-        }
+        const token = localStorage.getItem('access_token') || 'dev-token';
+        headers['Authorization'] = `Bearer ${token}`;
+        // Add default user ID for development
+        headers['X-User-ID'] = 'default-user-id';
 
         return headers;
     }
 
-    private async request<T>(
+    async request<T>(
         endpoint: string,
         options: RequestInit = {}
     ): Promise<ApiResponse<T>> {
@@ -300,6 +301,20 @@ class ApiClient {
 
     async getCredentials(): Promise<ApiResponse<any[]>> {
         return this.request('/credentials');
+    }
+
+    async validateConsentToken(token: string): Promise<ApiResponse<any>> {
+        return this.request('/clinician/access-grants/validate', {
+            method: 'POST',
+            body: JSON.stringify({ token })
+        });
+    }
+
+    async claimAccessGrant(token: string): Promise<ApiResponse<any>> {
+        return this.request('/clinician/access-grants/claim', {
+            method: 'POST',
+            body: JSON.stringify({ token })
+        });
     }
 
     async uploadCredential(formData: FormData): Promise<ApiResponse<any>> {

@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import logo from '@common/logo.png';
 import { useForm } from 'react-hook-form';
-import { Heart, Mail, Lock, Eye, EyeOff, Loader2, XCircle } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, Loader2, XCircle } from 'lucide-react';
 import authService from '../services/auth.service';
 
 interface LoginFormData {
@@ -25,7 +26,7 @@ export default function Login() {
         try {
             setLoading(true);
             setError('');
-            await authService.login(data);
+            await authService.login({ ...data, role: 'parent' });
             navigate('/dashboard');
         } catch (err: any) {
             setError(err.response?.data?.error?.message || 'Invalid email or password');
@@ -39,8 +40,8 @@ export default function Login() {
             <div className="max-w-md w-full bg-white rounded-xl shadow-xl p-8 animate-in fade-in slide-in-from-top-4 duration-500">
                 {/* Logo/Header */}
                 <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-50 rounded-full mb-4">
-                        <Heart className="w-8 h-8 text-[#2563EB]" />
+                    <div className="flex justify-center mb-4">
+                        <img src={logo} alt="Daira Logo" className="h-20 w-auto" />
                     </div>
                     <h1 className="text-3xl font-bold text-gray-900">Welcome Back</h1>
                     <p className="text-gray-600 mt-2">Sign in to your Daira parent account</p>

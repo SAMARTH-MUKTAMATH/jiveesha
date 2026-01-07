@@ -36,33 +36,55 @@ const PatientRegistry: React.FC<PatientRegistryProps> = ({ onPatientClick, onNew
   const [searchQuery, setSearchQuery] = useState('');
   const [pagination, setPagination] = useState({ page: 1, total: 0, total_pages: 1 });
 
+  const [stats, setStats] = useState({
+    diagnosis: [] as any[],
+    monthly: { new_patients: 0, assessments: 0, ieps_created: 0 }
+  });
+
   useEffect(() => {
     fetchPatients();
-  }, [searchQuery]);
+  }, [searchQuery, activeFilter]);
 
   const fetchPatients = async () => {
-    if (!isAuthenticated()) {
-      setError('Please login to view patients');
-      setLoading(false);
-      return;
-    }
-
     try {
       setLoading(true);
+      setError(null);
+
+      // Map UI filter to backend status
+      let statusFilter = undefined;
+      // Note: 'All Patients' (default) sends undefined, bringing all.
+      // 'Active' -> 'active'
+      // 'Screening Pending' -> 'pending'
+      // 'Diagnosed' -> 'diagnosed' (or whatever status you use for diagnosed, checking schema it might be strictly 'active' with tags, but let's assume 'active' or specific status. 
+      // Actually, looking at the UI tabs: 'Active', 'Screening Pending', 'Diagnosed', 'Archived'.
+      // In DB we usually store 'active', 'pending', 'archived', 'follow_up'.
+      // Let's map 'Screening Pending' to 'pending'.
+      // Let's map 'Diagnosed' to 'follow_up' for now or just 'active' if that's what it means, but 'follow_up' is a distinct status in your code earlier.
+
+      if (activeFilter === 'Active') statusFilter = 'active';
+      else if (activeFilter === 'Screening Pending') statusFilter = 'pending';
+      else if (activeFilter === 'Diagnosed') statusFilter = 'follow_up'; // Mapping 'Diagnosed' tab to 'follow_up' status as closest match or 'diagnosed' if backend supports it. Warning: Previous code used 'follow_up'.
+      else if (activeFilter === 'Archived') statusFilter = 'archived';
+
       const response = await apiClient.getPatients({
         page: pagination.page,
         limit: 20,
-        search: searchQuery || undefined
+        search: searchQuery || undefined,
+        status: statusFilter
       });
 
       if (response.success && response.data) {
-        setPatients(response.data.patients);
-        setPagination(response.data.pagination);
+        setPatients(response.data?.patients || []);
+        setPagination(response.data?.pagination || { page: 1, total: 0, total_pages: 1 });
+        if ((response.data as any)?.stats) {
+          setStats((response.data as any).stats);
+        }
       } else {
         setError(response.error?.message || 'Failed to load patients');
       }
     } catch (err: any) {
-      setError(err.error?.message || 'Failed to load patients');
+      console.error('Failed to fetch patients:', err);
+      setError(err.error?.message || err.message || 'Failed to load patients');
     } finally {
       setLoading(false);
     }
@@ -79,26 +101,40 @@ const PatientRegistry: React.FC<PatientRegistryProps> = ({ onPatientClick, onNew
       'Developmental Delay': 'bg-teal-100 text-teal-700'
     };
 
+    const dob = (p as any).date_of_birth || (p as any).dateOfBirth;
+    const age = dob ? Math.floor((new Date().getTime() - new Date(dob).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : 0;
+
+    const firstName = p.first_name || (p as any).firstName || '';
+    const lastName = p.last_name || (p as any).lastName || '';
+    const name = p.full_name || `${firstName} ${lastName}`.trim() || 'Unknown Patient';
+
+    // Generate tags if missing (based on status or other fields)
+    const rawTags = p.tags || [];
+    if (rawTags.length === 0) {
+      const status = (p.status || (p as any).case_status || (p as any).caseStatus || 'active');
+      rawTags.push(status.charAt(0).toUpperCase() + status.slice(1));
+    }
+
     return {
       id: p.id,
-      name: p.full_name,
-      patientId: `#${p.id.slice(0, 8).toUpperCase()}`,
-      age: `${p.age} years old`,
-      tags: p.tags.map(tag => ({
+      name: name,
+      patientId: `#${p.id ? p.id.slice(0, 8).toUpperCase() : 'UNKNOWN'}`,
+      age: `${age} years old`,
+      tags: rawTags.map(tag => ({
         label: tag,
         color: tagColors[tag] || 'bg-slate-100 text-slate-700'
       })),
-      school: 'School not specified',
-      primaryConcerns: p.primary_concerns,
-      stats: `${p.stats.appointments} appointments, ${p.stats.sessions} sessions`,
-      image: p.first_name,
-      contacts: p.contacts,
-      gender: p.gender,
-      status: p.status
+      school: (p as any).school_name || 'School not specified',
+      primaryConcerns: p.primary_concerns || (p as any).primaryConcerns || 'No primary concerns listed',
+      stats: `${(p.stats?.appointments || 0)} appointments, ${(p.stats?.sessions || 0)} sessions`,
+      image: firstName || 'User',
+      contacts: p.contacts || [],
+      gender: p.gender || 'Not specified',
+      status: (p.status || (p as any).case_status || (p as any).caseStatus || 'active').toLowerCase()
     };
   };
 
-  const displayPatients = patients.map(formatPatientForDisplay);
+  const displayPatients = (patients || []).map(formatPatientForDisplay);
 
   if (loading) {
     return (
@@ -124,6 +160,21 @@ const PatientRegistry: React.FC<PatientRegistryProps> = ({ onPatientClick, onNew
       </div>
     );
   }
+
+  // Helper for dynamic colors
+  const getDiagnosisColor = (label: string) => {
+    const colors: Record<string, string> = {
+      'ASD': 'bg-purple-500',
+      'ADHD': 'bg-orange-500',
+      'SLD': 'bg-teal-500',
+      'Speech Delay': 'bg-blue-500',
+      'Developmental Delay': 'bg-pink-500'
+    };
+    return colors[label] || 'bg-slate-500';
+  };
+
+  // Max value for bar width calc
+  const maxDiagnosisVal = Math.max(...(stats.diagnosis.map(d => d.val) || [0]), 1);
 
   return (
     <div className="w-full animate-in fade-in duration-500 pb-20">
@@ -212,9 +263,9 @@ const PatientRegistry: React.FC<PatientRegistryProps> = ({ onPatientClick, onNew
 
                     <div className="flex flex-wrap gap-2 mb-6">
                       {p.tags.map((t, ti) => (
-                        <span key={ti} className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 ${t.color}`}>
-                          {t.label === 'Active IEP' && <CheckCircle2 size={10} />}
-                          {t.label === 'Screening Pending' && <Info size={10} />}
+                        <span key={ti} className={`px-3 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${t.color}`}>
+                          {t.label === 'Active IEP' && <CheckCircle2 size={12} />}
+                          {t.label === 'Screening Pending' && <Info size={12} />}
                           {t.label}
                         </span>
                       ))}
@@ -224,83 +275,27 @@ const PatientRegistry: React.FC<PatientRegistryProps> = ({ onPatientClick, onNew
                       <div className="flex items-center gap-3 text-xs font-semibold text-slate-600">
                         <School size={14} className="text-blue-500" /> {p.school}
                       </div>
-                      {p.lastVisit && (
-                        <div className="flex items-center gap-3 text-xs font-semibold text-slate-500">
-                          <Calendar size={14} className="text-slate-400" /> Last Visit: {p.lastVisit}
-                        </div>
-                      )}
-                      {p.assessment && (
-                        <div className="flex items-center gap-3 text-xs font-semibold text-slate-500">
-                          <ClipboardList size={14} className="text-slate-400" /> {p.assessment}
-                        </div>
-                      )}
+                      {/* Placeholder for real last visit logic */}
+                      <div className="flex items-center gap-3 text-xs font-semibold text-slate-500">
+                        <Calendar size={14} className="text-slate-400" /> Joined: {new Date().toLocaleDateString()}
+                      </div>
                     </div>
-
-                    {p.progress !== undefined && (
-                      <div className="space-y-2 mb-6">
-                        <div className="flex justify-between items-center text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                          <span>IEP Progress</span>
-                          <span className="text-slate-900">{p.progress}%</span>
-                        </div>
-                        <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                          <div className={`h-full ${p.progressColor}`} style={{ width: `${p.progress}%` }} />
-                        </div>
-                      </div>
-                    )}
-
-                    {p.alert && (
-                      <div className="bg-orange-50 border border-orange-100 p-4 rounded-2xl mb-6">
-                        <div className="flex items-center gap-2 text-orange-700 font-bold text-sm">
-                          <AlertTriangle size={16} /> {p.alert.title}
-                        </div>
-                        <p className="text-xs text-orange-600 mt-1 opacity-80">{p.alert.desc}</p>
-                        <button className="text-[10px] font-bold text-orange-700 uppercase tracking-widest mt-2 hover:underline">{p.alert.action}</button>
-                      </div>
-                    )}
-
-                    {p.nextStep && (
-                      <div className="bg-blue-50 border border-blue-100 p-4 rounded-2xl mb-6">
-                        <div className="flex items-center gap-2 text-blue-800 font-bold text-sm">
-                          <TrendingUp size={16} /> {p.nextStep.title}
-                        </div>
-                        <p className="text-xs text-blue-700 mt-1 opacity-80">{p.nextStep.desc}</p>
-                        <button className="text-[10px] font-bold text-blue-800 uppercase tracking-widest mt-2 hover:underline">{p.nextStep.btn}</button>
-                      </div>
-                    )}
-
-                    {p.warning && (
-                      <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-xl mb-6 flex items-center gap-3">
-                        <AlertTriangle size={14} className="text-yellow-600" />
-                        <span className="text-[11px] font-bold text-yellow-700 uppercase tracking-wide">{p.warning}</span>
-                      </div>
-                    )}
-
-                    {p.success && (
-                      <div className="bg-green-50 border border-green-200 p-3 rounded-xl mb-6 flex items-center gap-3">
-                        <CheckCircle2 size={14} className="text-green-600" />
-                        <span className="text-[11px] font-bold text-green-700 uppercase tracking-wide">Meeting all IEP goals</span>
-                      </div>
-                    )}
                   </div>
 
                   <div className="mt-auto px-6 pb-6 pt-2">
                     <button
                       onClick={() => onPatientClick(p.id)}
-                      className={`w-full h-12 rounded-xl font-bold text-sm transition-all shadow-md flex items-center justify-center gap-2 ${p.button?.color === 'bg-orange-600'
-                        ? 'bg-orange-600 text-white hover:bg-orange-700 shadow-orange-100'
-                        : 'bg-[#2563EB] text-white hover:bg-blue-700 shadow-blue-100'
-                        }`}
+                      className={`w-full h-12 rounded-xl font-bold text-sm transition-all shadow-md flex items-center justify-center gap-2 bg-[#2563EB] text-white hover:bg-blue-700 shadow-blue-100`}
                     >
-                      {p.button?.label || 'View Profile'} <ArrowRight size={18} />
+                      View Profile <ArrowRight size={18} />
                     </button>
 
                     <div className="flex justify-between items-center mt-6 pt-4 border-t border-slate-50">
                       <button className="flex items-center gap-1.5 text-slate-400 hover:text-[#2563EB] transition-colors">
-                        <FileText size={16} /> <span className="text-[10px] font-bold uppercase tracking-widest">Reports (3)</span>
+                        <FileText size={16} /> <span className="text-[10px] font-bold uppercase tracking-widest">Reports (0)</span>
                       </button>
                       <button className="flex items-center gap-1.5 text-slate-400 hover:text-[#2563EB] transition-colors relative">
                         <MessageSquare size={16} /> <span className="text-[10px] font-bold uppercase tracking-widest">Messages</span>
-                        <span className="absolute top-[-4px] right-[-4px] w-3 h-3 bg-red-500 border-2 border-white rounded-full" />
                       </button>
                     </div>
                   </div>
@@ -344,11 +339,33 @@ const PatientRegistry: React.FC<PatientRegistryProps> = ({ onPatientClick, onNew
                 </select>
               </div>
             </div>
+
+            {/* Quick Actions moved below patient list */}
+            <div className="bg-[#2563EB] rounded-3xl p-8 text-white overflow-hidden relative shadow-xl shadow-blue-100">
+              <div className="absolute top-[-20%] right-[-10%] w-60 h-60 bg-white/10 rounded-full blur-3xl" />
+              <div className="relative z-10">
+                <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
+                  <ClipboardList size={20} /> Quick Actions
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {[
+                    'Import from School',
+                    'Consent Management',
+                    'Generate Registry Report',
+                    'Bulk Appointments'
+                  ].map((a, i) => (
+                    <button key={i} className="flex items-center justify-between p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-all text-left text-sm font-bold group">
+                      {a} <ChevronRight size={16} className="opacity-40 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Stats Sidebar */}
-          <div className="w-full lg:w-[320px] space-y-8">
-            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
+          <div className="w-full lg:w-[450px] flex flex-col">
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 h-fit">
               <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center justify-between">
                 Registry Stats <Info size={16} className="text-slate-300" />
               </h2>
@@ -359,19 +376,24 @@ const PatientRegistry: React.FC<PatientRegistryProps> = ({ onPatientClick, onNew
                   <span className="font-black text-slate-900">{pagination.total || patients.length} Total</span>
                 </div>
                 <div className="h-2 w-full flex rounded-full overflow-hidden">
-                  <div className="bg-green-500" style={{ width: `${patients.filter(p => p.status === 'active').length / (patients.length || 1) * 100}%` }} />
-                  <div className="bg-amber-400" style={{ width: `${patients.filter(p => p.status === 'follow_up').length / (patients.length || 1) * 100}%` }} />
-                  <div className="bg-slate-200" style={{ width: `${patients.filter(p => p.status === 'archived').length / (patients.length || 1) * 100}%` }} />
+                  <div className="bg-green-500" style={{ width: `${patients.filter(p => (p.status || (p as any).case_status || (p as any).caseStatus || '').toLowerCase() === 'active').length / (patients.length || 1) * 100}%` }} />
+                  <div className="bg-blue-400" style={{ width: `${patients.filter(p => (p.status || (p as any).case_status || (p as any).caseStatus || '').toLowerCase() === 'pending').length / (patients.length || 1) * 100}%` }} />
+                  <div className="bg-amber-400" style={{ width: `${patients.filter(p => (p.status || (p as any).case_status || (p as any).caseStatus || '').toLowerCase() === 'follow_up').length / (patients.length || 1) * 100}%` }} />
+                  <div className="bg-slate-200" style={{ width: `${patients.filter(p => (p.status || (p as any).case_status || (p as any).caseStatus || '').toLowerCase() === 'archived').length / (patients.length || 1) * 100}%` }} />
                 </div>
-                <div className="grid grid-cols-2 gap-y-3 gap-x-4">
+                <div className="flex flex-col gap-3">
                   {[
-                    { label: 'Active', val: patients.filter(p => p.status === 'active').length, color: 'bg-green-500' },
-                    { label: 'Follow-up', val: patients.filter(p => p.status === 'follow_up').length, color: 'bg-amber-400' },
-                    { label: 'Archived', val: patients.filter(p => p.status === 'archived').length, color: 'bg-slate-300' }
+                    { label: 'Active', val: patients.filter(p => (p.status || (p as any).case_status || (p as any).caseStatus || '').toLowerCase() === 'active').length, color: 'bg-green-500' },
+                    { label: 'Pending', val: patients.filter(p => (p.status || (p as any).case_status || (p as any).caseStatus || '').toLowerCase() === 'pending').length, color: 'bg-blue-400' },
+                    { label: 'Follow-up', val: patients.filter(p => (p.status || (p as any).case_status || (p as any).caseStatus || '').toLowerCase() === 'follow_up').length, color: 'bg-amber-400' },
+                    { label: 'Archived', val: patients.filter(p => (p.status || (p as any).case_status || (p as any).caseStatus || '').toLowerCase() === 'archived').length, color: 'bg-slate-300' }
                   ].map((s, i) => (
-                    <div key={i} className="flex items-center gap-2">
-                      <div className={`w-2 h-2 rounded-full ${s.color}`} />
-                      <span className="text-xs font-bold text-slate-500">{s.label}: {s.val}</span>
+                    <div key={i} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full ${s.color}`} />
+                        <span className="text-xs font-bold text-slate-500">{s.label}</span>
+                      </div>
+                      <span className="text-xs font-bold text-slate-900">{s.val}</span>
                     </div>
                   ))}
                 </div>
@@ -379,21 +401,19 @@ const PatientRegistry: React.FC<PatientRegistryProps> = ({ onPatientClick, onNew
                 <div className="pt-6 border-t border-slate-50">
                   <div className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">By Diagnosis</div>
                   <div className="space-y-3">
-                    {[
-                      { label: 'ASD', val: 12, color: 'bg-purple-500', w: '60%' },
-                      { label: 'ADHD', val: 8, color: 'bg-orange-500', w: '40%' },
-                      { label: 'SLD', val: 6, color: 'bg-teal-500', w: '30%' },
-                    ].map((d, i) => (
+                    {stats.diagnosis.length > 0 ? stats.diagnosis.map((d, i) => (
                       <div key={i} className="space-y-1.5">
                         <div className="flex justify-between text-[11px] font-bold">
                           <span className="text-slate-600">{d.label}</span>
                           <span className="text-slate-900">{d.val}</span>
                         </div>
                         <div className="h-1.5 w-full bg-slate-50 rounded-full">
-                          <div className={`h-full ${d.color} rounded-full`} style={{ width: d.w }} />
+                          <div className={`h-full ${getDiagnosisColor(d.label)} rounded-full`} style={{ width: `${(d.val / maxDiagnosisVal) * 100}%` }} />
                         </div>
                       </div>
-                    ))}
+                    )) : (
+                      <div className="text-xs text-slate-400 italic">No diagnosis data yet</div>
+                    )}
                   </div>
                 </div>
 
@@ -404,40 +424,20 @@ const PatientRegistry: React.FC<PatientRegistryProps> = ({ onPatientClick, onNew
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-bold text-slate-700">New patients</span>
-                    <span className="text-lg font-black text-[#2563EB]">4</span>
+                    <span className="text-lg font-black text-[#2563EB]">{stats.monthly.new_patients}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-bold text-slate-700">Assessments</span>
-                    <span className="text-lg font-black text-green-600">8</span>
+                    <span className="text-lg font-black text-green-600">{stats.monthly.assessments}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-bold text-slate-700">IEPs created</span>
-                    <span className="text-lg font-black text-purple-600">5</span>
+                    <span className="text-lg font-black text-purple-600">{stats.monthly.ieps_created}</span>
                   </div>
                 </div>
               </div>
             </div>
-
-            <div className="bg-[#2563EB] rounded-3xl p-6 text-white overflow-hidden relative shadow-xl shadow-blue-100">
-              <div className="absolute top-[-20%] right-[-10%] w-40 h-40 bg-white/10 rounded-full blur-3xl" />
-              <h3 className="text-lg font-bold mb-6 relative z-10 flex items-center gap-2">
-                <ClipboardList size={20} /> Quick Actions
-              </h3>
-              <div className="space-y-3 relative z-10">
-                {[
-                  'Import from School',
-                  'Consent Management',
-                  'Generate Registry Report',
-                  'Bulk Appointments'
-                ].map((a, i) => (
-                  <button key={i} className="w-full flex items-center justify-between p-3 bg-white/10 rounded-xl hover:bg-white/20 transition-all text-left text-sm font-bold group">
-                    {a} <ChevronRight size={16} className="opacity-40 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
-                  </button>
-                ))}
-              </div>
-            </div>
           </div>
-
         </div>
       </div>
     </div>

@@ -5,6 +5,7 @@ const prisma = new PrismaClient();
 
 // ============================================
 // PHASE 1-D1: IEP BUILDER FUNCTIONS
+// Uses EducationPlan model with planType='IEP'
 // ============================================
 
 /**
@@ -13,77 +14,59 @@ const prisma = new PrismaClient();
  */
 export const createIEP = async (req: Request, res: Response) => {
     try {
+        const clinicianId = (req as any).userId;
         const {
-            patientId,
+            personId,
+            planName,
             academicYear,
+            focusAreas,
             startDate,
             endDate,
-            academicPerformance,
-            functionalPerformance,
-            strengths,
-            concerns,
-            impactOfDisability,
-            placementType,
-            placementPercentage,
-            placementJustification,
-            lreJustification,
-            schoolName,
-            grade,
-            teacher
+            nextReviewDate,
+            description,
+            notes
         } = req.body;
 
         // Validate required fields
-        if (!patientId || !academicYear || !startDate || !endDate) {
+        if (!personId || !planName || !startDate) {
             return res.status(400).json({
                 success: false,
                 error: {
                     code: 'VALIDATION_ERROR',
                     message: 'Missing required fields',
-                    details: ['patientId, academicYear, startDate, and endDate are required']
+                    details: ['personId, planName, and startDate are required']
                 }
             });
         }
 
-        // Create IEP
-        const iep = await prisma.iEP.create({
+        const iep = await prisma.educationPlan.create({
             data: {
-                patientId,
+                personId,
+                createdBy: clinicianId,
+                createdByType: 'clinician',
+                planType: 'IEP',
+                planName,
                 academicYear,
+                focusAreas: JSON.stringify(focusAreas || []),
                 startDate: new Date(startDate),
-                endDate: new Date(endDate),
-                academicPerformance,
-                functionalPerformance,
-                strengths,
-                concerns,
-                impactOfDisability,
-                placementType,
-                placementPercentage,
-                placementJustification,
-                lreJustification,
-                schoolName,
-                grade,
-                teacher,
-                status: 'draft'
+                endDate: endDate ? new Date(endDate) : null,
+                nextReviewDate: nextReviewDate ? new Date(nextReviewDate) : null,
+                description,
+                notes,
+                status: 'active'
             },
             include: {
-                patient: {
+                person: {
                     select: {
                         id: true,
                         firstName: true,
                         lastName: true
                     }
-                }
-            }
-        });
-
-        // Log activity
-        await prisma.patientActivityLog.create({
-            data: {
-                patientId,
-                activityType: 'iep_created',
-                description: `IEP created for ${academicYear}`,
-                metadata: JSON.stringify({ iepId: iep.id }),
-                createdBy: (req as any).userId
+                },
+                goals: true,
+                accommodations: true,
+                services: true,
+                teamMembers: true
             }
         });
 
@@ -111,10 +94,10 @@ export const getIEP = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
 
-        const iep = await prisma.iEP.findUnique({
+        const iep = await prisma.educationPlan.findUnique({
             where: { id },
             include: {
-                patient: {
+                person: {
                     select: {
                         id: true,
                         firstName: true,
@@ -129,19 +112,15 @@ export const getIEP = async (req: Request, res: Response) => {
                             orderBy: { updateDate: 'desc' },
                             take: 5
                         }
-                    },
-                    orderBy: { goalNumber: 'asc' }
+                    }
                 },
                 accommodations: true,
                 services: true,
-                teamMembers: true,
-                progressReports: {
-                    orderBy: { reportDate: 'desc' }
-                }
+                teamMembers: true
             }
         });
 
-        if (!iep) {
+        if (!iep || iep.planType !== 'IEP') {
             return res.status(404).json({
                 success: false,
                 error: {
@@ -169,34 +148,29 @@ export const getIEP = async (req: Request, res: Response) => {
 
 /**
  * Get all IEPs for a patient
- * GET /api/v1/iep/patient/:patientId
+ * GET /api/v1/iep/patient/:personId
  */
 export const getPatientIEPs = async (req: Request, res: Response) => {
     try {
-        const { patientId } = req.params;
+        const { personId } = req.params;
         const { status } = req.query;
 
-        const where: any = { patientId };
+        const where: any = { personId, planType: 'IEP' };
         if (status) where.status = status as string;
 
-        const ieps = await prisma.iEP.findMany({
+        const ieps = await prisma.educationPlan.findMany({
             where,
             include: {
                 goals: {
                     select: {
                         id: true,
-                        goalNumber: true,
-                        domain: true,
-                        currentProgress: true
+                        goalStatement: true,
+                        currentProgress: true,
+                        progressStatus: true
                     }
                 },
-                _count: {
-                    select: {
-                        goals: true,
-                        services: true,
-                        accommodations: true
-                    }
-                }
+                accommodations: true,
+                services: true
             },
             orderBy: { createdAt: 'desc' }
         });
@@ -226,34 +200,32 @@ export const updateIEP = async (req: Request, res: Response) => {
         const { id } = req.params;
         const updateData = req.body;
 
-        // Remove fields that shouldn't be updated directly
+        // Remove fields that shouldn't be updated
         delete updateData.id;
         delete updateData.createdAt;
-        delete updateData.patientId;
+        delete updateData.personId;
+        delete updateData.createdBy;
+        delete updateData.createdByType;
+        delete updateData.planType;
 
-        // Convert date strings to Date objects
+        // Handle JSON fields
+        if (updateData.focusAreas) {
+            updateData.focusAreas = JSON.stringify(updateData.focusAreas);
+        }
+
+        // Handle date fields
         if (updateData.startDate) updateData.startDate = new Date(updateData.startDate);
         if (updateData.endDate) updateData.endDate = new Date(updateData.endDate);
         if (updateData.nextReviewDate) updateData.nextReviewDate = new Date(updateData.nextReviewDate);
+        if (updateData.lastReviewDate) updateData.lastReviewDate = new Date(updateData.lastReviewDate);
 
-        const iep = await prisma.iEP.update({
+        const iep = await prisma.educationPlan.update({
             where: { id },
             data: updateData,
             include: {
                 goals: true,
                 accommodations: true,
                 services: true
-            }
-        });
-
-        // Log activity
-        await prisma.patientActivityLog.create({
-            data: {
-                patientId: iep.patientId,
-                activityType: 'iep_updated',
-                description: 'IEP updated',
-                metadata: JSON.stringify({ iepId: iep.id }),
-                createdBy: (req as any).userId
             }
         });
 
@@ -281,35 +253,8 @@ export const deleteIEP = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
 
-        // Get IEP for logging
-        const iep = await prisma.iEP.findUnique({
-            where: { id },
-            select: { patientId: true, academicYear: true }
-        });
-
-        if (!iep) {
-            return res.status(404).json({
-                success: false,
-                error: {
-                    code: 'IEP_NOT_FOUND',
-                    message: 'IEP not found'
-                }
-            });
-        }
-
-        // Delete (cascades to goals, accommodations, services, team members, progress reports)
-        await prisma.iEP.delete({
+        await prisma.educationPlan.delete({
             where: { id }
-        });
-
-        // Log activity
-        await prisma.patientActivityLog.create({
-            data: {
-                patientId: iep.patientId,
-                activityType: 'iep_deleted',
-                description: `IEP for ${iep.academicYear} deleted`,
-                createdBy: (req as any).userId
-            }
         });
 
         res.json({
@@ -334,7 +279,7 @@ export const deleteIEP = async (req: Request, res: Response) => {
  */
 export const addGoal = async (req: Request, res: Response) => {
     try {
-        const { id: iepId } = req.params;
+        const { id: planId } = req.params;
         const {
             goalNumber,
             domain,
@@ -344,13 +289,18 @@ export const addGoal = async (req: Request, res: Response) => {
             targetCriteria,
             targetDate,
             measurementMethod,
-            objectives
+            milestones
         } = req.body;
 
-        const goal = await prisma.iEPGoal.create({
+        // Get current goal count for numbering
+        const existingGoals = await prisma.educationGoal.count({
+            where: { planId }
+        });
+
+        const goal = await prisma.educationGoal.create({
             data: {
-                iepId,
-                goalNumber,
+                planId,
+                goalNumber: goalNumber || existingGoals + 1,
                 domain,
                 priority,
                 goalStatement,
@@ -358,17 +308,13 @@ export const addGoal = async (req: Request, res: Response) => {
                 targetCriteria,
                 targetDate: targetDate ? new Date(targetDate) : null,
                 measurementMethod,
-                objectives: {
-                    create: objectives?.map((obj: any, index: number) => ({
-                        objectiveNumber: index + 1,
-                        objectiveText: obj.text,
-                        criteria: obj.criteria,
-                        targetDate: obj.targetDate ? new Date(obj.targetDate) : null
-                    })) || []
-                }
+                milestones: JSON.stringify(milestones || []),
+                currentProgress: 0,
+                progressStatus: 'not_started'
             },
             include: {
-                objectives: true
+                objectives: true,
+                progressUpdates: true
             }
         });
 
@@ -398,18 +344,22 @@ export const updateGoal = async (req: Request, res: Response) => {
         const updateData = req.body;
 
         delete updateData.id;
-        delete updateData.iepId;
+        delete updateData.planId;
         delete updateData.createdAt;
 
+        if (updateData.milestones) {
+            updateData.milestones = JSON.stringify(updateData.milestones);
+        }
         if (updateData.targetDate) {
             updateData.targetDate = new Date(updateData.targetDate);
         }
 
-        const goal = await prisma.iEPGoal.update({
+        const goal = await prisma.educationGoal.update({
             where: { id: goalId },
             data: updateData,
             include: {
-                objectives: true
+                objectives: true,
+                progressUpdates: true
             }
         });
 
@@ -437,7 +387,7 @@ export const deleteGoal = async (req: Request, res: Response) => {
     try {
         const { goalId } = req.params;
 
-        await prisma.iEPGoal.delete({
+        await prisma.educationGoal.delete({
             where: { id: goalId }
         });
 
@@ -463,40 +413,40 @@ export const deleteGoal = async (req: Request, res: Response) => {
  */
 export const addGoalProgress = async (req: Request, res: Response) => {
     try {
+        const clinicianId = (req as any).userId;
         const { goalId } = req.params;
-        const userId = (req as any).userId;
         const {
-            updateDate,
-            progressPercentage,
-            status,
-            notes,
-            evidence
+            progressValue,
+            progressNote,
+            dataCollected,
+            nextSteps
         } = req.body;
 
-        const progressUpdate = await prisma.goalProgressUpdate.create({
+        const progress = await prisma.goalProgressUpdate.create({
             data: {
                 goalId,
-                updateDate: new Date(updateDate),
-                progressPercentage,
-                status,
-                notes,
-                evidence,
-                updatedBy: userId
+                updateDate: new Date(),
+                updatedBy: clinicianId,
+                updatedByType: 'clinician',
+                progressPercentage: progressValue,
+                status: progressValue >= 100 ? 'completed' : 'in_progress',
+                notes: progressNote,
+                evidence: dataCollected
             }
         });
 
         // Update goal's current progress
-        await prisma.iEPGoal.update({
+        await prisma.educationGoal.update({
             where: { id: goalId },
             data: {
-                currentProgress: progressPercentage,
-                progressStatus: status
+                currentProgress: progressValue,
+                progressStatus: progressValue >= 100 ? 'completed' : 'in_progress'
             }
         });
 
         res.status(201).json({
             success: true,
-            data: progressUpdate
+            data: progress
         });
     } catch (error) {
         console.error('Add progress error:', error);
@@ -516,12 +466,12 @@ export const addGoalProgress = async (req: Request, res: Response) => {
  */
 export const addAccommodation = async (req: Request, res: Response) => {
     try {
-        const { id: iepId } = req.params;
+        const { id: planId } = req.params;
         const { category, accommodationText, frequency } = req.body;
 
-        const accommodation = await prisma.iEPAccommodation.create({
+        const accommodation = await prisma.accommodation.create({
             data: {
-                iepId,
+                planId,
                 category,
                 accommodationText,
                 frequency
@@ -552,7 +502,7 @@ export const deleteAccommodation = async (req: Request, res: Response) => {
     try {
         const { accommodationId } = req.params;
 
-        await prisma.iEPAccommodation.delete({
+        await prisma.accommodation.delete({
             where: { id: accommodationId }
         });
 
@@ -579,46 +529,28 @@ export const deleteAccommodation = async (req: Request, res: Response) => {
 export const signIEP = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const { signerType, signature } = req.body; // signerType: 'parent' or 'clinician'
-
-        if (!['parent', 'clinician'].includes(signerType)) {
-            return res.status(400).json({
-                success: false,
-                error: {
-                    code: 'INVALID_SIGNER_TYPE',
-                    message: 'signerType must be either "parent" or "clinician"'
-                }
-            });
-        }
+        const { signerType } = req.body;
+        const userId = (req as any).userId;
 
         const updateData: any = {};
+
         if (signerType === 'parent') {
             updateData.signedByParent = true;
             updateData.parentSignedAt = new Date();
-            updateData.parentSignature = signature;
-        } else {
+        } else if (signerType === 'clinician') {
             updateData.signedByClinician = true;
             updateData.clinicianSignedAt = new Date();
-            updateData.clinicianSignature = signature;
         }
 
-        const iep = await prisma.iEP.update({
+        const iep = await prisma.educationPlan.update({
             where: { id },
             data: updateData
         });
 
-        // Check if both signed, then activate
-        if (iep.signedByParent && iep.signedByClinician && iep.status === 'draft') {
-            await prisma.iEP.update({
-                where: { id },
-                data: { status: 'active' }
-            });
-        }
-
         res.json({
             success: true,
             data: iep,
-            message: `IEP signed by ${signerType}`
+            message: `IEP signed by ${signerType} successfully`
         });
     } catch (error) {
         console.error('Sign IEP error:', error);
@@ -640,11 +572,12 @@ export const getIEPSummary = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
 
-        const iep = await prisma.iEP.findUnique({
+        const iep = await prisma.educationPlan.findUnique({
             where: { id },
             include: {
-                patient: {
+                person: {
                     select: {
+                        id: true,
                         firstName: true,
                         lastName: true,
                         dateOfBirth: true
@@ -654,22 +587,18 @@ export const getIEPSummary = async (req: Request, res: Response) => {
                     select: {
                         id: true,
                         domain: true,
+                        goalStatement: true,
                         currentProgress: true,
                         progressStatus: true
                     }
                 },
-                _count: {
-                    select: {
-                        goals: true,
-                        accommodations: true,
-                        services: true,
-                        teamMembers: true
-                    }
-                }
+                accommodations: true,
+                services: true,
+                teamMembers: true
             }
         });
 
-        if (!iep) {
+        if (!iep || iep.planType !== 'IEP') {
             return res.status(404).json({
                 success: false,
                 error: {
@@ -679,50 +608,37 @@ export const getIEPSummary = async (req: Request, res: Response) => {
             });
         }
 
-        // Calculate overall progress
-        const totalProgress = iep.goals.reduce((sum, goal) => sum + goal.currentProgress, 0);
-        const avgProgress = iep.goals.length > 0 ? Math.round(totalProgress / iep.goals.length) : 0;
-
-        const summary = {
-            id: iep.id,
-            academicYear: iep.academicYear,
-            status: iep.status,
-            patient: iep.patient,
-            startDate: iep.startDate,
-            endDate: iep.endDate,
-            overallProgress: avgProgress,
-            counts: {
-                goals: iep._count.goals,
-                accommodations: iep._count.accommodations,
-                services: iep._count.services,
-                teamMembers: iep._count.teamMembers
-            },
-            signatures: {
-                parent: iep.signedByParent,
-                clinician: iep.signedByClinician
-            },
-            goalsByDomain: iep.goals.reduce((acc: any, goal) => {
-                if (!acc[goal.domain]) acc[goal.domain] = [];
-                acc[goal.domain].push({
-                    id: goal.id,
-                    progress: goal.currentProgress,
-                    status: goal.progressStatus
-                });
-                return acc;
-            }, {})
+        // Calculate summary statistics
+        const goals = iep.goals as any[];
+        const goalStats = {
+            total: goals.length,
+            completed: goals.filter((g: any) => g.progressStatus === 'completed').length,
+            inProgress: goals.filter((g: any) => g.progressStatus === 'in_progress').length,
+            notStarted: goals.filter((g: any) => g.progressStatus === 'not_started').length,
+            avgProgress: goals.length > 0
+                ? Math.round(goals.reduce((sum: number, g: any) => sum + g.currentProgress, 0) / goals.length)
+                : 0
         };
 
         res.json({
             success: true,
-            data: summary
+            data: {
+                ...iep,
+                statistics: {
+                    goals: goalStats,
+                    accommodations: iep.accommodations.length,
+                    services: iep.services.length,
+                    teamMembers: iep.teamMembers.length
+                }
+            }
         });
     } catch (error) {
-        console.error('Get summary error:', error);
+        console.error('Get IEP summary error:', error);
         res.status(500).json({
             success: false,
             error: {
                 code: 'GET_SUMMARY_FAILED',
-                message: 'Failed to get summary'
+                message: 'Failed to get IEP summary'
             }
         });
     }
@@ -738,31 +654,29 @@ export const getIEPSummary = async (req: Request, res: Response) => {
  */
 export const addService = async (req: Request, res: Response) => {
     try {
-        const { id: iepId } = req.params;
+        const { id: planId } = req.params;
         const {
-            serviceName,
+            serviceType,
             provider,
             frequency,
             duration,
-            serviceType,
-            setting,
+            location,
             startDate,
             endDate,
-            totalSessionsPlanned
+            notes
         } = req.body;
 
-        const service = await prisma.iEPService.create({
+        const service = await prisma.service.create({
             data: {
-                iepId,
-                serviceName,
+                planId,
+                serviceName: serviceType,
+                serviceType,
                 provider,
                 frequency,
                 duration,
-                serviceType,
-                setting,
-                startDate: new Date(startDate),
-                endDate: new Date(endDate),
-                totalSessionsPlanned
+                setting: location || 'default',
+                startDate: startDate ? new Date(startDate) : new Date(),
+                endDate: endDate ? new Date(endDate) : new Date()
             }
         });
 
@@ -792,12 +706,13 @@ export const updateService = async (req: Request, res: Response) => {
         const updateData = req.body;
 
         delete updateData.id;
-        delete updateData.iepId;
+        delete updateData.planId;
+        delete updateData.createdAt;
 
         if (updateData.startDate) updateData.startDate = new Date(updateData.startDate);
         if (updateData.endDate) updateData.endDate = new Date(updateData.endDate);
 
-        const service = await prisma.iEPService.update({
+        const service = await prisma.service.update({
             where: { id: serviceId },
             data: updateData
         });
@@ -826,7 +741,7 @@ export const deleteService = async (req: Request, res: Response) => {
     try {
         const { serviceId } = req.params;
 
-        await prisma.iEPService.delete({
+        await prisma.service.delete({
             where: { id: serviceId }
         });
 
@@ -853,41 +768,28 @@ export const deleteService = async (req: Request, res: Response) => {
 export const recordServiceSession = async (req: Request, res: Response) => {
     try {
         const { serviceId } = req.params;
+        const { sessionDate, notes, status } = req.body;
 
-        const service = await prisma.iEPService.findUnique({
-            where: { id: serviceId }
-        });
-
-        if (!service) {
-            return res.status(404).json({
-                success: false,
-                error: {
-                    code: 'SERVICE_NOT_FOUND',
-                    message: 'Service not found'
-                }
-            });
-        }
-
-        // Increment sessions completed
-        const updatedService = await prisma.iEPService.update({
+        // Update service sessions completed
+        const service = await prisma.service.update({
             where: { id: serviceId },
             data: {
-                sessionsCompleted: service.sessionsCompleted + 1
+                sessionsCompleted: { increment: 1 }
             }
         });
 
         res.json({
             success: true,
-            data: updatedService,
-            message: 'Session recorded'
+            data: service,
+            message: 'Service session recorded'
         });
     } catch (error) {
-        console.error('Record session error:', error);
+        console.error('Record service session error:', error);
         res.status(500).json({
             success: false,
             error: {
                 code: 'RECORD_SESSION_FAILED',
-                message: 'Failed to record session'
+                message: 'Failed to record service session'
             }
         });
     }
@@ -899,20 +801,13 @@ export const recordServiceSession = async (req: Request, res: Response) => {
  */
 export const addTeamMember = async (req: Request, res: Response) => {
     try {
-        const { id: iepId } = req.params;
-        const {
-            memberType,
-            name,
-            role,
-            email,
-            phone,
-            organization
-        } = req.body;
+        const { id: planId } = req.params;
+        const { name, role, email, phone, organization, isPrimary } = req.body;
 
-        const teamMember = await prisma.iEPTeamMember.create({
+        const member = await prisma.teamMember.create({
             data: {
-                iepId,
-                memberType,
+                planId,
+                memberType: 'team',
                 name,
                 role,
                 email,
@@ -923,7 +818,7 @@ export const addTeamMember = async (req: Request, res: Response) => {
 
         res.status(201).json({
             success: true,
-            data: teamMember
+            data: member
         });
     } catch (error) {
         console.error('Add team member error:', error);
@@ -947,16 +842,17 @@ export const updateTeamMember = async (req: Request, res: Response) => {
         const updateData = req.body;
 
         delete updateData.id;
-        delete updateData.iepId;
+        delete updateData.planId;
+        delete updateData.createdAt;
 
-        const teamMember = await prisma.iEPTeamMember.update({
+        const member = await prisma.teamMember.update({
             where: { id: memberId },
             data: updateData
         });
 
         res.json({
             success: true,
-            data: teamMember
+            data: member
         });
     } catch (error) {
         console.error('Update team member error:', error);
@@ -978,13 +874,13 @@ export const deleteTeamMember = async (req: Request, res: Response) => {
     try {
         const { memberId } = req.params;
 
-        await prisma.iEPTeamMember.delete({
+        await prisma.teamMember.delete({
             where: { id: memberId }
         });
 
         res.json({
             success: true,
-            message: 'Team member removed successfully'
+            message: 'Team member deleted successfully'
         });
     } catch (error) {
         console.error('Delete team member error:', error);
@@ -992,7 +888,7 @@ export const deleteTeamMember = async (req: Request, res: Response) => {
             success: false,
             error: {
                 code: 'DELETE_TEAM_MEMBER_FAILED',
-                message: 'Failed to remove team member'
+                message: 'Failed to delete team member'
             }
         });
     }
@@ -1005,21 +901,19 @@ export const deleteTeamMember = async (req: Request, res: Response) => {
 export const signTeamMember = async (req: Request, res: Response) => {
     try {
         const { memberId } = req.params;
-        const { signature } = req.body;
 
-        const teamMember = await prisma.iEPTeamMember.update({
+        const member = await prisma.teamMember.update({
             where: { id: memberId },
             data: {
                 signed: true,
-                signedAt: new Date(),
-                signature
+                signedAt: new Date()
             }
         });
 
         res.json({
             success: true,
-            data: teamMember,
-            message: 'Team member signed'
+            data: member,
+            message: 'Team member signed successfully'
         });
     } catch (error) {
         console.error('Sign team member error:', error);
@@ -1039,99 +933,29 @@ export const signTeamMember = async (req: Request, res: Response) => {
  */
 export const createProgressReport = async (req: Request, res: Response) => {
     try {
-        const { id: iepId } = req.params;
-        const userId = (req as any).userId;
-        const {
-            reportDate,
-            reportingPeriod,
-            overallProgress,
-            summary
-        } = req.body;
-
-        const progressReport = await prisma.iEPProgressReport.create({
-            data: {
-                iepId,
-                reportDate: new Date(reportDate),
-                reportingPeriod,
-                overallProgress,
-                summary,
-                createdBy: userId
-            }
-        });
-
-        // Update IEP overall progress
-        await prisma.iEP.update({
-            where: { id: iepId },
-            data: {
-                overallProgress,
-                lastReviewDate: new Date(reportDate)
-            }
-        });
-
-        res.status(201).json({
-            success: true,
-            data: progressReport
-        });
-    } catch (error) {
-        console.error('Create progress report error:', error);
-        res.status(500).json({
-            success: false,
-            error: {
-                code: 'CREATE_PROGRESS_REPORT_FAILED',
-                message: 'Failed to create progress report'
-            }
-        });
-    }
-};
-
-/**
- * Get progress reports for IEP
- * GET /api/v1/iep/:id/progress-reports
- */
-export const getProgressReports = async (req: Request, res: Response) => {
-    try {
-        const { id: iepId } = req.params;
-
-        const reports = await prisma.iEPProgressReport.findMany({
-            where: { iepId },
-            orderBy: { reportDate: 'desc' }
-        });
-
-        res.json({
-            success: true,
-            data: reports
-        });
-    } catch (error) {
-        console.error('Get progress reports error:', error);
-        res.status(500).json({
-            success: false,
-            error: {
-                code: 'GET_PROGRESS_REPORTS_FAILED',
-                message: 'Failed to retrieve progress reports'
-            }
-        });
-    }
-};
-
-/**
- * Get IEP statistics
- * GET /api/v1/iep/:id/statistics
- */
-export const getIEPStatistics = async (req: Request, res: Response) => {
-    try {
         const { id } = req.params;
+        const clinicianId = (req as any).userId;
+        const { reportingPeriod, summary, recommendations } = req.body;
 
-        const iep = await prisma.iEP.findUnique({
+        // Get IEP with goals for report
+        const iep = await prisma.educationPlan.findUnique({
             where: { id },
             include: {
                 goals: {
-                    include: {
-                        progressUpdates: true
+                    select: {
+                        id: true,
+                        domain: true,
+                        goalStatement: true,
+                        currentProgress: true,
+                        progressStatus: true
                     }
                 },
-                services: true,
-                progressReports: {
-                    orderBy: { reportDate: 'desc' }
+                person: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true
+                    }
                 }
             }
         });
@@ -1146,54 +970,166 @@ export const getIEPStatistics = async (req: Request, res: Response) => {
             });
         }
 
+        // Create report in reports table
+        const report = await prisma.report.create({
+            data: {
+                personId: iep.personId,
+                clinicianId,
+                reportType: 'IEP_PROGRESS',
+                title: `IEP Progress Report - ${reportingPeriod}`,
+                reportDate: new Date(),
+                reportingPeriod,
+                summary: summary || `Progress report for ${iep.person.firstName} ${iep.person.lastName}`,
+                recommendations,
+                status: 'draft'
+            }
+        });
+
+        res.status(201).json({
+            success: true,
+            data: report
+        });
+    } catch (error) {
+        console.error('Create progress report error:', error);
+        res.status(500).json({
+            success: false,
+            error: {
+                code: 'CREATE_REPORT_FAILED',
+                message: 'Failed to create progress report'
+            }
+        });
+    }
+};
+
+/**
+ * Get progress reports for IEP
+ * GET /api/v1/iep/:id/progress-reports
+ */
+export const getProgressReports = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+
+        // Get IEP to find personId
+        const iep = await prisma.educationPlan.findUnique({
+            where: { id },
+            select: { personId: true }
+        });
+
+        if (!iep) {
+            return res.status(404).json({
+                success: false,
+                error: {
+                    code: 'IEP_NOT_FOUND',
+                    message: 'IEP not found'
+                }
+            });
+        }
+
+        const reports = await prisma.report.findMany({
+            where: {
+                personId: iep.personId,
+                reportType: 'IEP_PROGRESS'
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+
+        res.json({
+            success: true,
+            data: reports
+        });
+    } catch (error) {
+        console.error('Get progress reports error:', error);
+        res.status(500).json({
+            success: false,
+            error: {
+                code: 'GET_REPORTS_FAILED',
+                message: 'Failed to get progress reports'
+            }
+        });
+    }
+};
+
+/**
+ * Get IEP statistics
+ * GET /api/v1/iep/:id/statistics
+ */
+export const getIEPStatistics = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+
+        const iep = await prisma.educationPlan.findUnique({
+            where: { id },
+            include: {
+                goals: {
+                    include: {
+                        progressUpdates: true
+                    }
+                },
+                accommodations: true,
+                services: true,
+                teamMembers: true
+            }
+        });
+
+        if (!iep || iep.planType !== 'IEP') {
+            return res.status(404).json({
+                success: false,
+                error: {
+                    code: 'IEP_NOT_FOUND',
+                    message: 'IEP not found'
+                }
+            });
+        }
+
         // Calculate statistics
-        const totalGoals = iep.goals.length;
-        const goalsAchieved = iep.goals.filter(g => g.progressStatus === 'achieved').length;
-        const goalsInProgress = iep.goals.filter(g => g.progressStatus === 'in_progress').length;
-        const goalsNotStarted = iep.goals.filter(g => g.progressStatus === 'not_started').length;
-
-        const avgProgress = totalGoals > 0
-            ? Math.round(iep.goals.reduce((sum, g) => sum + g.currentProgress, 0) / totalGoals)
-            : 0;
-
-        const totalServices = iep.services.length;
-        const totalSessionsCompleted = iep.services.reduce((sum, s) => sum + s.sessionsCompleted, 0);
-        const totalSessionsPlanned = iep.services.reduce((sum, s) => sum + (s.totalSessionsPlanned || 0), 0);
-
         const statistics = {
-            iepId: iep.id,
             goals: {
-                total: totalGoals,
-                achieved: goalsAchieved,
-                inProgress: goalsInProgress,
-                notStarted: goalsNotStarted,
-                averageProgress: avgProgress
+                total: iep.goals.length,
+                completed: iep.goals.filter(g => g.progressStatus === 'completed').length,
+                inProgress: iep.goals.filter(g => g.progressStatus === 'in_progress').length,
+                notStarted: iep.goals.filter(g => g.progressStatus === 'not_started').length,
+                averageProgress: iep.goals.length > 0
+                    ? Math.round(iep.goals.reduce((sum, g) => sum + g.currentProgress, 0) / iep.goals.length)
+                    : 0,
+                byDomain: iep.goals.reduce((acc: Record<string, number>, g) => {
+                    acc[g.domain] = (acc[g.domain] || 0) + 1;
+                    return acc;
+                }, {})
+            },
+            accommodations: {
+                total: iep.accommodations.length
             },
             services: {
-                total: totalServices,
-                sessionsCompleted: totalSessionsCompleted,
-                sessionsPlanned: totalSessionsPlanned,
-                completionRate: totalSessionsPlanned > 0
-                    ? Math.round((totalSessionsCompleted / totalSessionsPlanned) * 100)
-                    : 0
+                total: iep.services.length
             },
-            progressReports: {
-                total: iep.progressReports.length,
-                latest: iep.progressReports[0] || null
+            team: {
+                total: iep.teamMembers.length,
+                signed: iep.teamMembers.filter(m => m.signed).length
+            },
+            signatures: {
+                parentSigned: iep.signedByParent,
+                clinicianSigned: iep.signedByClinician,
+                fullyExecuted: iep.signedByParent && iep.signedByClinician
             }
         };
 
         res.json({
             success: true,
-            data: statistics
+            data: {
+                iepId: iep.id,
+                planName: iep.planName,
+                status: iep.status,
+                overallProgress: iep.overallProgress,
+                statistics
+            }
         });
     } catch (error) {
-        console.error('Get statistics error:', error);
+        console.error('Get IEP statistics error:', error);
         res.status(500).json({
             success: false,
             error: {
                 code: 'GET_STATISTICS_FAILED',
-                message: 'Failed to retrieve statistics'
+                message: 'Failed to get IEP statistics'
             }
         });
     }

@@ -9,12 +9,16 @@ import {
     getMyScreenings,
     deleteScreening
 } from '../controllers/parent-screening.controller';
+import { getScreeningTypes } from '../controllers/screening-types.controller';
 import { authenticate } from '../middleware/auth';
 
 const router = express.Router();
 
 // All routes require authentication
 router.use(authenticate);
+
+// Get available screening types
+router.get('/types', getScreeningTypes);
 
 // Screening lifecycle
 router.post('/', startScreening);

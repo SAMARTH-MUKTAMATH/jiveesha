@@ -25,8 +25,8 @@ export const getProfile = async (req: AuthRequest, res: Response, next: NextFunc
                 last_name: profile.lastName,
                 professional_title: profile.professionalTitle,
                 designation: profile.designation,
-                specializations: profile.specializations,
-                languages: profile.languages,
+                specializations: JSON.parse(profile.specializations || '[]'),
+                languages: JSON.parse(profile.languages || '[]'),
                 phone: profile.phone,
                 alternate_phone: profile.alternatePhone,
                 date_of_birth: profile.dateOfBirth,
@@ -55,12 +55,12 @@ export const updateProfile = async (req: AuthRequest, res: Response, next: NextF
                 lastName: updates.last_name,
                 professionalTitle: updates.professional_title,
                 designation: updates.designation,
-                specializations: updates.specializations || [],
-                languages: updates.languages || [],
+                specializations: JSON.stringify(updates.specializations || []),
+                languages: JSON.stringify(updates.languages || []),
                 phone: updates.phone,
                 alternatePhone: updates.alternate_phone,
                 dateOfBirth: updates.date_of_birth ? new Date(updates.date_of_birth) : null,
-                yearsOfPractice: updates.years_of_practice,
+                yearsOfPractice: updates.years_of_practice ? parseInt(updates.years_of_practice) || null : null,
                 bio: updates.bio
             },
             create: {
@@ -70,12 +70,12 @@ export const updateProfile = async (req: AuthRequest, res: Response, next: NextF
                 middleName: updates.middle_name,
                 professionalTitle: updates.professional_title,
                 designation: updates.designation,
-                specializations: updates.specializations || [],
-                languages: updates.languages || [],
+                specializations: JSON.stringify(updates.specializations || []),
+                languages: JSON.stringify(updates.languages || []),
                 phone: updates.phone,
                 alternatePhone: updates.alternate_phone,
                 dateOfBirth: updates.date_of_birth ? new Date(updates.date_of_birth) : null,
-                yearsOfPractice: updates.years_of_practice,
+                yearsOfPractice: updates.years_of_practice ? parseInt(updates.years_of_practice) || null : null,
                 bio: updates.bio
             }
         });

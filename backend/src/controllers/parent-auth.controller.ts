@@ -20,7 +20,8 @@ export const register = async (req: Request, res: Response) => {
             phone,
             preferredLanguage,
             emergencyContact,
-            emergencyPhone
+            emergencyPhone,
+            relationshipToChild
         } = req.body;
 
         // Validate required fields
@@ -56,17 +57,19 @@ export const register = async (req: Request, res: Response) => {
         // Create user and parent profile in transaction
         const result = await prisma.$transaction(async (tx) => {
             // Create user account
+            // NOTE: User model in v2.0 only contains auth fields
             const user = await tx.user.create({
                 data: {
                     email,
                     passwordHash: hashedPassword,
                     role: 'parent',
-                    emailVerified: false,
-                    status: 'active'
+                    status: 'active',
+                    emailVerified: false
                 }
             });
 
             // Create parent profile
+            // NOTE: Parent model doesn't have names or relationshipToChild
             const parent = await tx.parent.create({
                 data: {
                     userId: user.id,
@@ -77,7 +80,7 @@ export const register = async (req: Request, res: Response) => {
                 }
             });
 
-            // Create basic profile (for name storage)
+            // Create clinician profile (for name storage - shared between clinicians and parents in this design)
             await tx.clinicianProfile.create({
                 data: {
                     userId: user.id,
@@ -120,7 +123,8 @@ export const register = async (req: Request, res: Response) => {
             success: false,
             error: {
                 code: 'REGISTRATION_FAILED',
-                message: 'Failed to register parent account'
+                message: 'Failed to register parent account',
+                details: error instanceof Error ? error.message : String(error)
             }
         });
     }
@@ -149,7 +153,7 @@ export const login = async (req: Request, res: Response) => {
             where: { email },
             include: {
                 parent: true,
-                profile: true
+                clinicianProfile: true
             }
         });
 
@@ -210,8 +214,8 @@ export const login = async (req: Request, res: Response) => {
                     id: user.id,
                     email: user.email,
                     role: user.role,
-                    firstName: user.profile?.firstName,
-                    lastName: user.profile?.lastName
+                    firstName: user.clinicianProfile?.firstName,
+                    lastName: user.clinicianProfile?.lastName
                 },
                 parent: user.parent,
                 token
@@ -242,9 +246,9 @@ export const getProfile = async (req: Request, res: Response) => {
             include: {
                 parent: {
                     include: {
-                        children: {
+                        childViews: {
                             include: {
-                                patient: {
+                                person: {
                                     select: {
                                         id: true,
                                         firstName: true,
@@ -257,7 +261,7 @@ export const getProfile = async (req: Request, res: Response) => {
                         }
                     }
                 },
-                profile: true
+                clinicianProfile: true
             }
         });
 
@@ -271,14 +275,25 @@ export const getProfile = async (req: Request, res: Response) => {
             });
         }
 
+        // Transform children data
+        const children = user.parent?.childViews?.map(view => ({
+            id: view.person.id,
+            firstName: view.person.firstName,
+            lastName: view.person.lastName,
+            dateOfBirth: view.person.dateOfBirth,
+            gender: view.person.gender,
+            relationship: view.relationshipType
+        })) || [];
+
         res.json({
             success: true,
             data: {
                 id: user.id,
                 email: user.email,
-                firstName: user.profile?.firstName,
-                lastName: user.profile?.lastName,
-                parent: user.parent
+                firstName: user.clinicianProfile?.firstName,
+                lastName: user.clinicianProfile?.lastName,
+                parent: user.parent,
+                children
             }
         });
     } catch (error) {
@@ -313,7 +328,7 @@ export const updateProfile = async (req: Request, res: Response) => {
 
         const user = await prisma.user.findUnique({
             where: { id: userId },
-            include: { parent: true, profile: true }
+            include: { parent: true, clinicianProfile: true }
         });
 
         if (!user || !user.parent) {
@@ -333,8 +348,8 @@ export const updateProfile = async (req: Request, res: Response) => {
                 await tx.clinicianProfile.update({
                     where: { userId },
                     data: {
-                        firstName: firstName || user.profile?.firstName,
-                        lastName: lastName || user.profile?.lastName
+                        firstName: firstName || user.clinicianProfile?.firstName,
+                        lastName: lastName || user.clinicianProfile?.lastName
                     }
                 });
             }

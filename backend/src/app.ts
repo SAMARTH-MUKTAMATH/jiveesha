@@ -21,15 +21,22 @@ import reportRoutes from './routes/reports.routes';
 import messageRoutes from './routes/messages.routes';
 import parentAuthRoutes from './routes/parent-auth.routes';
 import parentChildrenRoutes from './routes/parent-children.routes';
+import parentAccessGrantsRoutes from './routes/parent-access-grants.routes';
 import consentRoutes from './routes/consent.routes';
 import parentScreeningRoutes from './routes/parent-screening.routes';
+import parentDashboardRoutes from './routes/parent-dashboard.routes';
 import pepRoutes from './routes/pep.routes';
 import resourceRoutes from './routes/resources.routes';
+import testTransformRoutes from './routes/test-transform.routes';
+import teacherRoutes from './routes/teacher.routes';
+import schoolRoutes from './routes/school.routes';
+import { responseTransformer } from './middleware/response-transformer';
 import { errorHandler } from './middleware/errorHandler';
 import { notFound } from './middleware/notFound';
 
 dotenv.config();
 
+// Trigger restart for .env update
 const app: Application = express();
 
 // Security middleware
@@ -37,12 +44,13 @@ app.use(helmet());
 
 // CORS configuration
 app.use(cors({
-    origin: process.env.FRONTEND_URL
+    origin: (process.env.FRONTEND_URL
         ? process.env.FRONTEND_URL.split(',').map(url => url.trim())
-        : ['http://localhost:3000', 'http://localhost:5173'],
+        : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:5176']
+    ).concat(['http://localhost:5177']),
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-User-ID']
 }));
 
 // Logging
@@ -53,6 +61,9 @@ if (process.env.NODE_ENV !== 'test') {
 // Body parsing
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Response transformer - MUST be before routes!
+app.use(responseTransformer);
 
 // Static files for uploads
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
@@ -84,16 +95,21 @@ app.use(`${API_PREFIX}/reports`, reportRoutes);
 app.use(`${API_PREFIX}/messages`, messageRoutes);
 app.use(`${API_PREFIX}/parent/auth`, parentAuthRoutes);
 app.use(`${API_PREFIX}/parent/children`, parentChildrenRoutes);
+app.use(`${API_PREFIX}/parent/access-grants`, parentAccessGrantsRoutes);
+app.use(`${API_PREFIX}/parent/dashboard`, parentDashboardRoutes);
 app.use(`${API_PREFIX}/consent`, consentRoutes);
 app.use(`${API_PREFIX}/parent/screening`, parentScreeningRoutes);
 app.use(`${API_PREFIX}/parent/pep`, pepRoutes);
 app.use(`${API_PREFIX}/parent/resources`, resourceRoutes);
+app.use(`${API_PREFIX}/test`, testTransformRoutes);
+app.use(`${API_PREFIX}/teacher`, teacherRoutes);
+app.use(`${API_PREFIX}/school`, schoolRoutes);
 
 // Error handlers
 app.use(notFound);
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 5000;
 
 if (process.env.NODE_ENV !== 'test') {
     app.listen(PORT, () => {

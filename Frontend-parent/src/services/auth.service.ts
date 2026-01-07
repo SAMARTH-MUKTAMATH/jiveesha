@@ -13,6 +13,7 @@ export interface RegisterData {
     lastName: string;
     phone?: string;
     preferredLanguage?: string;
+    relationshipToChild?: string;
 }
 
 export interface AuthResponse {

@@ -1,0 +1,767 @@
+import React, { useState, useEffect } from 'react';
+import Navbar from './Navbar';
+
+// Interfaces
+interface StudentProfileProps {
+    studentId: string;
+    onNavigate: (view: string, data?: any) => void;
+}
+
+interface ScreeningEvent {
+    id: string;
+    title: string;
+    date: string;
+    status: 'completed' | 'flagged' | 'pending';
+    score?: string;
+    description: string;
+    actionRequired?: boolean;
+}
+
+interface TeacherNote {
+    id: string;
+    author: string;
+    role: string;
+    date: string;
+    content: string;
+    avatarColor: string;
+}
+
+interface Attachment {
+    id: string;
+    type: 'image' | 'audio' | 'pdf';
+    name: string;
+    url: string;
+    meta?: string; // duration or size
+}
+
+interface ConsentLog {
+    id: string;
+    title: string;
+    date: string;
+    approvedBy: string;
+    status: 'approved' | 'pending';
+}
+
+interface StudentProfileData {
+    student: {
+        id: string;
+        firstName: string;
+        lastName: string;
+        studentId: string;
+        dateOfBirth: string;
+        age: number;
+        grade: string;
+        section: string;
+        photo?: string;
+        riskLevel?: 'low' | 'moderate' | 'high';
+        flags?: string[];
+        gender: string;
+    };
+    guardian: {
+        name: string;
+        phone: string;
+        email?: string;
+        relationship: string;
+        avatarUrl?: string;
+        secondaryName?: string;
+        secondaryRelation?: string;
+    };
+    school: {
+        name: string;
+        district: string;
+    };
+    teacher: {
+        name: string;
+        assignment: string;
+    };
+    screening: {
+        status: string;
+        currentPhase: number | null;
+        lastScreeningDate: string | null;
+        nextPhase: number | null;
+        consentStatus: boolean;
+        consentDate: string | null;
+    };
+    history: ScreeningEvent[];
+    notes: TeacherNote[];
+    attachments: Attachment[];
+    consentLogs: ConsentLog[];
+    phaseProgress: {
+        [key: number]: {
+            status: 'pending' | 'in_progress' | 'completed';
+            subTasks: { [key: string]: 'pending' | 'completed' | 'flagged' };
+        }
+    };
+}
+
+// Helper function to calculate age from date of birth
+// Helper function to calculate age from date of birth
+const calculateAge = (dateOfBirth: string | Date | undefined): number => {
+    if (!dateOfBirth) return 0;
+    const today = new Date();
+    const birthDate = typeof dateOfBirth === 'string' ? new Date(dateOfBirth) : dateOfBirth;
+    if (isNaN(birthDate.getTime())) return 0; // Check for invalid date
+
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+    }
+    return age;
+};
+
+const StudentProfile: React.FC<StudentProfileProps> = ({ studentId, onNavigate }) => {
+    const [profileData, setProfileData] = useState<StudentProfileData | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [noteInput, setNoteInput] = useState('');
+    const [isEditingDemographics, setIsEditingDemographics] = useState(false);
+    const [editData, setEditData] = useState({
+        firstName: '',
+        lastName: '',
+        dateOfBirth: '',
+        gender: '',
+        grade: '',
+        section: ''
+    });
+
+    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api/v1';
+
+    useEffect(() => {
+        fetchStudentProfile();
+    }, [studentId]);
+
+    const fetchStudentProfile = async () => {
+        setIsLoading(true);
+        try {
+            const token = localStorage.getItem('auth_token');
+            const response = await fetch(`${API_BASE_URL}/teacher/students/${studentId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (!response.ok) throw new Error('Failed to load student profile');
+            const rawData = await response.json();
+
+            // Defensive coding: Ensure all expected arrays/objects exist to prevent render crashes
+            const data: StudentProfileData = {
+                ...rawData,
+                student: rawData.student || {},
+                guardian: rawData.guardian || {},
+                school: rawData.school || { name: 'Unknown School', district: '' },
+                teacher: rawData.teacher || { name: 'Unknown Teacher', assignment: '' },
+                screening: rawData.screening || {},
+                history: rawData.history || [],
+                notes: rawData.notes || [],
+                attachments: rawData.attachments || [],
+                consentLogs: rawData.consentLogs || [],
+                phaseProgress: rawData.phaseProgress || {}
+            };
+
+            setProfileData(data);
+        } catch (err: any) {
+            setError(err.message || 'Failed to load profile');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+    const handleOverridePhase = async (phaseId: number) => {
+        if (!window.confirm(`Are you sure you want to manually mark Phase ${phaseId} as complete?`)) return;
+
+        try {
+            const token = localStorage.getItem('auth_token');
+            const response = await fetch(`${API_BASE_URL}/teacher/screenings/override`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    studentId,
+                    phase: phaseId
+                })
+            });
+
+            if (response.ok) {
+                fetchStudentProfile(); // Refresh data
+            } else {
+                const data = await response.json();
+                alert(data.message || 'Error marking phase as complete');
+            }
+        } catch (err) {
+            console.error('Error override phase:', err);
+            alert('Error marking phase as complete');
+        }
+    };
+
+
+    const handleAddNote = async () => {
+        if (!noteInput.trim()) return;
+        try {
+            const token = localStorage.getItem('auth_token');
+            const response = await fetch(`${API_BASE_URL}/teacher/students/notes`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    studentId,
+                    content: noteInput
+                })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setProfileData(prev => prev ? ({ ...prev, notes: [data.note, ...prev.notes] }) : null);
+                setNoteInput('');
+            }
+        } catch (err) {
+            console.error('Error adding note:', err);
+        }
+    };
+
+    const handleStartEdit = () => {
+        if (!profileData) return;
+        setEditData({
+            firstName: profileData.student.firstName,
+            lastName: profileData.student.lastName,
+            dateOfBirth: new Date(profileData.student.dateOfBirth).toISOString().split('T')[0],
+            gender: profileData.student.gender || 'other',
+            grade: profileData.student.grade,
+            section: profileData.student.section || ''
+        });
+        setIsEditingDemographics(true);
+    };
+
+    const handleSaveDemographics = async () => {
+        try {
+            const token = localStorage.getItem('auth_token');
+            const response = await fetch(`${API_BASE_URL}/teacher/students/${studentId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(editData)
+            });
+
+            if (response.ok) {
+                setIsEditingDemographics(false);
+                fetchStudentProfile();
+            } else {
+                const data = await response.json();
+                alert(data.message || 'Failed to update student information');
+            }
+        } catch (err) {
+            console.error('Error updating demographics:', err);
+            alert('Failed to update student information');
+        }
+    };
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-slate-50 ">
+                <div className="flex flex-col items-center gap-3">
+                    <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                    <p className="text-slate-500 font-medium">Loading profile...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error || !profileData) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-slate-50 ">
+                <div className="text-center max-w-md p-6 bg-white  rounded-xl shadow-sm border border-slate-200 ">
+                    <span className="material-symbols-outlined text-4xl text-red-500 mb-3">error</span>
+                    <h3 className="text-lg font-bold text-slate-900 ">Unable to load profile</h3>
+                    <p className="text-slate-500  mt-2 mb-4">{error}</p>
+                    <button onClick={fetchStudentProfile} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Retry</button>
+                </div>
+            </div>
+        );
+    }
+
+    const { student, guardian, history, notes, attachments, consentLogs, phaseProgress } = profileData;
+
+    const phases = [
+        { id: 1, name: 'Phase 1', label: 'Initial', icon: 'fact_check', subTasks: ['checklist'] },
+        { id: 2, name: 'Phase 2', label: 'Technical', icon: 'vitals', subTasks: ['handwriting', 'speech', 'gaze'] },
+        { id: 3, name: 'Phase 3', label: 'Clinical', icon: 'medical_services', subTasks: ['asma', 'sld', 'adhd'] },
+        { id: 4, name: 'Phase 4', label: 'Game-based', icon: 'sports_esports', subTasks: ['english', 'maths', 'regional'] },
+    ];
+
+    return (
+        <div className="bg-slate-50  min-h-screen font-display pb-12">
+            <Navbar
+                teacherName={profileData.teacher.name}
+                teacherAssignment={profileData.teacher.assignment}
+                schoolName={profileData.school.name}
+                onNavigate={onNavigate}
+                activeView="my-students"
+            />
+
+            {/* Main Content */}
+            <div className="max-w-7xl mx-auto px-4 lg:px-8 py-8 flex flex-col gap-8">
+
+
+                {/* Breadcrumbs */}
+                <div className="flex items-center gap-2 text-sm">
+                    <button onClick={() => onNavigate('dashboard')} className="text-slate-500 hover:text-blue-600">Dashboard</button>
+                    <span className="text-slate-300">/</span>
+                    <button onClick={() => onNavigate('my-students')} className="text-slate-500 hover:text-blue-600">My Students</button>
+                    <span className="text-slate-300">/</span>
+                    <span className="font-medium text-slate-900">{student.firstName} {student.lastName}</span>
+                </div>
+
+
+                {/* Student Info Header */}
+                <div className="bg-white rounded-2xl p-8 shadow-sm border border-slate-200">
+                    <div className="flex items-start justify-between">
+                        <div>
+                            <h1 className="text-3xl font-bold text-slate-900 mb-3">{student.firstName} {student.lastName}</h1>
+                            <div className="flex items-center gap-4 text-sm text-slate-600">
+                                <div className="flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-[18px]">cake</span>
+                                    <span>{calculateAge(student.dateOfBirth)} years old</span>
+                                </div>
+                                <span className="text-slate-300">•</span>
+                                <div className="flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-[18px]">badge</span>
+                                    <span>ID: {student.id.slice(0, 8)}</span>
+                                </div>
+                                <span className="text-slate-300">•</span>
+                                <div className="flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-[18px]">school</span>
+                                    <span>Grade {student.grade}-{student.section}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => onNavigate('screening-flow', { studentId })}
+                                className="h-10 px-5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors flex items-center gap-2 shadow-md shadow-blue-500/20"
+                            >
+                                <span className="material-symbols-outlined text-[20px]">play_arrow</span>
+                                Start Screening
+                            </button>
+
+                            <button
+                                onClick={() => onNavigate('screening-results', { studentId })}
+                                className="h-10 px-5 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm font-semibold hover:bg-slate-50 transition-colors flex items-center justify-center gap-2"
+                            >
+                                <span className="material-symbols-outlined text-[18px]">analytics</span>
+                                Screening Results
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Risk Level Warning */}
+                    {student.riskLevel === 'moderate' && (
+                        <div className="mt-4 flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-50 text-amber-700 text-sm font-bold border border-amber-200 w-fit">
+                            <span className="material-symbols-outlined text-[18px]">warning</span>
+                            <span>Needs Review: Student identified with moderate risk level.</span>
+                        </div>
+                    )}
+
+                    {/* Flags */}
+                    {student.flags && student.flags.length > 0 && (
+                        <div className="mt-4 flex items-center gap-2 px-3 py-2 rounded-lg bg-red-50 text-red-600 text-sm font-bold border border-red-200 w-fit">
+                            <span className="material-symbols-outlined text-[18px]">campaign</span>
+                            <span>Flagged for {student.flags.join(', ')}</span>
+                        </div>
+                    )}
+                </div>
+                {/* Layout Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+                    {/* Left Column (Side Info) */}
+                    <div className="lg:col-span-4 flex flex-col gap-6">
+
+                        {/* Demographics Card */}
+                        <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200 flex flex-col gap-4">
+                            <div className="flex items-center justify-between">
+                                <h3 className="font-bold text-slate-900 text-lg">Demographics</h3>
+                                {!isEditingDemographics ? (
+                                    <button
+                                        onClick={handleStartEdit}
+                                        className="text-blue-600 text-sm font-medium hover:underline"
+                                    >
+                                        Edit
+                                    </button>
+                                ) : (
+                                    <div className="flex gap-2">
+                                        <button onClick={() => setIsEditingDemographics(false)} className="text-slate-400 text-xs font-bold hover:text-slate-600">Cancel</button>
+                                        <button onClick={handleSaveDemographics} className="text-blue-600 text-xs font-bold hover:underline">Save</button>
+                                    </div>
+                                )}
+                            </div>
+
+                            {isEditingDemographics ? (
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase">First Name</label>
+                                            <input
+                                                value={editData.firstName}
+                                                onChange={e => setEditData({ ...editData, firstName: e.target.value })}
+                                                className="w-full text-sm border-b border-slate-200 focus:border-blue-500 outline-none pb-1"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase">Last Name</label>
+                                            <input
+                                                value={editData.lastName}
+                                                onChange={e => setEditData({ ...editData, lastName: e.target.value })}
+                                                className="w-full text-sm border-b border-slate-200 focus:border-blue-500 outline-none pb-1"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase">Date of Birth</label>
+                                            <input
+                                                type="date"
+                                                value={editData.dateOfBirth}
+                                                onChange={e => setEditData({ ...editData, dateOfBirth: e.target.value })}
+                                                className="w-full text-sm border-b border-slate-200 focus:border-blue-500 outline-none pb-1"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase">Gender</label>
+                                            <select
+                                                value={editData.gender}
+                                                onChange={e => setEditData({ ...editData, gender: e.target.value })}
+                                                className="w-full text-sm border-b border-slate-200 focus:border-blue-500 outline-none pb-1 bg-transparent"
+                                            >
+                                                <option value="male">Male</option>
+                                                <option value="female">Female</option>
+                                                <option value="other">Other</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase">Grade</label>
+                                            <input
+                                                value={editData.grade}
+                                                onChange={e => setEditData({ ...editData, grade: e.target.value })}
+                                                className="w-full text-sm border-b border-slate-200 focus:border-blue-500 outline-none pb-1"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase">Section</label>
+                                            <input
+                                                value={editData.section}
+                                                onChange={e => setEditData({ ...editData, section: e.target.value })}
+                                                className="w-full text-sm border-b border-slate-200 focus:border-blue-500 outline-none pb-1"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 gap-4">
+                                    <div className="flex items-start gap-3 p-3 rounded-lg bg-slate-50">
+                                        <div className="p-2 bg-white rounded-md text-slate-500 shadow-sm">
+                                            <span className="material-symbols-outlined">cake</span>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Date of Birth</p>
+                                            <p className="text-sm font-medium text-slate-900">{new Date(student.dateOfBirth).toLocaleDateString()}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-start gap-3 p-3 rounded-lg bg-slate-50">
+                                        <div className="p-2 bg-white rounded-md text-slate-500 shadow-sm">
+                                            <span className="material-symbols-outlined">wc</span>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Gender</p>
+                                            <p className="text-sm font-medium text-slate-900 capitalize">{student.gender || 'Not specified'}</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="border-t border-slate-100  my-1"></div>
+
+                                    <div>
+                                        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Family & Guardians</p>
+                                        {guardian && (
+                                            <div className="flex items-center gap-3 mb-3">
+                                                <div className="h-10 w-10 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-500 text-sm">
+                                                    {guardian.name?.[0] || 'G'}
+                                                </div>
+                                                <div className="flex-1">
+                                                    <p className="text-sm font-bold text-slate-900 ">{guardian.name}</p>
+                                                    <p className="text-xs text-slate-500">{guardian.relationship} • Primary</p>
+                                                </div>
+                                                {guardian.phone && (
+                                                    <a href={`tel:${guardian.phone}`} className="h-8 w-8 rounded-full bg-green-50 text-green-600 flex items-center justify-center hover:bg-green-100">
+                                                        <span className="material-symbols-outlined text-[18px]">call</span>
+                                                    </a>
+                                                )}
+                                            </div>
+                                        )}
+                                        {guardian.secondaryName && (
+                                            <div className="flex items-center gap-3">
+                                                <div className="h-10 w-10 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-500 text-sm">
+                                                    {guardian.secondaryName[0]}
+                                                </div>
+                                                <div className="flex-1">
+                                                    <p className="text-sm font-bold text-slate-900 ">{guardian.secondaryName}</p>
+                                                    <p className="text-xs text-slate-500">{guardian.secondaryRelation}</p>
+                                                </div>
+                                                <button className="h-8 w-8 rounded-full bg-green-50 text-green-600 flex items-center justify-center hover:bg-green-100">
+                                                    <span className="material-symbols-outlined text-[18px]">call</span>
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* PEP Quick Link */}
+                        <div className="rounded-xl p-0 overflow-hidden bg-gradient-to-br from-[#135bec] to-blue-700 text-white shadow-lg shadow-blue-200 ">
+                            <div className="p-5 flex flex-col gap-3 relative">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+                                <div className="flex items-center justify-between relative z-10">
+                                    <span className="bg-white/20 px-2 py-0.5 rounded text-xs font-medium backdrop-blur-sm">Education Plan</span>
+                                    <span className="material-symbols-outlined text-[20px]">school</span>
+                                </div>
+                                <h3 className="text-lg font-bold relative z-10">Individualized Education Plan (PEP)</h3>
+                                <p className="text-blue-100 text-sm mb-2 relative z-10">Active plan customized for speech development.</p>
+                                <button
+                                    onClick={() => onNavigate('view-pep', { studentId: student.id })}
+                                    className="w-full bg-white text-[#135bec] text-sm font-bold py-2.5 rounded-lg hover:bg-blue-50 transition-colors relative z-10"
+                                >
+                                    View PEP (Read Only)
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Consent & Audit */}
+                        <div className="bg-white  rounded-xl p-5 shadow-sm border border-slate-200  flex flex-col gap-4">
+                            <h3 className="font-bold text-slate-900  text-md">Consent Logs</h3>
+                            <ul className="space-y-4 relative before:absolute before:inset-0 before:ml-2 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-200 before:to-transparent">
+                                {consentLogs.map(log => (
+                                    <li key={log.id} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
+                                        <div className="flex items-center w-full gap-3">
+                                            <div className={`flex items-center justify-center w-4 h-4 rounded-full border border-white  shadow shrink-0 z-10 ${log.status === 'approved' ? 'bg-green-600' : 'bg-slate-300'}`}></div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-xs font-medium text-slate-900  truncate">{log.title}</p>
+                                                <p className="text-[10px] text-slate-400">{log.date} by {log.approvedBy}</p>
+                                            </div>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    </div>
+
+                    {/* Right Column (Main Feed) */}
+                    <div className="lg:col-span-8 flex flex-col gap-6">
+
+                        {/* Screening Roadmap (Replaces History) */}
+                        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                            <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+                                <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-blue-600">analytics</span>
+                                    Screening Roadmap
+                                </h3>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Global Progress</span>
+                                    <div className="w-32 h-2 bg-slate-100 rounded-full overflow-hidden">
+                                        <div
+                                            className="h-full bg-blue-600 transition-all duration-1000"
+                                            style={{ width: `${(Object.values(phaseProgress).filter(p => p.status === 'completed').length / 4) * 100}%` }}
+                                        ></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="p-6">
+                                <div className="grid grid-cols-1 md:grid-cols-4 gap-8 relative">
+                                    {/* Connector Line */}
+                                    <div className="absolute top-8 left-0 w-full h-0.5 bg-slate-100 hidden md:block"></div>
+
+                                    {phases.map((phase) => {
+                                        const status = phaseProgress[phase.id]?.status || 'pending';
+                                        const subTasks = phaseProgress[phase.id]?.subTasks || {};
+                                        const isCurrent = profileData.screening.nextPhase === phase.id;
+
+                                        return (
+                                            <div key={phase.id} className="relative z-10 flex flex-col items-center group">
+                                                {/* Phase Circle */}
+                                                <div className={`size-16 rounded-full flex items-center justify-center border-4 transition-all duration-300 ${status === 'completed' ? 'bg-green-600 border-green-100 text-white' :
+                                                    status === 'in_progress' ? 'bg-blue-50 border-blue-600 text-blue-600 shadow-lg shadow-blue-100' :
+                                                        'bg-white border-slate-100 text-slate-300'
+                                                    } ${isCurrent ? 'ring-4 ring-blue-50' : ''}`}>
+                                                    <span className={`material-symbols-outlined text-2xl ${status === 'completed' ? '' : status === 'in_progress' ? 'animate-pulse' : ''}`}>
+                                                        {status === 'completed' ? 'check' : phase.icon}
+                                                    </span>
+                                                </div>
+
+                                                {/* Phase Info */}
+                                                <div className="text-center mt-3">
+                                                    <p className={`text-[10px] font-bold uppercase tracking-wider ${status === 'pending' ? 'text-slate-400' : 'text-slate-900'}`}>
+                                                        {phase.name}
+                                                    </p>
+                                                    <p className={`text-sm font-bold ${status === 'in_progress' ? 'text-blue-600' : 'text-slate-500'}`}>
+                                                        {phase.label}
+                                                    </p>
+                                                </div>
+
+                                                {/* Sub Tasks Chips */}
+                                                <div className="flex flex-wrap justify-center gap-1.5 mt-4">
+                                                    {phase.subTasks.map(task => (
+                                                        <span
+                                                            key={task}
+                                                            className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase border transition-colors ${subTasks[task] === 'completed' ? 'bg-green-50 text-green-700 border-green-100' :
+                                                                subTasks[task] === 'flagged' ? 'bg-red-50 text-red-700 border-red-100' :
+                                                                    'bg-slate-50 text-slate-400 border-slate-100'
+                                                                }`}
+                                                        >
+                                                            {task}
+                                                        </span>
+                                                    ))}
+                                                </div>
+
+                                                {/* Action Buttons */}
+                                                <div className="mt-4 flex flex-col gap-2 w-full px-2">
+                                                    {isCurrent && (
+                                                        <button
+                                                            onClick={() => onNavigate('screening-flow', { studentId: student.id, phase: phase.id })}
+                                                            className="w-full py-1.5 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition-all shadow-md shadow-blue-500/20"
+                                                        >
+                                                            Start {phase.name}
+                                                        </button>
+                                                    )}
+                                                    {status !== 'completed' && (
+                                                        <button
+                                                            onClick={() => handleOverridePhase(phase.id)}
+                                                            className={`w-full py-1 rounded-lg text-[10px] font-bold border transition-all ${isCurrent
+                                                                ? 'bg-white text-slate-400 hover:text-blue-600 border-slate-100 hover:border-blue-100'
+                                                                : 'bg-white text-slate-300 hover:text-slate-500 border-slate-50'
+                                                                }`}
+                                                        >
+                                                            Mark Complete
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Teacher Notes */}
+                        <div className="bg-white  rounded-xl p-6 shadow-sm border border-slate-200 ">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="font-bold text-slate-900  text-xl">Teacher Notes</h3>
+                                <button
+                                    onClick={handleAddNote}
+                                    className="flex items-center gap-1 text-sm text-blue-600 font-medium hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors"
+                                >
+                                    <span className="material-symbols-outlined text-[18px]">add</span>
+                                    Add Note
+                                </button>
+                            </div>
+                            <div className="space-y-4">
+                                <div className="relative">
+                                    <textarea
+                                        value={noteInput}
+                                        onChange={(e) => setNoteInput(e.target.value)}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleAddNote(); } }}
+                                        className="w-full bg-slate-50  border border-slate-200  rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all resize-none h-12 min-h-[48px]"
+                                        placeholder="Type an observation..."
+                                    />
+                                </div>
+                                {notes.map(note => (
+                                    <div key={note.id} className="group relative bg-white  border border-slate-100  rounded-lg p-4 hover:shadow-md transition-shadow">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <div className="flex items-center gap-2">
+                                                <div className={`h-6 w-6 rounded-full flex items-center justify-center text-xs font-bold ${note.avatarColor}`}>
+                                                    {note.role.slice(0, 2)}
+                                                </div>
+                                                <span className="text-xs font-bold text-slate-900 ">{note.author} ({note.role})</span>
+                                            </div>
+                                            <span className="text-xs text-slate-500">{note.date}</span>
+                                        </div>
+                                        <p className="text-sm text-slate-900  leading-relaxed">{note.content}</p>
+                                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button className="text-slate-400 hover:text-blue-600 p-1"><span className="material-symbols-outlined text-[18px]">edit</span></button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Attachments Grid */}
+                        <div className="bg-white  rounded-xl p-6 shadow-sm border border-slate-200 ">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="font-bold text-slate-900  text-xl">Attachments</h3>
+                                <button className="text-blue-600 text-sm font-medium hover:underline">View All</button>
+                            </div>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                {attachments.map(att => (
+                                    <div key={att.id} className={`group relative aspect-square rounded-lg border flex flex-col items-center justify-center cursor-pointer hover:shadow-md transition-all overflow-hidden ${att.type === 'audio' ? 'bg-blue-50 border-blue-100  ' :
+                                        att.type === 'pdf' ? 'bg-red-50 border-red-100  ' : 'bg-slate-100  border-transparent'
+                                        }`}>
+                                        {att.type === 'image' ? (
+                                            <>
+                                                {/* Placeholder for actual image if URL is valid */}
+                                                <div className="w-full h-full bg-slate-300 flex items-center justify-center text-slate-400">
+                                                    <span className="material-symbols-outlined text-4xl">image</span>
+                                                </div>
+                                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <span className="material-symbols-outlined text-white">visibility</span>
+                                                </div>
+                                                <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/60 to-transparent">
+                                                    <p className="text-white text-xs font-medium truncate">{att.name}</p>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span className={`material-symbols-outlined text-4xl mb-2 ${att.type === 'audio' ? 'text-blue-600' : 'text-red-500'
+                                                    }`}>
+                                                    {att.type === 'audio' ? 'mic' : 'description'}
+                                                </span>
+                                                <p className={`text-xs font-medium truncate max-w-[90%] ${att.type === 'audio' ? 'text-blue-600' : 'text-red-600'
+                                                    }`}>{att.name}</p>
+                                                {att.meta && <span className={`text-[10px] ${att.type === 'audio' ? 'text-blue-400' : 'text-red-400'
+                                                    }`}>{att.meta}</span>}
+                                            </>
+                                        )}
+                                    </div>
+                                ))}
+
+                                {/* Upload */}
+                                <div className="group relative aspect-square rounded-lg border-2 border-dashed border-slate-300 flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all">
+                                    <span className="material-symbols-outlined text-3xl text-slate-400 group-hover:text-blue-500">upload_file</span>
+                                    <p className="text-xs font-medium text-slate-500 mt-2 group-hover:text-blue-500">Upload</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Footer Actions */}
+                        <div className="flex flex-col sm:flex-row items-center justify-between p-4 bg-slate-100  rounded-lg border border-slate-200  gap-4">
+                            <div className="flex items-center gap-2 text-slate-500 text-sm">
+                                <span className="material-symbols-outlined text-[18px]">history</span>
+                                <span>Last updated by Admin on {new Date().toLocaleDateString()}</span>
+                            </div>
+                            <button className="px-4 py-2 rounded-lg bg-white border border-slate-200 text-slate-900 text-sm font-medium hover:bg-slate-50 transition-colors flex items-center gap-2">
+                                <span className="material-symbols-outlined text-[18px]">download</span>
+                                Export CSV
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    );
+};
+
+export default StudentProfile;

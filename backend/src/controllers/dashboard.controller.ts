@@ -18,8 +18,8 @@ export const getStats = async (req: AuthRequest, res: Response, next: NextFuncti
             totalAssessments,
             totalSessions
         ] = await Promise.all([
-            prisma.patient.count({ where: { clinicianId: req.userId, deletedAt: null } }),
-            prisma.patient.count({ where: { clinicianId: req.userId, status: 'active', deletedAt: null } }),
+            prisma.clinicianPatientView.count({ where: { clinicianId: req.userId } }),
+            prisma.clinicianPatientView.count({ where: { clinicianId: req.userId, caseStatus: 'active' } }),
             prisma.appointment.count({
                 where: {
                     clinicianId: req.userId,
@@ -33,7 +33,7 @@ export const getStats = async (req: AuthRequest, res: Response, next: NextFuncti
                 where: { userId: req.userId, verificationStatus: 'pending' }
             }),
             prisma.assessment.count({
-                where: { patient: { clinicianId: req.userId } }
+                where: { clinicianId: req.userId }
             }),
             prisma.consultationSession.count({
                 where: { clinicianId: req.userId }
@@ -104,16 +104,11 @@ export const getTodaySchedule = async (req: AuthRequest, res: Response, next: Ne
                 }
             },
             include: {
-                patient: {
+                person: {
                     select: {
                         id: true,
                         firstName: true,
                         lastName: true
-                    }
-                },
-                location: {
-                    select: {
-                        name: true
                     }
                 }
             },
@@ -124,13 +119,13 @@ export const getTodaySchedule = async (req: AuthRequest, res: Response, next: Ne
             success: true,
             data: appointments.map(a => ({
                 id: a.id,
-                patient_id: a.patient.id,
-                patient_name: `${a.patient.firstName} ${a.patient.lastName}`,
+                person_id: a.person.id,
+                patient_name: `${a.person.firstName} ${a.person.lastName}`,
                 start_time: a.startTime,
                 end_time: a.endTime,
                 appointment_type: a.appointmentType,
                 format: a.format,
-                location: a.location?.name,
+                location: a.locationId,
                 status: a.status
             }))
         });
@@ -149,11 +144,11 @@ export const getPendingTasks = async (req: AuthRequest, res: Response, next: Nex
             }),
             prisma.assessment.findMany({
                 where: {
-                    patient: { clinicianId: req.userId },
+                    clinicianId: req.userId,
                     status: 'in_progress'
                 },
                 include: {
-                    patient: { select: { firstName: true, lastName: true } }
+                    person: { select: { firstName: true, lastName: true } }
                 },
                 take: 5
             }),
@@ -164,7 +159,7 @@ export const getPendingTasks = async (req: AuthRequest, res: Response, next: Nex
                     status: 'scheduled'
                 },
                 include: {
-                    patient: { select: { firstName: true, lastName: true } }
+                    person: { select: { firstName: true, lastName: true } }
                 },
                 orderBy: { date: 'asc' },
                 take: 5
@@ -181,17 +176,17 @@ export const getPendingTasks = async (req: AuthRequest, res: Response, next: Nex
             })),
             ...incompleteAssessments.map(a => ({
                 id: `assess-${a.id}`,
-                patient_id: a.patientId,
+                person_id: a.personId,
                 type: 'incomplete_assessment',
-                title: `Complete ${a.assessmentType} for ${a.patient.firstName} ${a.patient.lastName}`,
+                title: `Complete ${a.assessmentType} for ${a.person.firstName} ${a.person.lastName}`,
                 priority: 'medium',
                 created_at: a.createdAt
             })),
             ...upcomingAppointments.slice(0, 3).map(a => ({
                 id: `appt-${a.id}`,
-                patient_id: a.patientId,
+                person_id: a.personId,
                 type: 'upcoming_appointment',
-                title: `Appointment with ${a.patient.firstName} ${a.patient.lastName}`,
+                title: `Appointment with ${a.person.firstName} ${a.person.lastName}`,
                 priority: 'low',
                 date: a.date
             }))
