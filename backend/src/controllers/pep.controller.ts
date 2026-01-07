@@ -232,8 +232,7 @@ export const getAllPEPs = async (req: Request, res: Response) => {
                     activitiesCount: totalActivities,
                     progress: progress,
                     createdAt: pep.createdAt,
-                    updatedAt: pep.updatedAt,
-                    archivedAt: pep.archivedAt
+                    updatedAt: pep.updatedAt
                 };
             })
         );

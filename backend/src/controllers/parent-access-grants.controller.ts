@@ -250,7 +250,7 @@ export const createAccessGrant = async (req: Request, res: Response) => {
                 status: 'pending',
                 tokenExpiresAt,
                 expiresAt: expiresAt ? new Date(expiresAt) : null,
-                grantedByName: `${user.firstName} ${user.lastName}`,
+                grantedByName: user.email,
                 grantedByEmail: user.email,
                 granteeEmail: clinicianEmail,
                 notes: null
@@ -271,7 +271,7 @@ export const createAccessGrant = async (req: Request, res: Response) => {
             data: {
                 id: grant.id,
                 token: grant.token,
-                tokenExpiresAt: grant.tokenExpiresAt.toISOString()
+                tokenExpiresAt: grant.tokenExpiresAt ? grant.tokenExpiresAt.toISOString() : null
             }
         });
     } catch (error) {

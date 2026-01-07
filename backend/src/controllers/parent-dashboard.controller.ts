@@ -78,28 +78,29 @@ export const getDashboardStats = async (req: Request, res: Response) => {
         });
 
         // Get pending recommendations count
-        const newRecommendations = await prisma.recommendation.count({
-            where: {
-                personId,
-                status: 'pending'
-            }
-        });
+        // const newRecommendations = await prisma.recommendation.count({
+        //     where: {
+        //         personId,
+        //         status: 'pending'
+        //     }
+        // });
+        const newRecommendations = 0;
 
         // Calculate milestone progress
-        const totalMilestones = await prisma.developmentalMilestone.count({
-            where: { personId }
-        });
+        // const totalMilestones = await prisma.developmentalMilestone.count({
+        //     where: { personId }
+        // });
 
-        const achievedMilestones = await prisma.developmentalMilestone.count({
-            where: {
-                personId,
-                achievedDate: { not: null }
-            }
-        });
+        // const achievedMilestones = await prisma.developmentalMilestone.count({
+        //     where: {
+        //         personId,
+        //         achievedDate: { not: null }
+        //     }
+        // });
 
-        const milestoneProgress = totalMilestones > 0
-            ? Math.round((achievedMilestones / totalMilestones) * 100)
-            : 0;
+        const milestoneProgress = 0; // totalMilestones > 0
+        // ? Math.round((achievedMilestones / totalMilestones) * 100)
+        // : 0;
 
         res.json({
             success: true,
