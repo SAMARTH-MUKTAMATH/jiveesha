@@ -29,22 +29,24 @@ import { useEffect, useState } from 'react';
 function App() {
   const [authReady, setAuthReady] = useState(false);
 
-  // AUTO-LOGIN BYPASS FOR TESTING - Remove in production
-  // AUTO-LOGIN BYPASS FOR TESTING - Remove in production
+  // AUTO-LOGIN BYPASS FOR TESTING - Disabled for production
   useEffect(() => {
-    // Only run if not already authenticated
-    if (!authService.isAuthenticated()) {
-      const mockToken = 'dev-token-parent';
-      const mockUser = {
-        id: 'a7eae539-a807-464e-b87b-9b6274bb8bc2',
-        email: 'parent@test.com',
-        role: 'parent',
-        firstName: 'Test',
-        lastName: 'Parent'
-      };
-      localStorage.setItem('token', mockToken);
-      localStorage.setItem('user', JSON.stringify(mockUser));
-      localStorage.setItem('userRole', 'parent');
+    // Bypass auto-login in production (Vercel)
+    if (window.location.hostname === 'localhost') {
+      // Only run if not already authenticated
+      if (!authService.isAuthenticated()) {
+        const mockToken = 'dev-token-parent';
+        const mockUser = {
+          id: 'a7eae539-a807-464e-b87b-9b6274bb8bc2',
+          email: 'parent@test.com',
+          role: 'parent',
+          firstName: 'Test',
+          lastName: 'Parent'
+        };
+        localStorage.setItem('token', mockToken);
+        localStorage.setItem('user', JSON.stringify(mockUser));
+        localStorage.setItem('userRole', 'parent');
+      }
     }
     setAuthReady(true);
   }, []);
