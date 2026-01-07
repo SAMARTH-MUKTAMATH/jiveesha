@@ -186,7 +186,6 @@ const TeachersDirectory: React.FC<TeachersDirectoryProps> = ({
             email: formData.get('email') as string,
             phone: formData.get('phone') as string,
             assignment: formData.get('assignment') as string,
-            assignment: formData.get('assignment') as string,
             // employeeId removed from manual input
             status: formData.get('status') as string || 'active',
         };
@@ -206,7 +205,6 @@ const TeachersDirectory: React.FC<TeachersDirectoryProps> = ({
             lastName: formData.get('lastName') as string,
             email: formData.get('email') as string,
             phone: formData.get('phone') as string,
-            assignment: formData.get('assignment') as string,
             assignment: formData.get('assignment') as string,
             // employeeId removed from manual input
             status: formData.get('status') as string || 'invited',

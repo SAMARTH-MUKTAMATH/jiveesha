@@ -40,7 +40,6 @@ const TeacherStudentList: React.FC<TeacherStudentListProps> = ({
 }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [teacher, setTeacher] = useState<any>(null);
-    const [isLoading, setIsLoading] = useState(true);
 
     // Fetch Teacher Details
     React.useEffect(() => {
@@ -91,8 +90,6 @@ const TeacherStudentList: React.FC<TeacherStudentListProps> = ({
                 }
             } catch (error) {
                 console.error('Failed to fetch teacher:', error);
-            } finally {
-                setIsLoading(false);
             }
         };
 
