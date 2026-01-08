@@ -4,7 +4,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import './auth-bypass'; // AUTO-LOGIN FOR DEVELOPMENT
+// import './auth-bypass'; // AUTO-LOGIN FOR DEVELOPMENT - DISABLED FOR PRODUCTION
 
 
 const rootElement = document.getElementById('root');
